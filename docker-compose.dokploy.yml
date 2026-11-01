@@ -55,7 +55,13 @@ services:
     expose:
       - "8000"
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health/ || exit 1"]
+      # The Host header must be a name in ALLOWED_HOSTS. Without it Django
+      # answers 400 DisallowedHost ("Invalid HTTP_HOST header: 'localhost:8000'")
+      # and the container is marked unhealthy while actually serving fine. Take
+      # the first entry, since ALLOWED_HOSTS may be a comma-separated list.
+      test:
+        - CMD-SHELL
+        - 'curl -fsS -H "Host: $${ALLOWED_HOSTS%%,*}" http://localhost:8000/health/ || exit 1'
       interval: 30s
       timeout: 10s
       retries: 3
