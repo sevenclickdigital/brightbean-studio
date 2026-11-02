@@ -145,25 +145,35 @@ any zoom level.
          @mouseup.window="onUp()"
          @wheel.prevent="onWheel($event)"
          :class="panning ? 'cursor-grabbing' : 'cursor-grab'"
-         style="background-image: radial-gradient(#d6d3d1 1px, transparent 1px); background-size: 22px 22px;"
-         :style="`background-position: ${pan.x}px ${pan.y}px`">
+         {% comment %}
+         One ``:style`` carrying all four properties. A static ``style`` next to
+         an Alpine ``:style`` does not merge — Alpine overwrites the attribute,
+         which silently dropped the dot grid the moment the canvas was panned.
+         {% endcomment %}
+         :style="`background-image: radial-gradient(#d6d3d1 1px, transparent 1px);
+                  background-size: ${22 * zoom}px ${22 * zoom}px;
+                  background-position: ${pan.x}px ${pan.y}px`">
 
-        <!-- Edges. Under the nodes, sharing their transform. -->
+        {% comment %}
+        Edges, under the nodes and sharing their transform.
+
+        Rendered with ``x-html`` rather than an ``x-for`` of ``<path>``
+        elements. Alpine clones a ``<template>`` through the HTML parser, which
+        produces elements in the HTML namespace — and an HTML ``<path>`` inside
+        an ``<svg>`` is invisible, because SVG rendering requires the SVG
+        namespace. Setting ``innerHTML`` on a node that is already inside the
+        SVG tree parses the markup in the right namespace, so the paths appear.
+        {% endcomment %}
         <svg class="absolute inset-0 w-full h-full pointer-events-none" style="overflow: visible;">
-            <g :transform="`translate(${pan.x}, ${pan.y}) scale(${zoom})`">
-                <template x-for="edge in edges" :key="edge.from + '->' + edge.to">
-                    <path :d="edgePath(edge)" fill="none" stroke="#a8a29e" stroke-width="2" />
-                </template>
-                <!-- The line being dragged from a port, before it lands. -->
-                <path x-show="linking" :d="pendingPath()" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5 4" />
-            </g>
+            <g :transform="`translate(${pan.x}, ${pan.y}) scale(${zoom})`" x-html="edgeMarkup()"></g>
         </svg>
 
         <!-- Nodes -->
         <div class="absolute inset-0 origin-top-left"
              :style="`transform: translate(${pan.x}px, ${pan.y}px) scale(${zoom});`">
             <template x-for="node in nodes" :key="node.id">
-                <div data-node class="absolute w-72 rounded-2xl bg-white shadow-sm transition-shadow"
+                <div data-node :id="'node-' + node.id"
+                     class="absolute w-72 rounded-2xl bg-white shadow-sm transition-shadow"
                      :class="selected === node.id ? 'border-2 border-orange-400 shadow-md' : 'border border-stone-200'"
                      :style="`left: ${node.x}px; top: ${node.y}px;`"
                      @mousedown.stop="startDrag(node, $event)"
@@ -336,6 +346,8 @@ function flowBuilder() {
         // every mousemove is a layout thrash, and these boxes are fixed-width.
         NODE_W: 288,
         NODE_H: 150,
+        //: Measured node heights, keyed by node id. See ``measure()``.
+        heights: {},
 
         init() {
             const stored = JSON.parse(document.getElementById('flow-graph').textContent || '{}');
@@ -344,7 +356,38 @@ function flowBuilder() {
                 data: n.data || {},
             }));
             this.edges = stored.edges || [];
-            this.$nextTick(() => this.fitView());
+            this.$nextTick(() => {
+                this.measure();
+                this.fitView();
+            });
+
+            // A node's height changes with its content — a keyword chip added,
+            // a textarea grown — and the ports move with it. Observing the
+            // layer is what keeps the lines attached without polling: a
+            // ``$watch`` on the data would miss height changes the browser
+            // makes on its own, such as text wrapping at a given width.
+            if (window.ResizeObserver) {
+                const observer = new ResizeObserver(() => this.measure());
+                this.$nextTick(() => {
+                    for (const node of this.nodes) {
+                        const el = document.getElementById('node-' + node.id);
+                        if (el) observer.observe(el);
+                    }
+                });
+                this._observer = observer;
+            }
+            // New nodes arrive after that pass, so re-observe when the set
+            // changes. Cheap: it runs on add/remove, not on drag.
+            this.$watch('nodes', () => {
+                this.$nextTick(() => {
+                    this.measure();
+                    if (!this._observer) return;
+                    for (const node of this.nodes) {
+                        const el = document.getElementById('node-' + node.id);
+                        if (el) this._observer.observe(el);
+                    }
+                });
+            });
         },
 
         // --- Node metadata ---------------------------------------------
@@ -514,22 +557,66 @@ function flowBuilder() {
         // --- Edge geometry ----------------------------------------------
         nodeById(id) { return this.nodes.find(n => n.id === id); },
 
-        edgePath(edge) {
-            const from = this.nodeById(edge.from);
-            const to = this.nodeById(edge.to);
+        // A node's real rendered height, cached by id. The boxes are
+        // fixed-width but their height follows their content — a trigger with
+        // six keyword chips is twice the height of an empty DM — and the ports
+        // sit at ``top-1/2`` of the *actual* box. A constant drew every line
+        // into the node's side instead of into its port. Measured from the DOM
+        // because the layout is the only thing that knows, and cached so the
+        // measuring happens on change rather than on every mousemove.
+        measure() {
+            const next = {};
+            for (const node of this.nodes) {
+                const el = document.getElementById('node-' + node.id);
+                if (el) next[node.id] = el.offsetHeight;
+            }
+            this.heights = next;
+        },
+
+        // One string of SVG markup for every edge, plus the line in flight.
+        // See the comment on the <svg> above for why this is not an x-for.
+        edgeMarkup() {
+            // Every reactive source is read up front, before any branch that
+            // could skip it. Alpine records what an expression touches *while*
+            // it runs, so a dependency only reached inside a loop body is
+            // untracked on an empty list — and the binding would then never
+            // re-evaluate. Naming them here makes the subscription explicit
+            // rather than a side effect of how the loop happens to be written.
+            const nodes = this.nodes;
+            const heights = this.heights;
+            const cursor = this.cursor;
+            const linking = this.linking;
+
+            const paths = [];
+            for (const edge of this.edges) {
+                const d = this.edgePath(edge, nodes, heights);
+                if (d) paths.push(`<path d="${d}" fill="none" stroke="#a8a29e" stroke-width="2" />`);
+            }
+            if (linking) {
+                const d = this.pendingPath(linking, cursor, nodes, heights);
+                if (d) paths.push(`<path d="${d}" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5 4" />`);
+            }
+            return paths.join('');
+        },
+
+        edgePath(edge, nodes = this.nodes, heights = this.heights) {
+            const from = nodes.find(n => n.id === edge.from);
+            const to = nodes.find(n => n.id === edge.to);
+            // A dangling edge — one whose node was deleted — draws nothing
+            // rather than throwing, so one stale entry cannot blank the canvas.
             if (!from || !to) return '';
             return this.curve(
-                from.x + this.NODE_W, from.y + this.NODE_H / 2,
-                to.x, to.y + this.NODE_H / 2,
+                from.x + this.NODE_W, from.y + (heights[from.id] || this.NODE_H) / 2,
+                to.x, to.y + (heights[to.id] || this.NODE_H) / 2,
             );
         },
 
-        pendingPath() {
-            const from = this.nodeById(this.linking);
+        pendingPath(linking = this.linking, cursor = this.cursor, nodes = this.nodes, heights = this.heights) {
+            const from = nodes.find(n => n.id === linking);
             if (!from) return '';
             return this.curve(
-                from.x + this.NODE_W, from.y + this.NODE_H / 2,
-                this.cursor.x, this.cursor.y,
+                from.x + this.NODE_W, from.y + (heights[from.id] || this.NODE_H) / 2,
+                cursor.x, cursor.y,
             );
         },
 
