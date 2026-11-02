@@ -487,9 +487,15 @@ def _create_if_new(
         defaults=defaults,
     )
     if created:
+        from apps.automations.services import on_inbox_message_created
+
         from .tasks import InboxSyncEngine
 
         InboxSyncEngine()._notify_new_message(obj)
+        # Only enqueues, and never raises — see that function's docstring. An
+        # exception here would unwind this handler and lose the customer's
+        # message, which is far worse than not automating a reply to it.
+        on_inbox_message_created(obj)
 
 
 # --- YouTube PubSubHubbub ---

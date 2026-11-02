@@ -654,6 +654,10 @@
                     <span class="sidebar-nav-label">Social Inbox</span>
                     {% if sidebar_unread_inbox_count %}<span class="sidebar-badge">{{ sidebar_unread_inbox_count }}</span>{% endif %}
                 </a>
+                <a href="{% url 'automations:list' workspace_id=request.workspace.id %}" class="mb-1 sidebar-nav-item {% if request.resolver_match.app_name == 'automations' %}active{% endif %}">
+                    <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    <span class="sidebar-nav-label">Automations</span>
+                </a>
                 {% endif %}
 
                 <a href="{% url 'notifications:list' %}" class="mb-1 sidebar-nav-item {% if request.resolver_match.url_name == 'list' and request.resolver_match.app_name == 'notifications' %}active{% endif %}">

@@ -623,6 +623,13 @@ class InboxSyncEngine:
             obj.save(update_fields=["sentiment"])
             if notify:
                 self._notify_new_message(obj)
+            # Safe inside this ``@transaction.atomic`` method because it only
+            # enqueues — no network call, no lock, and it never raises. If this
+            # transaction rolls back, the queued task looks the message up by id,
+            # finds nothing and returns (step 1 of ``actions.run_for_message``).
+            from apps.automations.services import on_inbox_message_created
+
+            on_inbox_message_created(obj)
 
     def _notify_new_message(self, message):
         """Send notification for a new inbox message."""

@@ -65,11 +65,55 @@ def _migrate(target: str) -> None:
     MigrationExecutor(connection).migrate([(APP, target)])
 
 
+def _dependent_apps() -> list[str]:
+    """Other apps whose migrations depend on this one, in dependency order.
+
+    Discovered from the graph rather than hard-coded, so an app added later is
+    covered without anyone remembering this file exists. Those are exactly the
+    apps whose tables can hold an FK to ``inbox_message`` and therefore be
+    cascaded away when this app is rewound.
+    """
+    graph = MigrationExecutor(connection).loader.graph
+    found: list[str] = []
+    for app_label, name in graph.leaf_nodes():
+        if app_label == APP or app_label in found:
+            continue
+        # ``forwards_plan`` is the transitive set this leaf needs applied first,
+        # so asking the leaf covers every migration in that app.
+        if any(parent[0] == APP for parent in graph.forwards_plan((app_label, name))):
+            found.append(app_label)
+    return found
+
+
 @pytest.fixture
 def restore_migrations():
-    """Leave the database at the migration head however the test ends."""
+    """Leave the database at the migration head however the test ends.
+
+    Restoring ``inbox`` alone is not enough, and the way it fails is invisible
+    from this file. Rewinding this app to ``0001_initial`` drops
+    ``inbox_message``, so Postgres cascades the drop to every table holding an
+    FK to it — including tables owned by *other* apps whose migrations depend on
+    ours. Re-applying only ``inbox`` recreates ``inbox_message`` but leaves
+    those other tables gone, because their migrations are already recorded as
+    applied, so the executor has nothing to do.
+
+    The damage then surfaces in an unrelated app's test much later in the run:
+    deleting a user touches every table with an FK to it, one of which no longer
+    exists, and the failure reads as a bug in whichever test happened to run
+    next. ``migrate`` with no target reapplies the whole graph, which is the
+    only restore that matches what this fixture's name claims.
+    """
     yield
+    # Rewind the dependants first so their migrations are no longer recorded as
+    # applied; re-applying the graph then genuinely recreates their tables
+    # rather than deciding there is nothing to do.
+    for app_label in _dependent_apps():
+        MigrationExecutor(connection).migrate([(app_label, None)])
     _migrate(_head())
+    for app_label in _dependent_apps():
+        leaf = MigrationExecutor(connection).loader.graph.leaf_nodes(app_label)
+        if leaf:
+            MigrationExecutor(connection).migrate([leaf[0]])
 
 
 @pytest.mark.django_db(transaction=True)

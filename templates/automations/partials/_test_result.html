@@ -1,0 +1,79 @@
+{% comment %}
+Dry-run result. Rendered into the form's result div by hx-post.
+
+ESCAPING: every value below that came from the platform — comment bodies, sender
+names, account names — goes through Django's autoescape. No |safe anywhere in
+this file, and none may be added: a comment body is text a stranger on the
+internet typed, and this template renders it into the author's own admin page.
+
+The two warnings at the top are not decoration. ``matching.matches_history``
+applies only the keyword/post predicate — it deliberately skips the platform gate
+and the "has something to send" gate, so that a half-written rule can still
+preview its keywords. So a match count here does NOT mean the rule would fire,
+and saying "3 matched" without saying why it still would not run is the one way
+this panel could mislead.
+{% endcomment %}
+<div class="mt-4">
+    <!-- It sends nothing. Said first, and said plainly. -->
+    <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-stone-50 border border-stone-200 mb-3">
+        <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <p class="text-[12px] text-stone-600 leading-relaxed">
+            <span class="font-semibold text-stone-700">This is a preview. Nothing was sent.</span>
+            It replays the rule against the {{ sample_size }} most recent comment{{ sample_size|pluralize }} already in your inbox — no replies and no DMs were posted, and nobody was notified.
+        </p>
+    </div>
+
+    {% if not rule_is_active %}
+    <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200 mb-3">
+        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <p class="text-[12px] text-amber-800 leading-relaxed">
+            <span class="font-semibold">This rule is off.</span>
+            Matches below show what it <em>would</em> pick up. While it is off, it does not reply to new comments at all.
+        </p>
+    </div>
+    {% endif %}
+
+    {% if not rule_can_act %}
+    <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200 mb-3">
+        <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <p class="text-[12px] text-amber-800 leading-relaxed">
+            <span class="font-semibold">This rule has nothing to send.</span>
+            No reply channel is both switched on and filled in, so even when it is active it is skipped before matching happens. Write a public reply or a DM.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Result -->
+    <div class="bg-white border border-stone-200 rounded-xl overflow-hidden" style="box-shadow: var(--shadow-xs);">
+        <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
+            <p class="text-[13px] font-semibold text-stone-800">
+                {{ matched_count }} of {{ sample_size }} recent comment{{ sample_size|pluralize }} would match
+            </p>
+        </div>
+
+        {% if matched_messages %}
+        <div class="divide-y divide-stone-100">
+            {% for message in matched_messages %}
+            <div class="px-4 py-3">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[12px] font-semibold text-stone-700">{{ message.sender_name|default:"Unknown" }}</span>
+                    <span class="text-[11px] text-stone-400">{{ message.social_account.account_name }}</span>
+                    <span class="text-[11px] text-stone-400">&middot; {{ message.received_at|date:"j M, H:i" }}</span>
+                </div>
+                {# No |safe. Platform-supplied body, truncated for the preview. #}
+                <p class="text-[13px] text-stone-600 leading-relaxed">{{ message.body|truncatechars:120 }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% elif sample_size == 0 %}
+        <div class="px-4 py-8 text-center">
+            <p class="text-[13px] text-stone-500">There are no comments in this workspace's inbox yet, so there is nothing to preview against.</p>
+        </div>
+        {% else %}
+        <div class="px-4 py-8 text-center">
+            <p class="text-[13px] text-stone-500">None of the {{ sample_size }} most recent comment{{ sample_size|pluralize }} match this rule.</p>
+            <p class="text-[12px] text-stone-400 mt-1">Check the keyword match types, the post scope, and the exclude list — exclude wins over include.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>

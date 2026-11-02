@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block title %}{% if rule %}Edit rule{% else %}New rule{% endif %} - {{ workspace.name }} - Brightbean{% endblock %}
+
+{% block content %}
+{% comment %}
+Four stacked cards: When / Reply publicly / Send a DM / Limits.
+
+Three Alpine components, all of the same shape: they own a JS array, render it
+with x-for, and mirror it into a hidden input as JSON on every change. The hidden
+input is the field the form actually validates — the visible inputs carry no
+``name`` at all, which is deliberate: a stray name would post a second,
+unvalidated copy of the same data.
+
+Serialisation happens on every mutation (``$watch`` on the array) rather than on
+submit. A submit handler is one event away from not running — the Enter key in a
+text input, a hx-post from the Test button — and a hidden input that is one edit
+stale is a rule that silently saves the previous keyword list.
+{% endcomment %}
+<div class="max-w-2xl">
+    <!-- Header -->
+    <div class="flex items-center gap-3 mb-6">
+        <a href="{% url 'automations:list' workspace_id=workspace.id %}"
+           class="text-stone-400 hover:text-stone-600 transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+        <div>
+            <h2 class="text-xl font-semibold text-stone-900 tracking-tight">{% if rule %}Edit rule{% else %}New rule{% endif %}</h2>
+            <p class="text-sm text-stone-500 mt-0.5">Match a comment by keyword, then reply publicly, by DM, or both.</p>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200">
+        {% for error in form.non_field_errors %}
+        <p class="text-[13px] text-red-700">{{ error }}</p>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <form method="post" id="rule-form"
+          action="{% if rule %}{% url 'automations:edit' workspace_id=workspace.id rule_id=rule.id %}{% else %}{% url 'automations:create' workspace_id=workspace.id %}{% endif %}">
+        {% csrf_token %}
+
+        <!-- Name + active ------------------------------------------------- -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <div>
+                <label for="{{ form.name.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Rule name</label>
+                {{ form.name }}
+                {% for error in form.name.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                <p class="text-[11px] text-stone-400 mt-1">Only you and your team see this.</p>
+            </div>
+
+            <div class="flex items-center justify-between pt-5 mt-5 border-t border-stone-100">
+                <div>
+                    <label class="text-[14px] font-semibold text-stone-800">Rule is on</label>
+                    <p class="text-[12px] text-stone-500 mt-0.5">A rule can only be turned on once it has a public reply or a DM to send.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_active" {% if form.is_active.value %}checked{% endif %} class="sr-only peer">
+                    <div class="w-9 h-5 bg-stone-200 rounded-full peer peer-checked:bg-orange-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+            {% for error in form.is_active.errors %}<p class="text-[12px] text-red-600 mt-2">{{ error }}</p>{% endfor %}
+        </div>
+
+        <!-- 1. When ------------------------------------------------------- -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <h3 class="text-[15px] font-semibold text-stone-900 mb-1">When</h3>
+            <p class="text-[12px] text-stone-500 mb-5">Which comments this rule picks up.</p>
+
+            <div class="space-y-5">
+                <!-- Account -->
+                <div>
+                    <label for="{{ form.social_account.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Account</label>
+                    {{ form.social_account }}
+                    {% for error in form.social_account.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                    <p class="text-[11px] text-stone-400 mt-1">Comment automations run on Instagram and Facebook only.</p>
+                </div>
+
+                <!-- Post scope + post ids -->
+                {{ initial_lists.post_ids|json_script:"initial-post_ids" }}
+                <div x-data="postIdEditor(initialData('post_ids'))">
+                    <label for="{{ form.post_scope.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Posts</label>
+                    <select name="post_scope" id="{{ form.post_scope.id_for_label }}" x-model="scope" class="form-input w-full">
+                        {% for value, label in form.post_scope.field.choices %}
+                        <option value="{{ value }}" {% if form.post_scope.value|stringformat:"s" == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% for error in form.post_scope.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+
+                    <div x-show="scope === 'specific'" x-cloak class="mt-3 space-y-2">
+                        <template x-for="(item, index) in items" :key="index">
+                            <div class="flex items-center gap-2">
+                                <input type="text" x-model="items[index]"
+                                       placeholder="Post ID from Instagram or Facebook"
+                                       class="form-input flex-1">
+                                <button type="button" @click="removeItem(index)"
+                                        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" @click="addItem()"
+                                class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-stone-600 hover:text-stone-800 transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add a post
+                        </button>
+                        <p class="text-[11px] text-stone-400">A rule scoped to specific posts needs at least one — otherwise it matches nothing at all.</p>
+                    </div>
+
+                    {# The validated field. Visible inputs above carry no name. #}
+                    <input type="hidden" name="post_ids" :value="serialised">
+                    {% for error in form.post_ids.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Include keywords -->
+                {{ initial_lists.include_keywords|json_script:"initial-include_keywords" }}
+                <div x-data="keywordEditor(initialData('include_keywords'))">
+                    <label class="block text-[13px] font-semibold text-stone-700 mb-1.5">Include these keywords</label>
+                    <p class="text-[11px] text-stone-400 mb-2">Leave empty to reply to every comment in scope.</p>
+                    <div class="space-y-2">
+                        <template x-for="(item, index) in items" :key="index">
+                            <div class="flex items-center gap-2">
+                                <input type="text" x-model="item.text"
+                                       placeholder="e.g. price"
+                                       class="form-input flex-1">
+                                <select x-model="item.mode" class="form-input w-[13.5rem] flex-shrink-0">
+                                    {% for value, label in keyword_mode_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" @click="removeItem(index)"
+                                        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" @click="addItem()"
+                                class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-stone-600 hover:text-stone-800 transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add a keyword
+                        </button>
+                        {# The validated field. The inputs above carry no name. #}
+                        <input type="hidden" name="include_keywords" :value="serialised">
+                    </div>
+                    {% for error in form.include_keywords.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Exclude keywords -->
+                {{ initial_lists.exclude_keywords|json_script:"initial-exclude_keywords" }}
+                <div x-data="keywordEditor(initialData('exclude_keywords'))">
+                    <label class="block text-[13px] font-semibold text-stone-700 mb-1.5">But skip comments with</label>
+                    <p class="text-[11px] text-stone-400 mb-2">Exclude wins: a comment matching both lists does not get a reply.</p>
+                    <div class="space-y-2">
+                        <template x-for="(item, index) in items" :key="index">
+                            <div class="flex items-center gap-2">
+                                <input type="text" x-model="item.text"
+                                       placeholder="e.g. price"
+                                       class="form-input flex-1">
+                                <select x-model="item.mode" class="form-input w-[13.5rem] flex-shrink-0">
+                                    {% for value, label in keyword_mode_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="button" @click="removeItem(index)"
+                                        class="w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                </button>
+                            </div>
+                        </template>
+                        <button type="button" @click="addItem()"
+                                class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-stone-600 hover:text-stone-800 transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add a keyword
+                        </button>
+                        {# The validated field. The inputs above carry no name. #}
+                        <input type="hidden" name="exclude_keywords" :value="serialised">
+                    </div>
+                    {% for error in form.exclude_keywords.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                </div>
+
+                <!-- Top level only -->
+                <div class="flex items-center justify-between pt-4 border-t border-stone-100">
+                    <div>
+                        <label class="text-[13px] font-semibold text-stone-700">Top-level comments only</label>
+                        <p class="text-[12px] text-stone-500 mt-0.5">Ignore replies to other comments.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" name="top_level_only" {% if form.top_level_only.value %}checked{% endif %} class="sr-only peer">
+                        <div class="w-9 h-5 bg-stone-200 rounded-full peer peer-checked:bg-orange-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Reply publicly --------------------------------------------- -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <div class="flex items-start justify-between mb-5">
+                <div>
+                    <h3 class="text-[15px] font-semibold text-stone-900 mb-1">Reply publicly</h3>
+                    <p class="text-[12px] text-stone-500">Post a reply under the comment, where everyone can see it.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+                    <input type="checkbox" name="public_reply_enabled" {% if form.public_reply_enabled.value %}checked{% endif %} class="sr-only peer">
+                    <div class="w-9 h-5 bg-stone-200 rounded-full peer peer-checked:bg-orange-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+
+            {{ initial_lists.public_reply_texts|json_script:"initial-public_reply_texts" }}
+            <div x-data="replyTextEditor(initialData('public_reply_texts'), '{{ form.public_reply_mode.value|default:"static"|escapejs }}')">
+                <div class="mb-4">
+                    <label for="{{ form.public_reply_mode.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">How to pick the text</label>
+                    <select name="public_reply_mode" id="{{ form.public_reply_mode.id_for_label }}" x-model="mode" class="form-input w-full">
+                        {% for value, label in form.public_reply_mode.field.choices %}
+                        <option value="{{ value }}" {% if form.public_reply_mode.value|stringformat:"s" == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% for error in form.public_reply_mode.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="space-y-2">
+                    <template x-for="(item, index) in items" :key="index">
+                        <div class="flex items-start gap-2">
+                            <textarea x-model="items[index]" rows="2"
+                                      placeholder="Thanks! Sent you a DM with the details."
+                                      class="form-input flex-1"></textarea>
+                            <button type="button" @click="removeItem(index)"
+                                    class="w-8 h-8 flex-shrink-0 flex items-center justify-center mt-1 rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </template>
+                    <div class="flex items-center justify-between">
+                        <button type="button" @click="addItem()"
+                                class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-stone-600 hover:text-stone-800 transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add a variation
+                        </button>
+                        <p class="text-[11px] text-stone-400" x-text="modeHint" x-show="items.length > 1"></p>
+                    </div>
+                    {# The validated field. The textareas above carry no name. #}
+                    <input type="hidden" name="public_reply_texts" :value="serialised">
+                </div>
+                {% for error in form.public_reply_texts.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+            </div>
+
+            <!-- v2 preview, deliberately inert. Declared now so the AI option
+                 is not a surprise later; it is not clickable and posts nothing,
+                 because ReplyMode.AI is rejected by the form in v1. -->
+            <div class="mt-5 pt-5 border-t border-stone-100">
+                <div class="flex items-start gap-3 px-4 py-3 rounded-lg bg-stone-50 border border-stone-200 opacity-60 cursor-not-allowed select-none" aria-disabled="true">
+                    <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 13.41 13.41 7.76 16.24 10.59 10.59 16.24 7.76"/></svg>
+                    <div>
+                        <p class="text-[13px] font-semibold text-stone-500">AI replies — coming in v2</p>
+                        <p class="text-[12px] text-stone-400 mt-0.5">Write a prompt instead of fixed text and have each reply drafted for the comment it answers. Not available yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Send a DM -------------------------------------------------- -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <div class="flex items-start justify-between mb-5">
+                <div>
+                    <h3 class="text-[15px] font-semibold text-stone-900 mb-1">Send a DM</h3>
+                    <p class="text-[12px] text-stone-500">Message the commenter privately.</p>
+                </div>
+                <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-1">
+                    <input type="checkbox" name="private_reply_enabled" {% if form.private_reply_enabled.value %}checked{% endif %} class="sr-only peer">
+                    <div class="w-9 h-5 bg-stone-200 rounded-full peer peer-checked:bg-orange-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                </label>
+            </div>
+
+            <!-- Platform constraint, stated where the decision is made. -->
+            <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-stone-50 border border-stone-200 mb-5">
+                <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <p class="text-[12px] text-stone-600 leading-relaxed">Meta allows one private reply per comment, within 7 days of the comment.</p>
+            </div>
+
+            {{ initial_lists.private_reply_texts|json_script:"initial-private_reply_texts" }}
+            <div x-data="replyTextEditor(initialData('private_reply_texts'), '{{ form.private_reply_mode.value|default:"static"|escapejs }}')">
+                <div class="mb-4">
+                    <label for="{{ form.private_reply_mode.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">How to pick the text</label>
+                    <select name="private_reply_mode" id="{{ form.private_reply_mode.id_for_label }}" x-model="mode" class="form-input w-full">
+                        {% for value, label in form.private_reply_mode.field.choices %}
+                        <option value="{{ value }}" {% if form.private_reply_mode.value|stringformat:"s" == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                    {% for error in form.private_reply_mode.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                </div>
+                <div class="space-y-2">
+                    <template x-for="(item, index) in items" :key="index">
+                        <div class="flex items-start gap-2">
+                            <textarea x-model="items[index]" rows="2"
+                                      placeholder="Hi! Here is the link you asked for..."
+                                      class="form-input flex-1"></textarea>
+                            <button type="button" @click="removeItem(index)"
+                                    class="w-8 h-8 flex-shrink-0 flex items-center justify-center mt-1 rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                    </template>
+                    <div class="flex items-center justify-between">
+                        <button type="button" @click="addItem()"
+                                class="inline-flex items-center gap-1.5 text-[12px] font-semibold text-stone-600 hover:text-stone-800 transition-colors cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add a variation
+                        </button>
+                        <p class="text-[11px] text-stone-400" x-text="modeHint" x-show="items.length > 1"></p>
+                    </div>
+                    {# The validated field. The textareas above carry no name. #}
+                    <input type="hidden" name="private_reply_texts" :value="serialised">
+                </div>
+                {% for error in form.private_reply_texts.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+            </div>
+
+            <!-- v2 preview, deliberately inert. Declared now so the AI option
+                 is not a surprise later; it is not clickable and posts nothing,
+                 because ReplyMode.AI is rejected by the form in v1. -->
+            <div class="mt-5 pt-5 border-t border-stone-100">
+                <div class="flex items-start gap-3 px-4 py-3 rounded-lg bg-stone-50 border border-stone-200 opacity-60 cursor-not-allowed select-none" aria-disabled="true">
+                    <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polygon points="16.24 7.76 13.41 13.41 7.76 16.24 10.59 10.59 16.24 7.76"/></svg>
+                    <div>
+                        <p class="text-[13px] font-semibold text-stone-500">AI replies — coming in v2</p>
+                        <p class="text-[12px] text-stone-400 mt-0.5">Write a prompt instead of fixed text and have each reply drafted for the comment it answers. Not available yet.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Limits ------------------------------------------------------ -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <h3 class="text-[15px] font-semibold text-stone-900 mb-1">Limits</h3>
+            <p class="text-[12px] text-stone-500 mb-5">Guardrails, so one busy post cannot turn into a flood.</p>
+
+            <div class="space-y-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <label class="text-[13px] font-semibold text-stone-700">One reply per person, per post</label>
+                        <p class="text-[12px] text-stone-500 mt-0.5">However many times somebody comments on the same post, they hear from this rule once.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 ml-4">
+                        <input type="checkbox" name="once_per_sender_per_post" {% if form.once_per_sender_per_post.value %}checked{% endif %} class="sr-only peer">
+                        <div class="w-9 h-5 bg-stone-200 rounded-full peer peer-checked:bg-orange-500 transition-colors after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                    </label>
+                </div>
+
+                <div class="pt-4 border-t border-stone-100">
+                    <label for="{{ form.max_per_hour.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Most sends per hour</label>
+                    {{ form.max_per_hour }}
+                    {% for error in form.max_per_hour.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                    {# Zero is accepted and means something specific; see AutomationRuleForm.clean_max_per_hour. #}
+                    <p class="text-[11px] text-stone-400 mt-1">Set to <span class="font-semibold text-stone-500">0</span> to stop this rule sending while keeping its setup — it still claims the comments it matches, so no other rule replies to them either.</p>
+                </div>
+
+                <div class="pt-4 border-t border-stone-100">
+                    <label for="{{ form.priority.id_for_label }}" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Priority</label>
+                    {{ form.priority }}
+                    {% for error in form.priority.errors %}<p class="text-[12px] text-red-600 mt-1">{{ error }}</p>{% endfor %}
+                    <p class="text-[11px] text-stone-400 mt-1">Lower runs first. A comment is answered by the first rule that matches it, and only that one.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test + save ---------------------------------------------------- -->
+        <div class="bg-white border border-stone-200 rounded-xl p-6 mb-4" style="box-shadow: var(--shadow-xs);">
+            <h3 class="text-[15px] font-semibold text-stone-900 mb-1">Check it before you turn it on</h3>
+            <p class="text-[12px] text-stone-500 mb-4">Replays this rule against your recent comments. It does not send anything.</p>
+            {% if rule %}
+            <button type="button"
+                    hx-post="{% url 'automations:test' workspace_id=workspace.id rule_id=rule.id %}"
+                    hx-target="#test-result"
+                    hx-swap="innerHTML"
+                    class="inline-flex items-center gap-1.5 px-4 py-2 text-[13px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                Test this rule
+            </button>
+            {% else %}
+            <p class="text-[12px] text-stone-400">Save the rule first — it is saved off, so nothing happens until you turn it on.</p>
+            {% endif %}
+            <div id="test-result"></div>
+        </div>
+
+        <div class="flex items-center gap-3 mb-10">
+            <button type="submit"
+                    class="inline-flex items-center gap-1.5 px-5 py-2 text-[13px] font-semibold text-white rounded-full transition-all duration-150 cursor-pointer"
+                    style="background: var(--primary); box-shadow: var(--shadow-primary);">
+                {% if rule %}Save changes{% else %}Create rule{% endif %}
+            </button>
+            <a href="{% url 'automations:list' workspace_id=workspace.id %}"
+               class="text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    // Three list editors, all the same contract: own an array, render it with
+    // x-for, mirror it into the hidden input as JSON on every change. The
+    // visible controls deliberately have no `name` — only the hidden input is
+    // posted, so there is exactly one copy of this data in the POST body and
+    // it is the one the form validates.
+    //
+    // ``serialised`` is kept in sync by $watch rather than computed on submit:
+    // the Test button issues an hx-post and the Enter key submits the form, and
+    // neither of those is guaranteed to run a submit handler first. A hidden
+    // input one edit behind would save the previous keyword list with no error.
+    // Server data reaches these components through {{ ... |json_script }}
+    // rather than through the x-data attribute itself. Interpolating JSON into
+    // an HTML attribute does not survive the round trip: Django escapes the
+    // quotes to &quot;, the browser decodes them before Alpine ever evaluates
+    // the expression, and a reply text containing a quote or a </script> ends
+    // up as a broken JS literal — at which point the editor initialises empty
+    // and the author's saved text is silently dropped on the next save.
+    // json_script escapes for a JS context, which is the actual context.
+    function initialData(name) {
+        const node = document.getElementById('initial-' + name);
+        if (!node) return [];
+        try {
+            const parsed = JSON.parse(node.textContent);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('keywordEditor', (initial) => ({
+            // Normalised on load: a rule hand-edited in the admin may hold bare
+            // strings, which the matcher reads as `contains` (see
+            // matching._keyword_entries). Showing them as rows the author can
+            // see beats dropping them silently.
+            items: (Array.isArray(initial) ? initial : []).map(entry =>
+                typeof entry === 'string'
+                    ? { text: entry, mode: 'contains' }
+                    : { text: (entry && entry.text) || '', mode: (entry && entry.mode) || 'contains' }
+            ),
+            serialised: '[]',
+            init() {
+                this.sync();
+                this.$watch('items', () => this.sync());
+            },
+            sync() {
+                // Blank rows are dropped here as well as server-side: an empty
+                // row is a row the author added and has not filled in, and
+                // posting it would fail validation on something they can see is
+                // empty.
+                this.serialised = JSON.stringify(
+                    this.items
+                        .filter(item => item.text && item.text.trim())
+                        .map(item => ({ text: item.text.trim(), mode: item.mode }))
+                );
+            },
+            addItem() { this.items.push({ text: '', mode: 'contains' }); },
+            removeItem(index) { this.items.splice(index, 1); },
+        }));
+
+        Alpine.data('postIdEditor', (initial) => ({
+            scope: '{{ form.post_scope.value|default:"all"|escapejs }}',
+            items: Array.isArray(initial) ? initial.map(String) : [],
+            serialised: '[]',
+            init() {
+                this.sync();
+                this.$watch('items', () => this.sync());
+                // Switching back to "every post" clears the list rather than
+                // keeping it hidden. A hidden non-empty list is how you end up
+                // narrowing a rule you believe is unscoped.
+                this.$watch('scope', (value) => { if (value !== 'specific') { this.items = []; } });
+            },
+            sync() {
+                this.serialised = JSON.stringify(this.items.map(item => String(item).trim()).filter(Boolean));
+            },
+            addItem() { this.items.push(''); },
+            removeItem(index) { this.items.splice(index, 1); },
+        }));
+
+        Alpine.data('replyTextEditor', (initial, initialMode) => ({
+            mode: initialMode || 'static',
+            items: Array.isArray(initial) ? initial.map(String) : [],
+            serialised: '[]',
+            init() {
+                this.sync();
+                this.$watch('items', () => this.sync());
+            },
+            sync() {
+                this.serialised = JSON.stringify(this.items.map(item => String(item)).filter(item => item.trim()));
+            },
+            addItem() { this.items.push(''); },
+            removeItem(index) { this.items.splice(index, 1); },
+            // What the mode actually does, said next to the list rather than in
+            // the select: "Fixed text" does not tell you the other nineteen
+            // entries are ignored.
+            get modeHint() {
+                return this.mode === 'random'
+                    ? 'One of these is picked at random.'
+                    : 'Only the first is used.';
+            },
+        }));
+    });
+</script>
+{% endblock %}
