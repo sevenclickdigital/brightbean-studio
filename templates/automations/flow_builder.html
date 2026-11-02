@@ -293,7 +293,15 @@ any zoom level.
 
 {{ graph|json_script:"flow-graph" }}
 
-<script>
+{% comment %}
+The nonce is required, not decorative: ``CSP_SCRIPT_SRC`` does not include
+``'unsafe-inline'``, so an inline script without it is blocked outright. The
+failure is silent and looks like a layout bug — Alpine still runs, but
+``flowBuilder()`` is never defined, so every expression in this component fails
+and the canvas renders empty. Same pattern as ``inbox/feed.html`` and
+``composer/compose.html``.
+{% endcomment %}
+<script nonce="{{ request.csp_nonce }}">
 function flowBuilder() {
     return {
         // --- State ------------------------------------------------------
