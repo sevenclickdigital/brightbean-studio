@@ -16,6 +16,7 @@ Shows all published/partially_published platform posts. Loaded via HTMX into #ta
                 <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Caption</th>
                 <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Platform</th>
                 <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Author</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Automation</th>
             </tr>
         </thead>
         <tbody>
@@ -94,6 +95,24 @@ Shows all published/partially_published platform posts. Loaded via HTMX into #ta
                 </td>
                 <td class="px-4 py-3 text-xs text-stone-500">
                     {{ pp.post.author.display_name|default:"-" }}
+                </td>
+                {% comment %}
+                The already-published entry point. A flow set up here works the
+                same way as one drawn in the composer — the post id already
+                exists, so it arms on save instead of waiting for publication.
+                ``@click.stop`` because the whole row navigates to the composer.
+                {% endcomment %}
+                <td class="px-4 py-3" @click.stop>
+                    {% if pp.supports_automation %}
+                    <a href="{% url 'automations:flow_builder' workspace_id=workspace.id platform_post_id=pp.id %}"
+                       class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-medium transition-colors
+                              {% if pp.automation %}border-stone-200 text-stone-600 hover:border-stone-300 hover:text-stone-800{% else %}border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100{% endif %}">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                        {% if pp.automation %}{{ pp.automation.get_status_display }}{% else %}Set up{% endif %}
+                    </a>
+                    {% else %}
+                    <span class="text-xs text-stone-300">—</span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}

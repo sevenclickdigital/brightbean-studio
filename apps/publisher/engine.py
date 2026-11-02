@@ -548,8 +548,33 @@ class PublishEngine:
         )
         for pp in refreshed:
             self._maybe_schedule_first_comment(pp)
+            self._maybe_arm_automation(pp)
 
         return True
+
+    def _maybe_arm_automation(self, platform_post):
+        """Arm this post's comment automation, if an author drew one for it.
+
+        Called from every path that confirms a publish, alongside
+        ``_maybe_schedule_first_comment`` — the two answer the same question
+        ("this post is now live, what was waiting on that?") and must not drift
+        apart, which is why they are called together rather than one inside the
+        other.
+
+        A flow configured in the composer is scoped to no post and switched off
+        until this runs: there is no platform post id to match comments against
+        before publication. ``arm_for_platform_post`` is idempotent on the
+        stored id, so the repeated calls these three paths make are safe.
+
+        Never raises — see ``services.on_platform_post_published``. A post that
+        published successfully must not be recorded as failed because its
+        optional automation could not be armed.
+        """
+        if platform_post.status != PlatformPost.Status.PUBLISHED:
+            return
+        from apps.automations.services import on_platform_post_published
+
+        on_platform_post_published(platform_post)
 
     def _maybe_schedule_first_comment(self, platform_post):
         """Queue the first comment for a freshly published post, once.
@@ -1198,6 +1223,7 @@ class PublishEngine:
                 if result.get("success"):
                     self._sync_parent_published_at(pp.post)
                     self._maybe_schedule_first_comment(pp)
+                    self._maybe_arm_automation(pp)
             except Exception:
                 logger.exception("Error retrying PlatformPost %s", pp.id)
 
@@ -1385,6 +1411,7 @@ class PublishEngine:
         self._drop_queue_entry(platform_post)
         self._sync_parent_published_at(platform_post.post)
         self._maybe_schedule_first_comment(platform_post)
+        self._maybe_arm_automation(platform_post)
         logger.info("Confirmed publish of PlatformPost %s as %s", platform_post.id, platform_post_id)
 
     def _update_rate_limit(self, account, result):

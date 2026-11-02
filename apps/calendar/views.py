@@ -473,6 +473,38 @@ def _coerce_timezone(*candidates: str | None) -> str:
     return "UTC"
 
 
+def _annotate_automation(platform_posts) -> None:
+    """Attach ``supports_automation`` and ``automation`` to each row, in one query.
+
+    The Sent tab is where an author sets up a flow on a post that is *already
+    live* — the second of the feature's two entry points (the other is the
+    composer, before publishing). Both need the same two facts per row: can a
+    flow run on this platform at all, and is there one already.
+
+    Annotated per instance rather than fetched in the template because a
+    template cannot ask either question: ``platform`` has to be tested against a
+    set, and the flow lookup would be one query per row on a 200-row table.
+    """
+    from apps.automations.matching import COMMENT_PLATFORMS
+    from apps.automations.models import PostAutomation
+
+    rows = [pp for pp in platform_posts]
+    flows = {
+        flow.platform_post_id: flow
+        for flow in PostAutomation.objects.filter(platform_post__in=[pp.id for pp in rows])
+    }
+    for pp in rows:
+        # Published *and* carrying an id: a flow matches comments by the post's
+        # id on the platform, so a published row with no id recorded has nothing
+        # to attach to. ``failed`` rows are in this tab too and never qualify.
+        pp.supports_automation = (
+            pp.social_account.platform in COMMENT_PLATFORMS
+            and pp.status == PlatformPost.Status.PUBLISHED
+            and bool((pp.platform_post_id or "").strip())
+        )
+        pp.automation = flows.get(pp.id)
+
+
 def _get_tab_context(request, workspace, tab: str) -> dict:
     """Build the template context for one publish tab partial.
 
@@ -532,7 +564,9 @@ def _get_tab_context(request, workspace, tab: str) -> dict:
             .order_by("-post__scheduled_at", "-post__created_at")
         )
         platform_posts = _apply_pp_publish_filters(platform_posts, request)
-        return {**base_ctx, "platform_posts": platform_posts[:200]}
+        rows = list(platform_posts[:200])
+        _annotate_automation(rows)
+        return {**base_ctx, "platform_posts": rows}
 
     # approvals — one row per Post (bundled), matching the approval-action model
     # and the approved design. on_hold is included so client-held posts surface

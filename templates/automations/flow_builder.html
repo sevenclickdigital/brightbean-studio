@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+
+{% block title %}Flow builder - {{ workspace.name }} - Brightbean{% endblock %}
+
+{% block content %}
+{% comment %}
+The per-post flow builder: a node canvas that compiles down to one
+AutomationRule.
+
+One Alpine component owns everything — nodes, edges, viewport, selection and the
+save round trip. It is a single component rather than one per node because the
+operations that matter (drag, connect, delete) all span two nodes or a node and
+the canvas, and splitting them would mean passing the whole graph down as props
+and events back up for every mouse move.
+
+Coordinates are stored in *canvas* space, never screen space. The viewport pan
+and zoom are applied once, by a CSS transform on the layer the nodes sit in, so
+a node's stored x/y is the same number whatever the user has scrolled to — which
+is what makes a saved flow reopen exactly as it was drawn.
+
+Edges are drawn in a single SVG sitting *under* the node layer and sharing its
+transform, so a line's endpoints and the boxes they join cannot drift apart at
+any zoom level.
+{% endcomment %}
+<div x-data="flowBuilder()" x-init="init()" class="fixed inset-0 top-14 flex flex-col bg-stone-50">
+
+    <!-- Toolbar ------------------------------------------------------------ -->
+    <div class="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-200 shrink-0">
+        <a href="{% url 'composer:compose_edit' workspace_id=workspace.id post_id=platform_post.post_id %}?account={{ platform_post.social_account_id }}"
+           class="text-stone-400 hover:text-stone-600 transition-colors shrink-0">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
+
+        <div class="min-w-0">
+            <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">Flow builder</h2>
+            <p class="text-xs text-stone-500 truncate">
+                {{ platform_post.social_account.account_name|default:platform_post.social_account.account_handle }}
+                &middot;
+                {% if is_published %}Published post{% else %}Not published yet{% endif %}
+            </p>
+        </div>
+
+        <!-- Status pill. Mirrors PostAutomation.status; see the model. -->
+        <div class="ml-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0"
+             :class="{
+                'bg-green-50 text-green-700 border border-green-200': status === 'active',
+                'bg-amber-50 text-amber-700 border border-amber-200': status === 'pending',
+                'bg-stone-100 text-stone-500 border border-stone-200': status === 'paused' || !status
+             }">
+            <span class="w-1.5 h-1.5 rounded-full"
+                  :class="{
+                    'bg-green-500': status === 'active',
+                    'bg-amber-500': status === 'pending',
+                    'bg-stone-400': status === 'paused' || !status
+                  }"></span>
+            <span x-text="statusLabel || 'Not set up'"></span>
+        </div>
+
+        <div class="flex-1"></div>
+
+        <!-- Zoom -->
+        <div class="flex items-center gap-1 shrink-0">
+            <button type="button" @click="zoomBy(-0.1)"
+                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="Zoom out">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <span class="text-xs text-stone-400 tabular-nums w-10 text-center" x-text="Math.round(zoom * 100) + '%'"></span>
+            <button type="button" @click="zoomBy(0.1)"
+                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="Zoom in">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            </button>
+            <button type="button" @click="fitView()"
+                    class="ml-1 px-2 py-1 text-xs text-stone-500 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer">Fit</button>
+        </div>
+
+        {% if can_manage %}
+        <div class="w-px h-6 bg-stone-200 mx-1 shrink-0"></div>
+
+        <button type="button" @click="save(false)" :disabled="saving"
+                class="px-3 py-1.5 text-sm font-medium text-stone-600 rounded-lg border border-stone-200 bg-white hover:border-stone-300 hover:text-stone-800 transition-colors cursor-pointer disabled:opacity-50 shrink-0">
+            <span x-text="saving ? 'Saving…' : 'Save'"></span>
+        </button>
+
+        <button type="button" @click="status === 'active' ? toggle() : save(true)" :disabled="saving"
+                class="px-3.5 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 shrink-0"
+                :class="status === 'active'
+                    ? 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                    : 'bg-orange-500 text-white hover:bg-orange-600'">
+            <span x-text="status === 'active' ? 'Pause' : 'Turn on'"></span>
+        </button>
+        {% endif %}
+    </div>
+
+    <!-- Banners ------------------------------------------------------------ -->
+    {% if not supports_automation %}
+    <div class="px-5 py-2.5 bg-stone-100 border-b border-stone-200 text-[13px] text-stone-600 shrink-0">
+        Comment automations run on Instagram and Facebook only. This account is
+        <strong>{{ platform_post.social_account.platform }}</strong>, so this flow cannot run.
+    </div>
+    {% elif not has_platform_id %}
+    {% comment %}
+    The pending state, and the sentence this whole feature turns on: a flow drawn
+    before publication is armed by the publisher the moment the post goes live.
+    See ``PostAutomation`` and ``services.arm_for_platform_post``.
+    {% endcomment %}
+    <div class="px-5 py-2.5 bg-amber-50 border-b border-amber-200 text-[13px] text-amber-800 shrink-0 flex items-center gap-2">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+        <span>This post isn't published yet. Save the flow now &mdash; it starts watching for comments by itself the moment the post goes live.</span>
+    </div>
+    {% endif %}
+
+    <div x-show="error" x-cloak class="px-5 py-2.5 bg-red-50 border-b border-red-200 text-[13px] text-red-700 shrink-0" x-text="error"></div>
+
+    <template x-for="warning in warnings" :key="warning">
+        <div class="px-5 py-2 bg-amber-50 border-b border-amber-100 text-[13px] text-amber-800 shrink-0" x-text="warning"></div>
+    </template>
+
+    <!-- Canvas ------------------------------------------------------------- -->
+    <div class="flex-1 relative overflow-hidden"
+         x-ref="canvas"
+         @mousedown="onCanvasDown($event)"
+         @mousemove.window="onMove($event)"
+         @mouseup.window="onUp()"
+         @wheel.prevent="onWheel($event)"
+         :class="panning ? 'cursor-grabbing' : 'cursor-grab'"
+         style="background-image: radial-gradient(#d6d3d1 1px, transparent 1px); background-size: 22px 22px;"
+         :style="`background-position: ${pan.x}px ${pan.y}px`">
+
+        <!-- Edges. Under the nodes, sharing their transform. -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none" style="overflow: visible;">
+            <g :transform="`translate(${pan.x}, ${pan.y}) scale(${zoom})`">
+                <template x-for="edge in edges" :key="edge.from + '->' + edge.to">
+                    <path :d="edgePath(edge)" fill="none" stroke="#a8a29e" stroke-width="2" />
+                </template>
+                <!-- The line being dragged from a port, before it lands. -->
+                <path x-show="linking" :d="pendingPath()" fill="none" stroke="#f97316" stroke-width="2" stroke-dasharray="5 4" />
+            </g>
+        </svg>
+
+        <!-- Nodes -->
+        <div class="absolute inset-0 origin-top-left"
+             :style="`transform: translate(${pan.x}px, ${pan.y}px) scale(${zoom});`">
+            <template x-for="node in nodes" :key="node.id">
+                <div data-node class="absolute w-72 rounded-2xl bg-white shadow-sm transition-shadow"
+                     :class="selected === node.id ? 'border-2 border-orange-400 shadow-md' : 'border border-stone-200'"
+                     :style="`left: ${node.x}px; top: ${node.y}px;`"
+                     @mousedown.stop="startDrag(node, $event)"
+                     @click.stop="selected = node.id">
+
+                    <!-- Header -->
+                    <div class="flex items-center gap-2 px-3.5 py-2.5 border-b border-stone-100">
+                        <span class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0"
+                              :class="nodeMeta(node.type).chip">
+                            <span x-html="nodeMeta(node.type).icon"></span>
+                        </span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-[10px] font-semibold uppercase tracking-wider"
+                               :class="nodeMeta(node.type).label"
+                               x-text="nodeMeta(node.type).kicker"></p>
+                            <p class="text-[13px] font-semibold text-stone-800 truncate" x-text="nodeMeta(node.type).title"></p>
+                        </div>
+                        <!-- The trigger is the entry point; removing it leaves a flow
+                             nothing can start, which the compiler warns about. It is
+                             simpler to refuse here. -->
+                        <button type="button" x-show="node.type !== 'trigger_comment'"
+                                @click.stop="removeNode(node.id)"
+                                class="text-stone-300 hover:text-red-500 transition-colors cursor-pointer shrink-0">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="px-3.5 py-3 space-y-2.5" @mousedown.stop>
+
+                        <!-- Trigger: keywords + match mode + top-level rule -->
+                        <template x-if="node.type === 'trigger_comment'">
+                            <div class="space-y-2.5">
+                                <p class="text-xs text-stone-500 leading-relaxed">
+                                    Runs when someone comments on
+                                    <strong class="text-stone-700">this post</strong>.
+                                </p>
+
+                                <div class="flex flex-wrap gap-1.5">
+                                    <template x-for="(kw, i) in (node.data.keywords || [])" :key="'kw-' + i">
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[11px] text-orange-700">
+                                            <span x-text="kw"></span>
+                                            <button type="button" @click="node.data.keywords.splice(i, 1)"
+                                                    class="text-orange-400 hover:text-orange-600 cursor-pointer">&times;</button>
+                                        </span>
+                                    </template>
+                                </div>
+
+                                <input type="text" placeholder="Add a keyword, then press Enter"
+                                       @keydown.enter.prevent="addKeyword(node, $event.target)"
+                                       @keydown.stop
+                                       class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+
+                                <p class="text-[11px] text-stone-400 leading-relaxed" x-show="!(node.data.keywords || []).length">
+                                    No keyword means <strong>every</strong> comment on this post fires the flow.
+                                </p>
+
+                                <select x-model="node.data.match_mode" @mousedown.stop
+                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500 transition-all">
+                                    {% for value, label in keyword_mode_choices %}
+                                    <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+
+                                <label class="flex items-center gap-2 text-[11px] text-stone-500 cursor-pointer">
+                                    <input type="checkbox" x-model="node.data.top_level_only"
+                                           class="rounded border-stone-300 text-orange-500 focus:ring-orange-200">
+                                    Ignore replies to other comments
+                                </label>
+                            </div>
+                        </template>
+
+                        <!-- Message nodes: public reply and DM share one editor -->
+                        <template x-if="node.type === 'reply_comment' || node.type === 'send_dm'">
+                            <div class="space-y-1.5">
+                                <textarea x-model="node.data.text" rows="3" @keydown.stop
+                                          :placeholder="node.type === 'send_dm'
+                                              ? 'The DM this person receives…'
+                                              : 'The public reply under their comment…'"
+                                          class="w-full text-[13px] px-2.5 py-2 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all resize-none"></textarea>
+                                <p class="text-[10px] text-stone-400">
+                                    <button type="button" @click="insertToken(node, '{sender_name}')" class="hover:text-orange-500 cursor-pointer underline decoration-dotted">{sender_name}</button>
+                                    &middot;
+                                    <button type="button" @click="insertToken(node, '{account_name}')" class="hover:text-orange-500 cursor-pointer underline decoration-dotted">{account_name}</button>
+                                </p>
+                            </div>
+                        </template>
+
+                        <!-- Nodes the engine cannot run yet. Drawn, stored, labelled. -->
+                        <template x-if="!executable.includes(node.type)">
+                            <p class="text-[11px] text-stone-400 leading-relaxed">
+                                Saved with the flow, but this step doesn't run yet.
+                            </p>
+                        </template>
+                    </div>
+
+                    <!-- Ports. The right one starts a link, the left one receives it. -->
+                    <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-orange-500 cursor-crosshair transition-colors"
+                         @mousedown.stop="startLink(node, $event)"></div>
+                    <div x-show="node.type !== 'trigger_comment'"
+                         class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300"
+                         :class="linking ? 'border-orange-400' : ''"
+                         @mouseup.stop="finishLink(node)"></div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Add-step palette --------------------------------------------- -->
+        {% if can_manage %}
+        <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-2 rounded-2xl bg-white border border-stone-200 shadow-lg"
+             @mousedown.stop>
+            <span class="px-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Add step</span>
+            <button type="button" @click="addNode('reply_comment')"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></svg>
+                Reply to comment
+            </button>
+            <button type="button" @click="addNode('send_dm')"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
+                <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                Send a DM
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{{ graph_json|json_script:"flow-graph" }}
+
+<script>
+function flowBuilder() {
+    return {
+        // --- State ------------------------------------------------------
+        nodes: [],
+        edges: [],
+        selected: null,
+        pan: { x: 60, y: 40 },
+        zoom: 1,
+
+        // Interaction modes. Exactly one is ever truthy: a drag, a pan and a
+        // link all consume mousemove, and overlapping them produces nodes that
+        // fly off while a line is being drawn.
+        dragging: null,
+        panning: false,
+        linking: null,
+        origin: { x: 0, y: 0 },
+        cursor: { x: 0, y: 0 },
+
+        saving: false,
+        error: '',
+        warnings: [],
+        status: '{{ automation.status|default:"" }}',
+        statusLabel: '{{ automation.get_status_display|default:"" }}',
+
+        // Mirrors ``flow.EXECUTABLE_NODE_TYPES``. Kept in sync by hand; the
+        // cost of drift is a node labelled "doesn't run yet" that in fact does,
+        // which is the safe direction.
+        executable: ['trigger_comment', 'reply_comment', 'send_dm'],
+
+        // Node geometry, needed to draw edges between port centres. Matches the
+        // w-72 class and is read rather than measured: measuring every node on
+        // every mousemove is a layout thrash, and these boxes are fixed-width.
+        NODE_W: 288,
+        NODE_H: 150,
+
+        init() {
+            const stored = JSON.parse(document.getElementById('flow-graph').textContent || '{}');
+            this.nodes = (stored.nodes || []).map(n => ({
+                ...n,
+                data: n.data || {},
+            }));
+            this.edges = stored.edges || [];
+            this.$nextTick(() => this.fitView());
+        },
+
+        // --- Node metadata ---------------------------------------------
+        nodeMeta(type) {
+            const map = {
+                trigger_comment: {
+                    kicker: 'When',
+                    title: 'Comments on your post',
+                    chip: 'bg-amber-50 text-amber-600',
+                    label: 'text-amber-600',
+                    icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
+                },
+                reply_comment: {
+                    kicker: 'Then reply',
+                    title: 'Reply under the comment',
+                    chip: 'bg-blue-50 text-blue-600',
+                    label: 'text-blue-600',
+                    icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></svg>',
+                },
+                send_dm: {
+                    kicker: 'Then send',
+                    title: 'Direct message',
+                    chip: 'bg-orange-50 text-orange-600',
+                    label: 'text-orange-600',
+                    icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+                },
+            };
+            return map[type] || {
+                kicker: 'Step',
+                title: type,
+                chip: 'bg-stone-100 text-stone-500',
+                label: 'text-stone-400',
+                icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>',
+            };
+        },
+
+        // --- Editing ----------------------------------------------------
+        addKeyword(node, input) {
+            const value = (input.value || '').trim();
+            if (!value) return;
+            if (!node.data.keywords) node.data.keywords = [];
+            // Case-insensitive dedupe, matching ``flow._keyword_entries`` so the
+            // chip count the author sees is the keyword count that is saved.
+            const exists = node.data.keywords.some(k => k.toLowerCase() === value.toLowerCase());
+            if (!exists) node.data.keywords.push(value);
+            input.value = '';
+        },
+
+        insertToken(node, token) {
+            node.data.text = (node.data.text || '') + token;
+        },
+
+        addNode(type) {
+            const id = type + '-' + Math.random().toString(36).slice(2, 9);
+            // Placed to the right of the rightmost node so a new step never
+            // lands on top of an existing one.
+            const right = this.nodes.reduce((max, n) => Math.max(max, n.x), 0);
+            const node = {
+                id,
+                type,
+                x: right + 340,
+                y: 160,
+                data: type === 'trigger_comment'
+                    ? { keywords: [], match_mode: 'contains', top_level_only: false }
+                    : { text: '' },
+            };
+            this.nodes.push(node);
+            // Auto-connect from the last node, because an unconnected node is
+            // the most common thing to forget and the edge is free to redraw.
+            const prev = this.nodes[this.nodes.length - 2];
+            if (prev) this.edges.push({ from: prev.id, to: id });
+            this.selected = id;
+        },
+
+        removeNode(id) {
+            this.nodes = this.nodes.filter(n => n.id !== id);
+            this.edges = this.edges.filter(e => e.from !== id && e.to !== id);
+            if (this.selected === id) this.selected = null;
+        },
+
+        // --- Linking ----------------------------------------------------
+        startLink(node, event) {
+            this.linking = node.id;
+            this.cursor = this.toCanvas(event);
+        },
+
+        finishLink(node) {
+            if (!this.linking || this.linking === node.id) { this.linking = null; return; }
+            const exists = this.edges.some(e => e.from === this.linking && e.to === node.id);
+            if (!exists) this.edges.push({ from: this.linking, to: node.id });
+            this.linking = null;
+        },
+
+        // --- Dragging and panning --------------------------------------
+        startDrag(node, event) {
+            this.dragging = node.id;
+            const point = this.toCanvas(event);
+            this.origin = { x: point.x - node.x, y: point.y - node.y };
+            this.selected = node.id;
+        },
+
+        onCanvasDown(event) {
+            // Only a press on the canvas itself pans. A press that bubbled up
+            // from a node is a drag, and panning as well would move both.
+            if (event.target.closest('[data-node]')) return;
+            this.panning = true;
+            this.origin = { x: event.clientX - this.pan.x, y: event.clientY - this.pan.y };
+            this.selected = null;
+        },
+
+        onMove(event) {
+            this.cursor = this.toCanvas(event);
+            if (this.dragging) {
+                const node = this.nodes.find(n => n.id === this.dragging);
+                if (node) {
+                    node.x = this.cursor.x - this.origin.x;
+                    node.y = this.cursor.y - this.origin.y;
+                }
+            } else if (this.panning) {
+                this.pan = { x: event.clientX - this.origin.x, y: event.clientY - this.origin.y };
+            }
+        },
+
+        onUp() {
+            this.dragging = null;
+            this.panning = false;
+            // A link released over empty canvas is abandoned rather than left
+            // dangling, so the dashed line cannot outlive the gesture.
+            this.linking = null;
+        },
+
+        onWheel(event) {
+            this.zoomBy(event.deltaY > 0 ? -0.08 : 0.08);
+        },
+
+        zoomBy(delta) {
+            this.zoom = Math.min(1.6, Math.max(0.4, this.zoom + delta));
+        },
+
+        toCanvas(event) {
+            const rect = this.$refs.canvas.getBoundingClientRect();
+            return {
+                x: (event.clientX - rect.left - this.pan.x) / this.zoom,
+                y: (event.clientY - rect.top - this.pan.y) / this.zoom,
+            };
+        },
+
+        fitView() {
+            if (!this.nodes.length) return;
+            const rect = this.$refs.canvas.getBoundingClientRect();
+            const minX = Math.min(...this.nodes.map(n => n.x));
+            const maxX = Math.max(...this.nodes.map(n => n.x + this.NODE_W));
+            const minY = Math.min(...this.nodes.map(n => n.y));
+            const maxY = Math.max(...this.nodes.map(n => n.y + this.NODE_H));
+            const scale = Math.min(1, (rect.width - 120) / (maxX - minX), (rect.height - 120) / (maxY - minY));
+            this.zoom = Math.max(0.4, scale);
+            this.pan = {
+                x: (rect.width - (maxX - minX) * this.zoom) / 2 - minX * this.zoom,
+                y: (rect.height - (maxY - minY) * this.zoom) / 2 - minY * this.zoom,
+            };
+        },
+
+        // --- Edge geometry ----------------------------------------------
+        nodeById(id) { return this.nodes.find(n => n.id === id); },
+
+        edgePath(edge) {
+            const from = this.nodeById(edge.from);
+            const to = this.nodeById(edge.to);
+            if (!from || !to) return '';
+            return this.curve(
+                from.x + this.NODE_W, from.y + this.NODE_H / 2,
+                to.x, to.y + this.NODE_H / 2,
+            );
+        },
+
+        pendingPath() {
+            const from = this.nodeById(this.linking);
+            if (!from) return '';
+            return this.curve(
+                from.x + this.NODE_W, from.y + this.NODE_H / 2,
+                this.cursor.x, this.cursor.y,
+            );
+        },
+
+        curve(x1, y1, x2, y2) {
+            // Horizontal control points: the ports face sideways, so a bezier
+            // that leaves and arrives horizontally reads as a connection rather
+            // than as a diagonal crossing the canvas.
+            const dx = Math.max(40, Math.abs(x2 - x1) / 2);
+            return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
+        },
+
+        // --- Persistence -------------------------------------------------
+        async save(activate) {
+            this.saving = true;
+            this.error = '';
+            try {
+                const body = new FormData();
+                body.append('graph', JSON.stringify({ nodes: this.nodes, edges: this.edges }));
+                body.append('activate', activate ? '1' : '0');
+                body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+                const response = await fetch('{% url "automations:flow_save" workspace_id=workspace.id platform_post_id=platform_post.id %}', {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await response.json();
+                this.warnings = data.warnings || [];
+                if (!data.ok) { this.error = data.error || 'The flow could not be saved.'; return; }
+                this.status = data.status;
+                this.statusLabel = data.status_label;
+            } catch (err) {
+                this.error = 'The flow could not be saved. Check your connection and try again.';
+            } finally {
+                this.saving = false;
+            }
+        },
+
+        async toggle() {
+            this.saving = true;
+            this.error = '';
+            try {
+                const body = new FormData();
+                body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+                const response = await fetch('{% url "automations:flow_toggle" workspace_id=workspace.id platform_post_id=platform_post.id %}', {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await response.json();
+                if (!data.ok) { this.error = data.error || 'The flow could not be changed.'; return; }
+                this.status = data.status;
+                this.statusLabel = data.status_label;
+            } catch (err) {
+                this.error = 'The flow could not be changed. Check your connection and try again.';
+            } finally {
+                this.saving = false;
+            }
+        },
+    };
+}
+</script>
+
+<form class="hidden">{% csrf_token %}</form>
+{% endblock %}

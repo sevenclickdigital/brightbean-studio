@@ -7,11 +7,34 @@ context before any of them run.
 
 from django.urls import path
 
-from . import views
+from . import flow_views, views
 
 app_name = "automations"
 
 urlpatterns = [
+    # The per-post flow builder, keyed by ``PlatformPost`` rather than by rule:
+    # the canvas is reached from a post (in the composer or after publishing),
+    # and the flow it edits may not exist yet when the URL is first opened.
+    path(
+        "post/<uuid:platform_post_id>/flow/",
+        flow_views.flow_builder,
+        name="flow_builder",
+    ),
+    path(
+        "post/<uuid:platform_post_id>/flow/save/",
+        flow_views.flow_save,
+        name="flow_save",
+    ),
+    path(
+        "post/<uuid:platform_post_id>/flow/toggle/",
+        flow_views.flow_toggle,
+        name="flow_toggle",
+    ),
+    path(
+        "post/<uuid:platform_post_id>/flow/delete/",
+        flow_views.flow_delete,
+        name="flow_delete",
+    ),
     path("", views.rule_list, name="list"),
     path("create/", views.rule_create, name="create"),
     path("<uuid:rule_id>/edit/", views.rule_edit, name="edit"),

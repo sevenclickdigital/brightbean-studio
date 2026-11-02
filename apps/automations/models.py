@@ -155,6 +155,117 @@ class AutomationRule(models.Model):
         return self.social_account_id is None
 
 
+class PostAutomation(models.Model):
+    """One post's flow: the canvas the author drew, bound to a ``PlatformPost``.
+
+    This is the *authoring* record. The thing that actually answers comments is
+    the :class:`AutomationRule` it owns — ``PostAutomation`` exists because the
+    rule alone cannot express the two states this feature needs:
+
+    **A flow may exist before its post does.** The composer offers the flow
+    while the post is still a draft, so the author configures it in the same
+    sitting as the caption. At that moment there is no ``platform_post_id`` to
+    scope a rule to, and a rule scoped to nothing (``post_scope="specific"``
+    with an empty ``post_ids``) matches nothing — see
+    ``AutomationRuleForm.clean``. So the flow is parked here, inactive, and
+    :func:`apps.automations.services.arm_for_platform_post` fills the post id in
+    and switches the rule on at the moment the publisher confirms the post. A
+    flow attached to an already-published post skips that wait: the id is
+    present, so it arms on save. The two entry points are therefore the *same*
+    path with the arming step either deferred or immediate, rather than two
+    flows to keep in sync.
+
+    **The canvas is not reconstructable from the rule.** ``AutomationRule``
+    stores the decision (these keywords, this public reply, this DM); the canvas
+    stores how the author laid it out — node positions, the order of steps, and
+    steps the v1 engine does not execute yet. Round-tripping the canvas from the
+    rule would silently rearrange somebody's flow every time they reopened it.
+    ``graph`` is therefore presentation state that the engine never reads, and
+    :mod:`apps.automations.flow` is the single place that compiles it down into
+    the rule fields the engine *does* read.
+
+    One flow per platform post, enforced by ``OneToOneField``. Two flows on one
+    post would both match its comments, and first-match-wins would make the
+    winner depend on priority ordering between two rules the author never
+    compared.
+    """
+
+    class Status(models.TextChoices):
+        #: Drawn but not yet bound to a live post — waiting on publication.
+        PENDING = "pending", "Waiting for the post to go live"
+        #: Bound to a live post id and switched on.
+        ACTIVE = "active", "Running"
+        #: Bound, but the author switched it off.
+        PAUSED = "paused", "Paused"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        "workspaces.Workspace",
+        on_delete=models.CASCADE,
+        related_name="post_automations",
+    )
+    # CASCADE: the flow is *about* this post. A flow whose post was deleted has
+    # no comments to answer and no id to scope to.
+    platform_post = models.OneToOneField(
+        "composer.PlatformPost",
+        on_delete=models.CASCADE,
+        related_name="automation",
+    )
+    # CASCADE for the same reason ``AutomationRule.social_account`` is: the rule
+    # is this flow's executable half, and a flow without one is not a flow. The
+    # rule is created with the flow and deleted with it.
+    rule = models.OneToOneField(
+        AutomationRule,
+        on_delete=models.CASCADE,
+        related_name="post_automation",
+    )
+
+    status = models.CharField(
+        max_length=10,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True,
+    )
+    #: The canvas as drawn: ``{"nodes": [...], "edges": [...]}``. Presentation
+    #: state only — see the class docstring. Never read by the matcher or the
+    #: action layer.
+    graph = models.JSONField(default=dict, blank=True)
+
+    #: Copied off the ``PlatformPost`` when the flow arms, and *kept* even if the
+    #: post row later changes. The rule matches on this id, so a flow that armed
+    #: against one post must not silently follow the column somewhere else.
+    armed_post_id = models.CharField(max_length=255, blank=True, default="")
+    armed_at = models.DateTimeField(null=True, blank=True)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="created_post_automations",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = WorkspaceScopedManager()
+
+    class Meta:
+        db_table = "automation_post_flow"
+        ordering = ["-created_at"]
+        indexes = [
+            # The publisher's post-publish sweep: "does this freshly published
+            # post have a flow waiting on it?"
+            models.Index(fields=["status", "platform_post"], name="autom_flow_status_post"),
+        ]
+
+    def __str__(self) -> str:
+        return f"Flow for platform post {self.platform_post_id} ({self.get_status_display()})"
+
+    @property
+    def is_armed(self) -> bool:
+        """Whether this flow is bound to a real post id on the platform."""
+        return bool(self.armed_post_id)
+
+
 class AutomationLog(models.Model):
     """One comment this workspace has already acted on, plus why.
 

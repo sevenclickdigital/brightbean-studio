@@ -665,10 +665,18 @@ def compose(request, workspace_id, post_id=None):
             selected_account_ids = [account_filter]
 
     # Platform character limits for JS
+    from apps.automations.matching import COMMENT_PLATFORMS
+
     char_limits = {}
     for acc in social_accounts:
         cfg = dict(acc.field_config)
         cfg["supports_first_comment"] = acc.supports_first_comment()
+        # Whether a comment automation can run on this account at all. Decided
+        # by platform only — the comment webhook and the comment-addressed send
+        # endpoint exist for exactly these platforms. Publication status is a
+        # separate question the flow builder answers, because a draft post can
+        # be configured now and armed when it goes live.
+        cfg["supports_automation"] = acc.platform in COMMENT_PLATFORMS
         char_limits[str(acc.id)] = {
             "platform": acc.platform,
             "limit": acc.char_limit,
@@ -681,6 +689,33 @@ def compose(request, workspace_id, post_id=None):
             else "",
             **cfg,
         }
+
+    # The flow builder is reached per *platform post*, which only exists once the
+    # post has been saved at least once. Keyed by account id so the template can
+    # look one up from the account chip the author is already looking at; an
+    # account with no entry renders the "save first" state rather than a dead
+    # link. ``automation_status`` is carried alongside so the button can read
+    # "Edit automation · Running" without a second query per account.
+    automation_targets = {}
+    if post is not None:
+        flows = {}
+        if platform_post_list:
+            from apps.automations.models import PostAutomation
+
+            flows = {
+                flow.platform_post_id: flow
+                for flow in PostAutomation.objects.filter(
+                    platform_post__in=[pp.id for pp in platform_post_list]
+                )
+            }
+        for pp in platform_post_list:
+            flow = flows.get(pp.id)
+            automation_targets[str(pp.social_account_id)] = {
+                "platform_post_id": str(pp.id),
+                "status": flow.status if flow else "",
+                "status_label": flow.get_status_display() if flow else "",
+                "has_flow": flow is not None,
+            }
 
     # Workspace defaults
     default_first_comment = workspace.default_first_comment
@@ -834,6 +869,7 @@ def compose(request, workspace_id, post_id=None):
         "media_attachments": media_attachments,
         "media_items": media_items,
         "char_limits": char_limits,
+        "automation_targets": automation_targets,
         "default_first_comment": default_first_comment,
         "default_hashtags": json.dumps(default_hashtags),
         "can_publish": can_publish,

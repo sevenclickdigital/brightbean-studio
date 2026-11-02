@@ -1194,6 +1194,69 @@
                     </div>
                 </template>
 
+                {% comment %}
+                Comment automation (conditional — only when a platform that can
+                run one is selected). Sits here, between the per-platform
+                overrides and the first comment, because it is the same class of
+                decision as both: something attached to this post that happens
+                on the platform after it publishes.
+
+                The section deliberately renders in two states rather than being
+                hidden while the post is unsaved. A flow is edited per
+                PlatformPost, and those rows are created on first save — so an
+                unsaved post has nothing to link to. Hiding the feature until
+                then would mean the author never discovers it exists while
+                writing their first post; saying "save the draft first" teaches
+                it in one line.
+                {% endcomment %}
+                <div x-show="anyPlatformSupportsAutomation" x-transition x-cloak>
+                    <label class="block text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">Comment automation</label>
+                    <div class="rounded-xl border border-stone-200 bg-white divide-y divide-stone-100">
+                        <template x-for="accId in automationAccounts" :key="'autom-' + accId">
+                            <div class="flex items-center gap-3 px-4 py-3">
+                                <span class="platform-icon w-6 h-6 rounded-[5px] flex items-center justify-center shrink-0"
+                                      :class="'pi-' + (charLimits[accId]?.platform || '')"
+                                      x-html="platformIconSvg(charLimits[accId]?.platform || '')"></span>
+
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-[13px] font-medium text-stone-700 truncate" x-text="charLimits[accId]?.name"></p>
+                                    <p class="text-[11px] text-stone-400"
+                                       x-text="automationTarget(accId)
+                                           ? (automationTarget(accId).has_flow
+                                               ? 'Automation ' + automationTarget(accId).status_label.toLowerCase()
+                                               : 'Reply to comments and send a DM automatically')
+                                           : 'Save this draft to set up an automation'"></p>
+                                </div>
+
+                                <template x-if="automationTarget(accId) && automationTarget(accId).has_flow">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-medium shrink-0"
+                                          :class="{
+                                            'bg-green-50 text-green-700 border border-green-200': automationTarget(accId).status === 'active',
+                                            'bg-amber-50 text-amber-700 border border-amber-200': automationTarget(accId).status === 'pending',
+                                            'bg-stone-100 text-stone-500 border border-stone-200': automationTarget(accId).status === 'paused'
+                                          }"
+                                          x-text="automationTarget(accId).status_label"></span>
+                                </template>
+
+                                <template x-if="automationTarget(accId)">
+                                    <a :href="automationUrl(accId)"
+                                       class="flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium rounded-lg border transition-colors cursor-pointer shrink-0"
+                                       :class="automationTarget(accId).has_flow
+                                           ? 'border-stone-200 text-stone-600 hover:border-stone-300 hover:text-stone-800'
+                                           : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                                        <span x-text="automationTarget(accId).has_flow ? 'Edit flow' : 'Set up flow'"></span>
+                                    </a>
+                                </template>
+
+                                <template x-if="!automationTarget(accId)">
+                                    <span class="px-3 py-1.5 text-[13px] text-stone-300 shrink-0">Set up flow</span>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
                 <!-- First Comment (conditional - only when a platform supporting comments is selected) -->
                 <div x-show="anyPlatformSupportsFirstComment" x-transition x-cloak>
                     <label class="block text-sm font-semibold text-stone-500 uppercase tracking-wider mb-2">First Comment</label>
@@ -2039,6 +2102,7 @@
 </script>
 {{ selected_account_ids|json_script:"composer-selected-accounts" }}
 {{ char_limits|json_script:"composer-char-limits" }}
+{{ automation_targets|json_script:"composer-automation-targets" }}
 {{ platform_extras|json_script:"composer-platform-extras" }}
 {{ media_items|json_script:"composer-media-items" }}
 <script nonce="{{ request.csp_nonce }}">
@@ -2052,6 +2116,10 @@ function composerApp() {
         overrides: {},
         advancedOpen: {},
         platformExtras: JSON.parse(document.getElementById('composer-platform-extras').textContent) || {},
+        // Keyed by social account id; empty for an unsaved post, because the
+        // flow builder is reached per PlatformPost and those are created on
+        // first save. See ``composer.views`` where this is built.
+        automationTargets: JSON.parse(document.getElementById('composer-automation-targets').textContent) || {},
         showMediaPicker: false,
         showThumbnailPicker: false,
         thumbnailPickerAccId: null,
@@ -2164,6 +2232,28 @@ function composerApp() {
         },
         get anyPlatformSupportsFirstComment() {
             return this.selectedAccounts.some(id => this.charLimits[id]?.supports_first_comment);
+        },
+        // The accounts among those selected that comment automations can run
+        // on. Drives the whole automation section: no such account selected
+        // means the section is not rendered at all, the same way the first
+        // comment field hides itself.
+        get automationAccounts() {
+            return this.selectedAccounts.filter(id => this.charLimits[id]?.supports_automation);
+        },
+        get anyPlatformSupportsAutomation() {
+            return this.automationAccounts.length > 0;
+        },
+        // A flow is edited per platform post, and those exist only after the
+        // post has been saved once. Until then the section explains that rather
+        // than offering a link that cannot resolve.
+        automationTarget(accId) {
+            return this.automationTargets[accId] || null;
+        },
+        automationUrl(accId) {
+            const target = this.automationTarget(accId);
+            if (!target) return '';
+            return '{% url "automations:flow_builder" workspace_id=workspace.id platform_post_id="00000000-0000-0000-0000-000000000000" %}'
+                .replace('00000000-0000-0000-0000-000000000000', target.platform_post_id);
         },
         get autoSuggestedTitle() {
             if (!this.caption) return '';
