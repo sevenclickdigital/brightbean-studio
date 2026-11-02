@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 from django_ratelimit.decorators import ratelimit
 
@@ -136,7 +137,7 @@ def create_link(request, workspace_id):
             {"link": link, "link_url": link_url},
         )
 
-    messages.success(request, "Connection link created.")
+    messages.success(request, _("Connection link created."))
     return redirect("social_accounts:list", workspace_id=workspace_id)
 
 
@@ -152,7 +153,7 @@ def revoke_link(request, workspace_id, link_id):
     if request.headers.get("HX-Request"):
         return HttpResponse(status=200)
 
-    messages.success(request, "Connection link revoked.")
+    messages.success(request, _("Connection link revoked."))
     return redirect("social_accounts:list", workspace_id=workspace_id)
 
 
@@ -166,11 +167,11 @@ def send_link_email(request, workspace_id, link_id):
     email = request.POST.get("email", "").strip()
 
     if not email:
-        messages.error(request, "Email address is required.")
+        messages.error(request, _("Email address is required."))
         return redirect("social_accounts:list", workspace_id=workspace_id)
 
     if not link.is_active:
-        messages.error(request, "This connection link is no longer active.")
+        messages.error(request, _("This connection link is no longer active."))
         return redirect("social_accounts:list", workspace_id=workspace_id)
 
     link_url = request.build_absolute_uri(reverse("onboarding:connection_page", kwargs={"token": link.token}))
@@ -201,11 +202,11 @@ def send_link_email(request, workspace_id, link_id):
     if not msg.send(fail_silently=False):
         messages.error(
             request,
-            "We could not send that link right now. Please try again shortly.",
+            _("We could not send that link right now. Please try again shortly."),
         )
         return redirect("social_accounts:list", workspace_id=workspace_id)
 
-    messages.success(request, f"Connection link sent to {email}.")
+    messages.success(request, _("Connection link sent to %(email)s.") % {"email": email})
     return redirect("social_accounts:list", workspace_id=workspace_id)
 
 

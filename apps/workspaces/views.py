@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db import transaction
 from django.http import Http404
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.members.decorators import require_org_role
@@ -76,17 +77,17 @@ def workspace_settings(request, workspace_id):
                     .count()
                 )
                 if active_count <= 1:
-                    messages.error(request, "Cannot archive the last workspace in the organization.")
+                    messages.error(request, _("Cannot archive the last workspace in the organization."))
                     return redirect("workspaces:settings", workspace_id=workspace.id)
                 workspace.is_archived = True
                 workspace.save(update_fields=["is_archived"])
-            messages.success(request, f'Workspace "{workspace.name}" has been archived.')
+            messages.success(request, _('Workspace "%(name)s" has been archived.') % {"name": workspace.name})
             return redirect("organizations:workspaces")
 
         if action == "unarchive_workspace" and is_owner_or_manager:
             workspace.is_archived = False
             workspace.save(update_fields=["is_archived"])
-            messages.success(request, f'Workspace "{workspace.name}" has been restored.')
+            messages.success(request, _('Workspace "%(name)s" has been restored.') % {"name": workspace.name})
             return redirect("workspaces:settings", workspace_id=workspace.id)
 
         if action == "delete_workspace" and is_owner_or_manager:
@@ -97,11 +98,13 @@ def workspace_settings(request, workspace_id):
                     .count()
                 )
                 if active_count <= 1 and not workspace.is_archived:
-                    messages.error(request, "Cannot delete the last workspace in the organization.")
+                    messages.error(request, _("Cannot delete the last workspace in the organization."))
                     return redirect("workspaces:settings", workspace_id=workspace.id)
                 workspace_name = workspace.name
                 workspace.delete()
-            messages.success(request, f'Workspace "{workspace_name}" has been permanently deleted.')
+            messages.success(
+                request, _('Workspace "%(name)s" has been permanently deleted.') % {"name": workspace_name}
+            )
             return redirect("organizations:workspaces")
 
         name = request.POST.get("name", "").strip()
@@ -120,13 +123,13 @@ def workspace_settings(request, workspace_id):
             # Validate file type
             allowed_types = ("image/jpeg", "image/png", "image/webp", "image/gif")
             if icon.content_type not in allowed_types:
-                messages.error(request, "Logo must be a JPEG, PNG, WebP, or GIF image.")
+                messages.error(request, _("Logo must be a JPEG, PNG, WebP, or GIF image."))
                 return redirect("workspaces:settings", workspace_id=workspace.id)
 
             # Validate file size (2 MB max)
             max_size = 2 * 1024 * 1024
             if icon.size > max_size:
-                messages.error(request, "Logo must be under 2 MB.")
+                messages.error(request, _("Logo must be under 2 MB."))
                 return redirect("workspaces:settings", workspace_id=workspace.id)
 
             # Delete old icon before saving new one
@@ -135,7 +138,7 @@ def workspace_settings(request, workspace_id):
             workspace.icon = icon
 
         workspace.save()
-        messages.success(request, "Workspace settings updated.")
+        messages.success(request, _("Workspace settings updated."))
         return redirect("workspaces:settings", workspace_id=workspace.id)
 
     active_count = Workspace.objects.filter(organization=workspace.organization, is_archived=False).count()
@@ -180,12 +183,12 @@ def approvals_settings(request, workspace_id):
         mode = request.POST.get("approval_workflow_mode", "")
         valid_modes = Workspace.ApprovalWorkflowMode.values
         if mode not in valid_modes:
-            messages.error(request, "Invalid approval workflow mode.")
+            messages.error(request, _("Invalid approval workflow mode."))
             return redirect("workspaces:approvals_settings", workspace_id=workspace.id)
 
         workspace.approval_workflow_mode = mode
         workspace.save(update_fields=["approval_workflow_mode", "updated_at"])
-        messages.success(request, "Approval workflow updated.")
+        messages.success(request, _("Approval workflow updated."))
         return redirect("workspaces:approvals_settings", workspace_id=workspace.id)
 
     return render(
