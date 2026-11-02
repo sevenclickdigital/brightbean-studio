@@ -139,7 +139,11 @@ def flow_builder(request, workspace_id, platform_post_id):
         "workspace": workspace,
         "platform_post": platform_post,
         "automation": automation,
-        "graph_json": json.dumps(graph),
+        # The dict itself, not a JSON string: the template renders it through
+        # ``json_script``, which does the serialising. Passing pre-dumped text
+        # would serialise it twice, and ``JSON.parse`` would hand the editor a
+        # string where it expects an object — a canvas that silently opens empty.
+        "graph": graph,
         "compiled": compiled,
         "supports_automation": supports_automation(platform_post),
         "is_published": platform_post.status == PlatformPost.Status.PUBLISHED,
