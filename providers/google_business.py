@@ -171,18 +171,70 @@ class GoogleBusinessProvider(SocialProvider):
     # Account / location helpers
     # ------------------------------------------------------------------
 
-    def _get_account_id(self, access_token: str) -> str:
-        """Return the account ID from credentials or by listing accounts."""
-        if self.credentials.get("account_id"):
-            return self.credentials["account_id"]
-
+    def _list_accounts(self, access_token: str) -> list[dict]:
+        """Return every Google Business account the grant can reach."""
         resp = self._request(
             "GET",
             f"{ACCOUNTS_API}/accounts",
             access_token=access_token,
         )
-        data = resp.json()
-        accounts = data.get("accounts", [])
+        return resp.json().get("accounts", [])
+
+    def _list_locations(self, access_token: str, account_id: str) -> list[dict]:
+        """Return every location under ``account_id``."""
+        resp = self._request(
+            "GET",
+            f"{BUSINESS_INFO_API}/{account_id}/locations",
+            access_token=access_token,
+            params={"readMask": LOCATION_READ_MASK},
+        )
+        return resp.json().get("locations", [])
+
+    def get_user_pages(self, access_token: str) -> list[dict]:
+        """Return every location across every account, for the connect picker.
+
+        Named for the hook ``apps.social_accounts.views.oauth_callback`` looks
+        for, which is what routes a platform into the multi-select flow instead
+        of the single-account one that silently takes the first result.
+
+        ``id`` is the location resource name ("locations/123"), which is both
+        the identity stored on the SocialAccount and the path segment
+        ``publish_post`` posts to — so a connected account publishes to the
+        location the user picked rather than to whichever one the API happens
+        to list first.
+        """
+        pages: list[dict] = []
+        for account in self._list_accounts(access_token):
+            account_name = account.get("name", "")
+            if not account_name:
+                continue
+            for loc in self._list_locations(access_token, account_name):
+                location_name = loc.get("name", "")
+                if not location_name:
+                    continue
+                address_lines = loc.get("storefrontAddress", {}).get("addressLines", [])
+                pages.append(
+                    {
+                        "id": location_name,
+                        "name": loc.get("title") or location_name,
+                        # One grant covers every location it can reach, so there
+                        # is no per-location token to hand back the way Meta
+                        # issues per-Page tokens.
+                        "access_token": "",
+                        "category": ", ".join(address_lines),
+                        "picture": None,
+                        "followers_count": 0,
+                        "account_id": account_name,
+                    }
+                )
+        return pages
+
+    def _get_account_id(self, access_token: str) -> str:
+        """Return the account ID from credentials or by listing accounts."""
+        if self.credentials.get("account_id"):
+            return self.credentials["account_id"]
+
+        accounts = self._list_accounts(access_token)
         if not accounts:
             raise PublishError(
                 "No Google Business accounts found",
@@ -196,14 +248,7 @@ class GoogleBusinessProvider(SocialProvider):
         if self.credentials.get("location_id"):
             return self.credentials["location_id"]
 
-        resp = self._request(
-            "GET",
-            f"{BUSINESS_INFO_API}/{account_id}/locations",
-            access_token=access_token,
-            params={"readMask": LOCATION_READ_MASK},
-        )
-        data = resp.json()
-        locations = data.get("locations", [])
+        locations = self._list_locations(access_token, account_id)
         if not locations:
             raise PublishError(
                 "No locations found for Google Business account",
