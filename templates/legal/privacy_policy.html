@@ -1,0 +1,177 @@
+{% comment %}
+Standalone public page — deliberately does not extend base.html, which assumes
+an authenticated user and a workspace context. Meta's App Review fetches this
+URL anonymously, so it must render with no session and no database state.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Política de Privacidade — {{ app_name }}</title>
+  <meta name="description" content="Política de Privacidade do {{ app_name }}, plataforma de gestão de redes sociais da Seven Click.">
+  <style>
+    :root { --roxo:#4A1145; --amarelo:#F9B610; --texto:#1f2430; --suave:#5b6478; --borda:#e6e8ef; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--texto);line-height:1.65;background:#fff}
+    header{background:var(--roxo);color:#fff;padding:48px 24px}
+    .wrap{max-width:820px;margin:0 auto}
+    header h1{font-size:30px;line-height:1.25;margin-bottom:8px}
+    header p{opacity:.85;font-size:15px}
+    main{padding:48px 24px 72px}
+    h2{font-size:20px;margin:36px 0 12px;padding-top:8px;color:var(--roxo)}
+    h2:first-child{margin-top:0}
+    h3{font-size:16px;margin:22px 0 8px}
+    p,li{font-size:15.5px;color:var(--texto)}
+    p{margin-bottom:12px}
+    ul{margin:0 0 14px 22px}
+    li{margin-bottom:7px}
+    table{border-collapse:collapse;width:100%;margin:14px 0 20px;font-size:14.5px}
+    th,td{border:1px solid var(--borda);padding:9px 11px;text-align:left;vertical-align:top}
+    th{background:#faf9fb;font-weight:600}
+    .nota{border-left:4px solid var(--amarelo);background:#fffdf5;padding:14px 16px;margin:18px 0;font-size:15px}
+    a{color:var(--roxo)}
+    footer{border-top:1px solid var(--borda);padding:28px 24px 48px;color:var(--suave);font-size:14px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Política de Privacidade</h1>
+      <p>{{ app_name }} — Seven Click · Última atualização: {{ last_updated }}</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h2>1. Quem somos</h2>
+    <p>
+      O {{ app_name }} é uma plataforma de agendamento, publicação e atendimento em redes
+      sociais operada pela <strong>Seven Click</strong>. Esta política descreve quais dados a
+      plataforma coleta, por que os coleta, com quem os compartilha e como você pode removê-los.
+    </p>
+    <p>
+      Contato do responsável pelo tratamento de dados:
+      <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+    </p>
+
+    <h2>2. Dados que coletamos</h2>
+
+    <h3>2.1 Dados de conta</h3>
+    <ul>
+      <li>Nome e endereço de email usados para criar o acesso.</li>
+      <li>Senha, armazenada apenas como hash criptográfico — nunca em texto legível.</li>
+      <li>Registros de acesso (data e hora do último login) para fins de segurança.</li>
+    </ul>
+
+    <h3>2.2 Dados das redes sociais conectadas</h3>
+    <p>
+      Quando você conecta um perfil, a rede social nos envia um token de acesso. Esse token
+      permite que a plataforma atue em nome do perfil, estritamente dentro das permissões que
+      você autorizou no momento da conexão.
+    </p>
+    <table>
+      <tr><th>Dado</th><th>Finalidade</th></tr>
+      <tr><td>Token de acesso e identificadores do perfil</td><td>Publicar e ler conteúdo em nome da conta autorizada</td></tr>
+      <tr><td>Nome, @usuário e foto do perfil</td><td>Identificar a conta na interface</td></tr>
+      <tr><td>Publicações, comentários e menções</td><td>Exibir o histórico e permitir respostas</td></tr>
+      <tr><td>Mensagens diretas</td><td>Exibir e responder pela caixa de entrada unificada</td></tr>
+      <tr><td>Métricas de alcance e engajamento</td><td>Montar os relatórios de desempenho</td></tr>
+    </table>
+
+    <h3>2.3 Conteúdo que você produz</h3>
+    <ul>
+      <li>Textos, imagens e vídeos enviados para publicação.</li>
+      <li>Comentários internos e fluxos de aprovação entre membros da equipe.</li>
+    </ul>
+
+    <div class="nota">
+      <strong>O que não fazemos:</strong> não vendemos dados pessoais, não os usamos para
+      publicidade direcionada, não treinamos modelos de inteligência artificial com o conteúdo
+      das suas contas e não acessamos perfis além dos que você conectou explicitamente.
+    </div>
+
+    <h2>3. Como usamos os dados</h2>
+    <p>Os dados são usados exclusivamente para operar as funções que você solicita:</p>
+    <ul>
+      <li>Publicar e agendar conteúdo nas contas conectadas.</li>
+      <li>Receber e responder comentários, menções e mensagens diretas.</li>
+      <li>Apresentar métricas de desempenho das publicações.</li>
+      <li>Manter a segurança da conta e investigar uso indevido.</li>
+    </ul>
+
+    <h2>4. Compartilhamento</h2>
+    <p>
+      Os dados são compartilhados apenas com as plataformas que você conectou, e apenas na
+      medida necessária para executar a ação solicitada — por exemplo, enviar uma publicação ao
+      Instagram exige transmitir aquele conteúdo ao Instagram.
+    </p>
+    <p>
+      Não há transferência de dados a terceiros para fins comerciais. Provedores de
+      infraestrutura (hospedagem e envio de email) processam dados somente como operadores,
+      seguindo nossas instruções.
+    </p>
+
+    <h2>5. Armazenamento e segurança</h2>
+    <ul>
+      <li>Tokens de acesso são armazenados com criptografia em repouso.</li>
+      <li>Todo o tráfego entre o seu navegador e a plataforma usa HTTPS.</li>
+      <li>O acesso é segmentado por organização e por espaço de trabalho, com perfis de permissão.</li>
+      <li>Autenticação em duas etapas está disponível para contas de usuário.</li>
+    </ul>
+
+    <h2>6. Retenção</h2>
+    <p>
+      Mantemos os dados enquanto a conta estiver ativa. Ao desconectar um perfil social, o
+      token correspondente é revogado e removido. Ao encerrar a conta, os dados associados são
+      excluídos conforme a seção seguinte.
+    </p>
+
+    <h2>7. Seus direitos</h2>
+    <p>
+      Nos termos da Lei Geral de Proteção de Dados (Lei nº 13.709/2018), você pode solicitar
+      acesso, correção, portabilidade ou exclusão dos seus dados, além de revogar
+      consentimentos previamente concedidos.
+    </p>
+    <h3>Como excluir seus dados</h3>
+    <ul>
+      <li>
+        <strong>Desconectar um perfil:</strong> em <em>Contas sociais</em>, use a opção de
+        desconectar. O token é revogado imediatamente.
+      </li>
+      <li>
+        <strong>Revogar pelo Facebook ou Instagram:</strong> acesse
+        <em>Configurações → Apps e sites</em> na própria rede social e remova o
+        {{ app_name }}.
+      </li>
+      <li>
+        <strong>Excluir a conta e todos os dados:</strong> envie um pedido para
+        <a href="mailto:{{ contact_email }}">{{ contact_email }}</a> com o assunto
+        “Exclusão de dados”. O atendimento ocorre em até 30 dias.
+      </li>
+    </ul>
+
+    <h2>8. Dados de crianças e adolescentes</h2>
+    <p>
+      A plataforma é destinada a uso profissional e não se dirige a menores de 18 anos. Não
+      coletamos intencionalmente dados de crianças e adolescentes.
+    </p>
+
+    <h2>9. Alterações nesta política</h2>
+    <p>
+      Mudanças relevantes serão refletidas nesta página, com atualização da data no topo.
+      Recomendamos revisá-la periodicamente.
+    </p>
+
+    <h2>10. Contato</h2>
+    <p>
+      Dúvidas sobre privacidade ou sobre o tratamento dos seus dados:
+      <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+    </p>
+  </main>
+
+  <footer class="wrap">
+    Seven Click — {{ app_name }}
+  </footer>
+</body>
+</html>
