@@ -20,14 +20,25 @@ row, and 24px in the account-selection header. Image canvas heights are 26px and
 
 `templates/partials/_youtube_attribution.html` renders the plain trade name
 “YouTube” in the application's normal font, linking to the corresponding channel
-or video. The sidebar shows YouTube above the channel name beside its avatar.
-Mixed-platform content identifies its source within each YouTube block. Text
-attribution does not reproduce the graphic wordmark or imply endorsement.
+or video. Mixed-platform content identifies its source within each YouTube block.
+Text attribution does not reproduce the graphic wordmark or imply endorsement.
+
+`templates/partials/_youtube_badge_icon.html` renders the red icon in the
+sidebar's avatar badge, at a 16px visible width, where every other platform shows
+a 16px SVG. It replaces the earlier treatment, which showed the trade name
+“YouTube” above the channel name because no icon placement that small had been
+accepted; the label was removed at the user's request, for consistency with the
+other channels. The badge carries no link, because it sits inside the sidebar's
+own anchor. Its row dims when a channel needs reconnecting: the opacity is
+applied to the avatar alone, never to this asset.
 
 The compact graphics fall below the previously selected 100px minimum visible
-height; this implementation does not claim that minimum is satisfied. The PNG
+height; this implementation does not claim that minimum is satisfied. The
+sidebar badge is the smallest of them and carries that caveat furthest. The PNG
 canvas is 1255 × 1075; the visible mark occupies 827 × 579 pixels. A 26px-high
-canvas gives a 20px-wide visible mark; 31.2px gives a 24px-wide visible mark.
+canvas gives a 20px-wide visible mark; 31.2px gives a 24px-wide visible mark;
+the badge sets a 16px width and lets height follow, for a visible mark about
+11px high.
 Preserve proportions, clear space and
 approved solid backgrounds; do not recolour the asset or apply opacity effects.
 The numeric graphic minimum does not specify a minimum font size for plain text.

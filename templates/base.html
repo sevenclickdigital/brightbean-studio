@@ -709,16 +709,11 @@
                         {% else %}
                         <div class="w-7 h-7 rounded-full bg-stone-200 flex items-center justify-center text-[11px] font-semibold text-stone-500">{{ channel.account_name|default:channel.account_handle|make_list|first|upper }}</div>
                         {% endif %}
-                        {% if channel.platform != "youtube" %}<div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                            {% include "partials/_platform_icon.html" with platform=channel.platform size="sm" %}
-                        </div>{% endif %}
+                        <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                            {% if channel.platform == "youtube" %}{% include "partials/_youtube_badge_icon.html" %}{% else %}{% include "partials/_platform_icon.html" with platform=channel.platform size="sm" %}{% endif %}
+                        </div>
                     </div>
-                    {% if channel.platform == "youtube" %}
-                    <span class="sidebar-nav-label min-w-0 flex-1" style="line-height:1.35;">
-                        <span class="block text-[11px] font-semibold text-stone-500">YouTube</span>
-                        <span class="block truncate">{{ channel.account_name|default:channel.account_handle }}</span>
-                    </span>
-                    {% else %}<span class="sidebar-nav-label truncate">{{ channel.account_name|default:channel.account_handle }}</span>{% endif %}
+                    <span class="sidebar-nav-label truncate">{{ channel.account_name|default:channel.account_handle }}</span>
                     <span class="sidebar-badge">{{ channel.queued_post_count|default:0 }}</span>
                 </a>
                 {% endfor %}
@@ -726,23 +721,20 @@
 
                 {% for channel in sidebar_unhealthy_channels %}
                 <div class="sidebar-nav-item flex items-center gap-2">
-                    <div class="relative flex-shrink-0 opacity-60">
+                    {# Dimming sits on the avatar, not this wrapper: the badge below may hold the #}
+                    {# official YouTube icon, which the brand guidelines bar from carrying opacity. #}
+                    <div class="relative flex-shrink-0">
                         {% if channel.avatar_url %}
-                        <img src="{{ channel.avatar_url }}" alt="" class="w-7 h-7 rounded-full object-cover grayscale" x-data @error="$el.style.display='none';$el.nextElementSibling.style.display='flex'">
-                        <div class="w-7 h-7 rounded-full bg-stone-200 items-center justify-center text-[11px] font-semibold text-stone-500" style="display:none">{{ channel.account_name|default:channel.account_handle|make_list|first|upper }}</div>
+                        <img src="{{ channel.avatar_url }}" alt="" class="w-7 h-7 rounded-full object-cover grayscale opacity-60" x-data @error="$el.style.display='none';$el.nextElementSibling.style.display='flex'">
+                        <div class="w-7 h-7 rounded-full bg-stone-200 opacity-60 items-center justify-center text-[11px] font-semibold text-stone-500" style="display:none">{{ channel.account_name|default:channel.account_handle|make_list|first|upper }}</div>
                         {% else %}
-                        <div class="w-7 h-7 rounded-full bg-stone-200 flex items-center justify-center text-[11px] font-semibold text-stone-500">{{ channel.account_name|default:channel.account_handle|make_list|first|upper }}</div>
+                        <div class="w-7 h-7 rounded-full bg-stone-200 opacity-60 flex items-center justify-center text-[11px] font-semibold text-stone-500">{{ channel.account_name|default:channel.account_handle|make_list|first|upper }}</div>
                         {% endif %}
-                        {% if channel.platform != "youtube" %}<div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                            {% include "partials/_platform_icon.html" with platform=channel.platform size="sm" %}
-                        </div>{% endif %}
+                        <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                            {% if channel.platform == "youtube" %}{% include "partials/_youtube_badge_icon.html" %}{% else %}{% include "partials/_platform_icon.html" with platform=channel.platform size="sm" %}{% endif %}
+                        </div>
                     </div>
-                    {% if channel.platform == "youtube" %}
-                    <span class="sidebar-nav-label min-w-0 flex-1 text-stone-400" style="line-height:1.35;">
-                        <span class="block text-[11px] font-semibold">YouTube</span>
-                        <span class="block truncate">{{ channel.account_name|default:channel.account_handle }}</span>
-                    </span>
-                    {% else %}<span class="sidebar-nav-label truncate flex-1 text-stone-400 opacity-60">{{ channel.account_name|default:channel.account_handle }}</span>{% endif %}
+                    <span class="sidebar-nav-label truncate flex-1 text-stone-400 opacity-60">{{ channel.account_name|default:channel.account_handle }}</span>
                     <form method="post" action="{% url 'social_accounts:reconnect' workspace_id=request.workspace.id account_id=channel.id %}" class="sidebar-nav-label">
                         {% csrf_token %}
                         <button type="submit" class="inline-flex items-center px-2 py-0.5 text-[11px] font-semibold text-orange-700 bg-orange-50 rounded-full hover:bg-orange-100 transition-colors cursor-pointer" title="Reconnect {{ channel.account_name|default:channel.account_handle }}">
