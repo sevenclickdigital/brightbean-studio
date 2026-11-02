@@ -27,6 +27,12 @@ ACCOUNTS_API = "https://mybusinessaccountmanagement.googleapis.com/v1"
 BUSINESS_INFO_API = "https://mybusinessbusinessinformation.googleapis.com/v1"
 POSTS_API = "https://mybusiness.googleapis.com/v4"
 
+# locations.list rejects a request without readMask ("Field is required", 400
+# INVALID_ARGUMENT) — it has no default field set. Ask for exactly the fields
+# get_profile() reads, since every extra field is one the caller must also be
+# authorized for.
+LOCATION_READ_MASK = "name,title,storefrontAddress,phoneNumbers"
+
 
 class GoogleBusinessProvider(SocialProvider):
     """Google Business Profile provider.
@@ -194,6 +200,7 @@ class GoogleBusinessProvider(SocialProvider):
             "GET",
             f"{BUSINESS_INFO_API}/{account_id}/locations",
             access_token=access_token,
+            params={"readMask": LOCATION_READ_MASK},
         )
         data = resp.json()
         locations = data.get("locations", [])
@@ -216,6 +223,7 @@ class GoogleBusinessProvider(SocialProvider):
             "GET",
             f"{BUSINESS_INFO_API}/{account_id}/locations",
             access_token=access_token,
+            params={"readMask": LOCATION_READ_MASK},
         )
         data = resp.json()
         locations = data.get("locations", [])
