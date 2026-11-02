@@ -20,6 +20,7 @@ urlpatterns = [
     # Public legal pages. Required by Meta App Review, which fetches both
     # anonymously, so they must stay outside any auth-gated include.
     path("privacy/", legal_views.privacy_policy, name="privacy_policy"),
+    path("terms/", legal_views.terms_of_service, name="terms_of_service"),
     path("data-deletion/", legal_views.data_deletion, name="data_deletion"),
     path("accounts/", include("apps.accounts.urls")),
     path("accounts/", include("allauth.urls")),

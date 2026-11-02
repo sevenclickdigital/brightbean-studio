@@ -1,0 +1,174 @@
+{% comment %}
+Standalone public page — see legal/privacy_policy.html for why this does not
+extend base.html. Meta App Review fetches this URL anonymously.
+{% endcomment %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Termos de Serviço — {{ app_name }}</title>
+  <meta name="description" content="Termos de Serviço do {{ app_name }}, plataforma de gestão de redes sociais da Seven Click.">
+  <style>
+    :root { --roxo:#4A1145; --amarelo:#F9B610; --texto:#1f2430; --suave:#5b6478; --borda:#e6e8ef; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      color:var(--texto);line-height:1.65;background:#fff}
+    header{background:var(--roxo);color:#fff;padding:48px 24px}
+    .wrap{max-width:820px;margin:0 auto}
+    header h1{font-size:30px;line-height:1.25;margin-bottom:8px}
+    header p{opacity:.85;font-size:15px}
+    main{padding:48px 24px 72px}
+    h2{font-size:20px;margin:36px 0 12px;padding-top:8px;color:var(--roxo)}
+    h2:first-child{margin-top:0}
+    h3{font-size:16px;margin:22px 0 8px}
+    p,li{font-size:15.5px}
+    p{margin-bottom:12px}
+    ul,ol{margin:0 0 14px 22px}
+    li{margin-bottom:7px}
+    .nota{border-left:4px solid var(--amarelo);background:#fffdf5;padding:14px 16px;margin:18px 0;font-size:15px}
+    a{color:var(--roxo)}
+    footer{border-top:1px solid var(--borda);padding:28px 24px 48px;color:var(--suave);font-size:14px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <h1>Termos de Serviço</h1>
+      <p>{{ app_name }} — Seven Click · Última atualização: {{ last_updated }}</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h2>1. Aceitação</h2>
+    <p>
+      Ao criar uma conta ou usar o {{ app_name }} (“plataforma”), operado pela
+      <strong>Seven Click</strong>, você concorda com estes Termos. Se não concordar, não use
+      a plataforma.
+    </p>
+
+    <h2>2. O que a plataforma faz</h2>
+    <p>
+      O {{ app_name }} é uma ferramenta de gestão de redes sociais que permite:
+    </p>
+    <ul>
+      <li>Criar, agendar e publicar conteúdo nas contas que você conectar.</li>
+      <li>Receber e responder comentários, menções e mensagens diretas em uma caixa unificada.</li>
+      <li>Acompanhar métricas de desempenho das publicações.</li>
+      <li>Organizar o trabalho em equipe, com espaços de trabalho e fluxos de aprovação.</li>
+    </ul>
+    <p>
+      As redes suportadas incluem Facebook, Instagram, Threads, LinkedIn, TikTok, YouTube,
+      Pinterest, Google Business Profile, Bluesky, Mastodon e DEV.to. A disponibilidade de
+      cada uma depende da configuração da instalação e das aprovações de cada plataforma.
+    </p>
+
+    <h2>3. Sua conta</h2>
+    <ul>
+      <li>Você é responsável por manter a confidencialidade das suas credenciais de acesso.</li>
+      <li>Você responde por toda a atividade realizada na sua conta.</li>
+      <li>É necessário ter 18 anos ou mais para usar a plataforma.</li>
+      <li>Avise-nos imediatamente se suspeitar de uso não autorizado.</li>
+    </ul>
+
+    <h2>4. Contas de redes sociais conectadas</h2>
+    <p>
+      Ao conectar um perfil, você autoriza a plataforma a agir em seu nome dentro das
+      permissões concedidas. Você declara que:
+    </p>
+    <ul>
+      <li>Tem autorização legítima para gerenciar os perfis que conectar.</li>
+      <li>Cumprirá os termos de uso de cada rede social conectada.</li>
+      <li>Entende que as regras de cada rede (limites de publicação, políticas de conteúdo,
+        janelas de resposta a mensagens) se aplicam e estão fora do nosso controle.</li>
+    </ul>
+
+    <div class="nota">
+      A plataforma depende de APIs de terceiros. Mudanças, instabilidades ou interrupções
+      nessas APIs podem afetar funcionalidades, e não temos controle sobre elas.
+    </div>
+
+    <h2>5. Uso aceitável</h2>
+    <p>Você concorda em <strong>não</strong> usar a plataforma para:</p>
+    <ul>
+      <li>Publicar conteúdo ilegal, difamatório, discriminatório ou que viole direitos de terceiros.</li>
+      <li>Enviar spam, mensagens não solicitadas em massa ou praticar engajamento artificial.</li>
+      <li>Burlar limites técnicos, de segurança ou de taxa das redes sociais ou da própria plataforma.</li>
+      <li>Acessar contas de terceiros sem autorização.</li>
+      <li>Realizar engenharia reversa ou tentar obter acesso não autorizado à infraestrutura.</li>
+    </ul>
+    <p>
+      O descumprimento pode levar à suspensão ou encerramento da conta, sem aviso prévio
+      quando houver risco a terceiros ou à integridade do serviço.
+    </p>
+
+    <h2>6. Seu conteúdo</h2>
+    <p>
+      Você mantém todos os direitos sobre o conteúdo que envia. Ao usar a plataforma, você nos
+      concede apenas a licença técnica necessária para armazenar, processar e transmitir esse
+      conteúdo às redes que você escolher — nada além do necessário para executar o serviço.
+    </p>
+    <p>
+      Não usamos seu conteúdo para publicidade, não o cedemos a terceiros para fins comerciais
+      e não o utilizamos para treinar modelos de inteligência artificial.
+    </p>
+
+    <h2>7. Disponibilidade</h2>
+    <p>
+      Trabalhamos para manter a plataforma disponível, mas o serviço é fornecido
+      <strong>“no estado em que se encontra”</strong>, sem garantia de operação
+      ininterrupta ou livre de erros. Manutenções programadas e indisponibilidades
+      eventuais podem ocorrer.
+    </p>
+
+    <h2>8. Limitação de responsabilidade</h2>
+    <p>
+      Na máxima extensão permitida pela lei, a Seven Click não responde por danos indiretos,
+      lucros cessantes, perda de dados ou prejuízos decorrentes de:
+    </p>
+    <ul>
+      <li>Falhas, mudanças ou suspensões nas APIs das redes sociais.</li>
+      <li>Publicações realizadas por você ou pela sua equipe.</li>
+      <li>Suspensão de contas pelas próprias redes sociais.</li>
+      <li>Uso da plataforma em desacordo com estes Termos.</li>
+    </ul>
+
+    <h2>9. Encerramento</h2>
+    <p>
+      Você pode encerrar sua conta a qualquer momento — veja as instruções em
+      <a href="{% url 'data_deletion' %}">Exclusão de dados</a>. Podemos suspender ou
+      encerrar contas que violem estes Termos ou as políticas das redes conectadas.
+    </p>
+
+    <h2>10. Privacidade</h2>
+    <p>
+      O tratamento de dados pessoais está descrito na
+      <a href="{% url 'privacy_policy' %}">Política de Privacidade</a>, que é parte
+      integrante destes Termos.
+    </p>
+
+    <h2>11. Alterações</h2>
+    <p>
+      Estes Termos podem ser atualizados. Mudanças relevantes serão comunicadas pela
+      plataforma ou por email, e a data no topo será atualizada. O uso continuado após a
+      alteração significa concordância.
+    </p>
+
+    <h2>12. Lei aplicável</h2>
+    <p>
+      Estes Termos são regidos pelas leis da República Federativa do Brasil. Fica eleito o
+      foro da comarca da sede da Seven Click para dirimir controvérsias, salvo disposição
+      legal em contrário aplicável a relações de consumo.
+    </p>
+
+    <h2>13. Contato</h2>
+    <p>
+      Dúvidas sobre estes Termos: <a href="mailto:{{ contact_email }}">{{ contact_email }}</a>.
+    </p>
+  </main>
+
+  <footer class="wrap">
+    Seven Click — {{ app_name }}
+  </footer>
+</body>
+</html>

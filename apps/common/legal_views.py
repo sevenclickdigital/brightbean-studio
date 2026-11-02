@@ -36,3 +36,8 @@ def privacy_policy(request):
 def data_deletion(request):
     """Public data-deletion instructions, required by Meta App Review."""
     return render(request, "legal/data_deletion.html", _context())
+
+
+def terms_of_service(request):
+    """Public Terms of Service, linked from the Meta app configuration."""
+    return render(request, "legal/terms_of_service.html", _context())
