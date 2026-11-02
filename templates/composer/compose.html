@@ -340,14 +340,14 @@
                             <img src="{{ account.avatar_url }}" alt="{{ account.account_name|default:account.account_handle }}" class="w-7 h-7 rounded-full object-cover">
                             {% else %}
                             <div class="w-7 h-7 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
-                                {% if account.platform == "youtube" %}<span class="text-xs font-semibold">{{ account.account_name|default:account.account_handle|make_list|first|upper }}</span>{% else %}{% include "partials/_platform_icon.html" with platform=account.platform size="sm" %}{% endif %}
+                                {% if account.platform == "youtube" %}{% include "partials/_youtube_badge_icon.html" %}{% else %}{% include "partials/_platform_icon.html" with platform=account.platform size="sm" %}{% endif %}
                             </div>
                             {% endif %}
-                            {% if account.platform != "youtube" %}<div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
-                                {% include "partials/_platform_icon.html" with platform=account.platform size="sm" %}
-                            </div>{% endif %}
+                            <div class="absolute -bottom-0.5 -right-0.5 w-4 h-4 bg-white rounded-full flex items-center justify-center">
+                                {% if account.platform == "youtube" %}{% include "partials/_youtube_badge_icon.html" %}{% else %}{% include "partials/_platform_icon.html" with platform=account.platform size="sm" %}{% endif %}
+                            </div>
                         </div>
-                        <span class="text-sm font-medium text-stone-700 truncate">{{ account.account_name|default:account.account_handle }}{% if account.platform == "youtube" %} <small>YouTube</small>{% endif %}</span>
+                        <span class="text-sm font-medium text-stone-700 truncate">{{ account.account_name|default:account.account_handle }}</span>
                     </label>
                     {% empty %}
                     <span class="text-xs text-stone-400">No accounts connected</span>
