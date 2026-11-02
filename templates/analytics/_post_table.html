@@ -4,7 +4,9 @@
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--neutral-100);">
         <span style="font-size: 0.8125rem; color: var(--text-secondary);">
             <strong class="a-mono" style="color: var(--text-primary);">{{ table.total }}</strong> {% blocktranslate count counter=table.total %}post{% plural %}posts{% endblocktranslate %} ·
-            {% if table.days_filter %}{% blocktranslate %}last {{ table.days_filter }} days{% endblocktranslate %}{% else %}{% translate "all time" %}{% endif %}
+            {# `with` is required: blocktranslate does not resolve a dotted path, it #}
+            {# interpolates an empty string and the number silently vanishes. #}
+            {% if table.days_filter %}{% blocktranslate with days=table.days_filter %}last {{ days }} days{% endblocktranslate %}{% else %}{% translate "all time" %}{% endif %}
         </span>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             {% if table.media_kinds|length > 1 %}

@@ -10,7 +10,7 @@
                 <span class="text-[11px] text-red-400 ml-auto">{% translate "just now" %}</span>
             </div>
             <p class="text-[13px] text-red-700 leading-relaxed">
-                {% blocktranslate with platform=platform_label %}Nothing was sent to {{ platform }} — {{ reason }} Your text is still in the box.{% endblocktranslate %}
+                {% blocktranslate with platform=platform_label why=reason %}Nothing was sent to {{ platform }} — {{ why }} Your text is still in the box.{% endblocktranslate %}
             </p>
         </div>
     </div>

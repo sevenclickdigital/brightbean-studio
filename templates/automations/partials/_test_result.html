@@ -20,7 +20,7 @@ this panel could mislead.
         <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <p class="text-[12px] text-stone-600 leading-relaxed">
             <span class="font-semibold text-stone-700">{% translate "This is a preview. Nothing was sent." %}</span>
-            {% blocktranslate with count=sample_size %}It replays the rule against the {{ count }} most recent comment{{ count|pluralize }} already in your inbox — no replies and no DMs were posted, and nobody was notified.{% endblocktranslate %}
+            {% blocktranslate count counter=sample_size %}It replays the rule against the {{ counter }} most recent comment already in your inbox — no replies and no DMs were posted, and nobody was notified.{% plural %}It replays the rule against the {{ counter }} most recent comments already in your inbox — no replies and no DMs were posted, and nobody was notified.{% endblocktranslate %}
         </p>
     </div>
 
@@ -48,7 +48,7 @@ this panel could mislead.
     <div class="bg-white border border-stone-200 rounded-xl overflow-hidden" style="box-shadow: var(--shadow-xs);">
         <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
             <p class="text-[13px] font-semibold text-stone-800">
-                {% blocktranslate with matched=matched_count total=sample_size %}{{ matched }} of {{ total }} recent comment{{ total|pluralize }} would match{% endblocktranslate %}
+                {% blocktranslate with matched=matched_count count counter=sample_size %}{{ matched }} of {{ counter }} recent comment would match{% plural %}{{ matched }} of {{ counter }} recent comments would match{% endblocktranslate %}
             </p>
         </div>
 
@@ -72,7 +72,7 @@ this panel could mislead.
         </div>
         {% else %}
         <div class="px-4 py-8 text-center">
-            <p class="text-[13px] text-stone-500">{% blocktranslate with count=sample_size %}None of the {{ count }} most recent comment{{ count|pluralize }} match this rule.{% endblocktranslate %}</p>
+            <p class="text-[13px] text-stone-500">{% blocktranslate count counter=sample_size %}None of the {{ counter }} most recent comment matches this rule.{% plural %}None of the {{ counter }} most recent comments match this rule.{% endblocktranslate %}</p>
             <p class="text-[12px] text-stone-400 mt-1">{% translate "Check the keyword match types, the post scope, and the exclude list — exclude wins over include." %}</p>
         </div>
         {% endif %}

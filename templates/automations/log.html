@@ -107,7 +107,7 @@ than hidden, because hiding it would make the trail look shorter than it is.
     <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="flex items-center justify-between mt-4">
-        <p class="text-[12px] text-stone-400">{% blocktranslate with page=page_obj.number total=page_obj.paginator.num_pages count=page_obj.paginator.count %}Page {{ page }} of {{ total }} &middot; {{ count }} entr{{ count|pluralize:"y,ies" }}{% endblocktranslate %}</p>
+        <p class="text-[12px] text-stone-400">{% blocktranslate with page=page_obj.number total=page_obj.paginator.num_pages count counter=page_obj.paginator.count %}Page {{ page }} of {{ total }} &middot; {{ counter }} entry{% plural %}Page {{ page }} of {{ total }} &middot; {{ counter }} entries{% endblocktranslate %}</p>
         <div class="flex items-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if rule_filter %}&rule={{ rule_filter }}{% endif %}{% if outcome_filter %}&outcome={{ outcome_filter }}{% endif %}"

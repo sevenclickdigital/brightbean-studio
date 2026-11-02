@@ -32,7 +32,7 @@
             font-size: 0.9375rem;
             color: var(--text-secondary);
             line-height: 1.6;
-        ">{% blocktranslate with workspace=workspace.name %}to <strong style="color: var(--text-primary); font-weight: 600;">{{ workspace }}</strong> on {{ org.name }}{% endblocktranslate %}</p>
+        ">{% blocktranslate with workspace=workspace.name org_name=org.name %}to <strong style="color: var(--text-primary); font-weight: 600;">{{ workspace }}</strong> on {{ org_name }}{% endblocktranslate %}</p>
     </div>
 
     <!-- Error message -->
@@ -326,7 +326,7 @@
             box-shadow: var(--shadow-primary);
             transition: all 200ms ease;
         ">
-            {% blocktranslate %}Done — Notify {{ org.name }}{% endblocktranslate %}
+            {% blocktranslate with org=org.name %}Done — Notify {{ org }}{% endblocktranslate %}
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
     </form>

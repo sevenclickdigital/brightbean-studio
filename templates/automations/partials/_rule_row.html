@@ -40,8 +40,8 @@ because the thing that needs fixing is this row.
                 &middot;
                 {% if rule.social_account %}{{ rule.social_account.account_name }}{% else %}{% translate "All Instagram and Facebook accounts" %}{% endif %}
                 &middot;
-                {% if rule.post_scope == 'specific' %}{% blocktranslate with count=rule.post_ids|length %}{{ count }} post{{ count|pluralize }}{% endblocktranslate %}{% else %}{% translate "Every post" %}{% endif %}
-                {% if rule.include_keywords %}&middot; {% blocktranslate with count=rule.include_keywords|length %}{{ count }} keyword{{ count|pluralize }}{% endblocktranslate %}{% else %}&middot; {% translate "Every comment" %}{% endif %}
+                {% if rule.post_scope == 'specific' %}{% blocktranslate count counter=rule.post_ids|length %}{{ counter }} post{% plural %}{{ counter }} posts{% endblocktranslate %}{% else %}{% translate "Every post" %}{% endif %}
+                {% if rule.include_keywords %}&middot; {% blocktranslate count counter=rule.include_keywords|length %}{{ counter }} keyword{% plural %}{{ counter }} keywords{% endblocktranslate %}{% else %}&middot; {% translate "Every comment" %}{% endif %}
             </p>
 
             <p class="text-[12px] text-stone-500 mt-0.5">
