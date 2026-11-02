@@ -5,8 +5,11 @@
 **Referência portada:** `brightbeanxyz/brightbean-chat` (commit `7bf959b`, 2026-10-21)
 **Licenças:** ambos AGPL-3.0 — portar código entre eles é permitido, mantendo atribuição.
 
-> Esta etapa é **apenas análise**. Nenhum arquivo do Studio foi alterado além da
-> criação deste relatório.
+> **Status: v1 IMPLEMENTADA.** Este documento começou como análise e virou o
+> registro de projeto. A v1 (etapas 1–7 do §7) foi construída na branch
+> `feat/comment-automations`, commits `6de3d47` e `b1dd535`. O §9 registra o que
+> saiu diferente do plano e por quê — leia-o antes de usar o resto como
+> especificação.
 
 ---
 
@@ -896,3 +899,139 @@ Licenciado sob AGPL-3.0. Modificações: normalização de acentos para pt-BR.
 | `apps/common/managers.py` | `WorkspaceScopedManager` |
 | `apps/inbox/apps.py` | Padrão `post_migrate` |
 | `config/urls.py:39` | Onde incluir `automations` |
+
+---
+
+## 9. Registro de implementação (v1 entregue)
+
+**Branch:** `feat/comment-automations` · **Commits:** `6de3d47`, `b1dd535`
+**Suíte:** 2834 passam, 1 falha pré-existente (ver §9.5) · **99 testes novos**
+**Linhas entregues:** ~5.900 (código + testes + templates)
+
+### 9.1 O que foi construído
+
+| Arquivo | Linhas | Papel |
+|---|---|---|
+| `apps/automations/keywords.py` | 118 | 5 modos de match (3 portados + 2 novos) |
+| `apps/automations/models.py` | 291 | `AutomationRule`, `AutomationLog` |
+| `apps/automations/guards.py` | 380 | Idempotência durável |
+| `apps/automations/matching.py` | 380 | Prioridade, primeiro-match-vence, sem efeito colateral |
+| `apps/automations/actions.py` | 590 | Pipeline ordenado de execução |
+| `apps/automations/services.py` | 68 | Ponto de entrada único |
+| `apps/automations/tasks.py` | 70 | `@background` + purga |
+| `apps/automations/forms.py` | 436 | Validação (incl. gate da IA e cross-tenant) |
+| `apps/automations/views.py` | 429 | CRUD + toggle + dry-run + log |
+| `templates/automations/` | ~965 | 3 páginas + 2 partials HTMX/Alpine |
+| `apps/automations/tests/` | ~2.047 | 99 testes |
+| `providers/` (5 arquivos) | +75 | Private reply |
+
+### 9.2 Desvios em relação ao plano — e por quê
+
+| § do plano | Plano original | O que foi feito | Motivo |
+|---|---|---|---|
+| §5.1 | 1 modo accent-insensitive | **2 modos**: `contains_loose` e `any_word_loose` | `contains` e `any_word` são semanticamente distintos; um único modo loose forçaria a escolha errada. `exact` ficou intocado de propósito — alargá-lo mudaria o significado de regras já escritas com acento. |
+| §4.2 | `post_key`/`sender_key` com sentinela derivado | **`_sentinel_keys()`**, função dedicada, substituindo **as duas** chaves quando qualquer uma falta | Manter a metade conhecida poria um `post_id` real no índice pareado com sender sentinela — leria como se tivéssemos identificado um autor que não identificamos. O trade aceito: a trava fica **inerte**, não **errada**. |
+| §4.2 | `claim_private_reply` seguindo o Chat | **Compare-and-set** nas duas metades (o Chat faz write incondicional na privada) | O Chat serializa o envio no flow engine; o worker do Studio não serializa nada. Write incondicional reportaria sucesso a uma segunda execução, que manda um segundo DM. |
+| §4.4 | — | **`hourly_count` conta só linhas que enviaram** | Um `skipped_limit` consumindo cota faria o teto se auto-perpetuar. |
+| §6.5 | Verificar `max_per_hour` antes do claim | Implementado, **com teste de falsificação** | Sabotar a ordem faz 2 testes falharem — a ordenação não passa por acidente. |
+| §4.5 | `rule_test` como dry-run | Implementado **+ 2 avisos separados** na UI | `matches_history` não aplica os gates de plataforma nem de "pode agir". Sem os avisos, "3 casariam" leria como "está funcionando" numa regra que nunca dispara. |
+| §1.6 | DM via `send_reply` | **`_dispatch_private_reply`** chama o provider direto | `send_reply` roteia `comment` para a edge de comentário — resposta pública, o oposto do pretendido. |
+| — | — | **Nenhum `InboxReply` para a DM** | `InboxReply` renderiza na thread do comentário; uma DM ali apareceria como se tivesse sido postada publicamente sob o post do cliente. O registro durável é `AutomationLog.private_reply_sent_at`, que é a **mesma linha onde o claim vive** — registro e guarda não podem divergir. |
+| — | — | **`NO_MATCH` não gera linha** | Uma linha por comentário não-casado = uma linha por comentário em todo post. Um post viral escreveria dezenas de milhares de linhas dizendo "não fizemos nada". Só `logger.debug`. |
+
+### 9.3 Riscos que só apareceram na implementação
+
+**Loop de auto-resposta (crítico).** A resposta pública da automação volta como
+webhook novo e casaria a regra que a produziu — respondendo a si mesma na frente
+de toda a audiência do cliente e queimando a cota horária num post. Resolvido
+reusando `_is_own_activity` (`apps/inbox/webhooks.py:184`), que já sabe que a
+identidade de uma conta é `account_platform_id` **ou** `webhook_target_id`.
+
+**`extra` mutado persistiria a chave de private reply.** Se
+`_dispatch_private_reply` mutasse `message.extra`, a chave
+`private_reply_to_comment_id` seria gravada no próximo `save()` daquela linha — e
+**toda resposta manual de DM futura naquela thread viraria private reply**, que a
+Meta aceita uma vez por comentário. Resolvido com cópia do dict; há teste.
+
+**`HUMAN_AGENT` numa resposta automática.** A tag afirma que uma *pessoa* está
+respondendo fora da janela de 24h; uma private reply automática é a afirmação
+oposta e a Meta pode penalizar a Page. Forçado a `False` no ponto único onde o
+corpo do Send API é montado (`build_send_payload`), não nos call sites — nenhum
+chamador futuro consegue contrabandear a tag.
+
+**JSON não sobrevivia ao round-trip para o Alpine.** Interpolar JSON em `x-data`
+não funciona (Django escapa, o browser decodifica antes do Alpine avaliar), e
+`BoundField.value()` de um `HiddenInput` devolve a *string* serializada. Efeito
+se tivesse passado: no primeiro edit de qualquer regra, os editores
+inicializariam vazios e o save seguinte sobrescreveria keywords e textos com
+`[]` — **sem erro nenhum**, a regra só pararia de casar. Corrigido e promovido a
+2 testes permanentes.
+
+**Linhas de skip não podem entrar no índice parcial.** `_log_outcome` grava
+sempre `once_per_sender_per_post=False` e chaves vazias. Se uma linha de skip
+entrasse no índice, um único `skipped_window` seguraria o lock daquela pessoa
+**para sempre**. Três testes asseguram isso.
+
+**Retenção de 90 dias é limitada por baixo pelas guardas.** Toda linha de
+`AutomationLog` também é um claim de idempotência — deletar uma **libera** o
+claim e torna o comentário respondível de novo. 90 dias passa longe da janela de
+7 dias. Reduzir para dias reabriria duplicação.
+
+### 9.4 Correção fora do escopo original
+
+`apps/inbox/tests/test_reply_lifecycle_migrations.py` — a fixture
+`restore_migrations` prometia "deixa o banco no head independente de como o teste
+termine", mas restaurava só o app `inbox`. Rebobinar `inbox` derruba
+`inbox_message`, e o Postgres cascateia o drop para tabelas de **outros** apps
+cujas migrations dependem dela; reaplicar só `inbox` deixava essas tabelas
+sumidas. O dano aparecia muito depois, como falha no teste de um app sem
+relação — `relation "automation_rule" does not exist` durante um `user.delete()`
+em `apps/notifications/`.
+
+Era um defeito latente que o app novo expôs: qualquer app futuro que dependa de
+`inbox` teria o mesmo problema. A fixture agora restaura os dependentes,
+descobertos do grafo de migrations em vez de hard-coded.
+
+### 9.5 Estado da suíte
+
+| | Testes | Falhas |
+|---|---|---|
+| Baseline (antes) | 2735 | 1 |
+| Depois da v1 | **2834** | 1 |
+
+A única falha é `apps/inbox/tests/test_sync.py::test_the_sweep_asks_for_the_window_since_the_last_sweep`
+— **pré-existente**, com data hardcoded (`2026-10-01`) que expirou. Confirmada
+por `git stash` em ambas as direções. Não é do escopo desta entrega, mas vale
+corrigir: um teste que falha sempre deixa de ser sinal.
+
+### 9.6 Ambiente de desenvolvimento
+
+Nenhum venv existia no repo e o `.python-version` pinga `3.13`, que não estava no
+pyenv — então **nenhum comando de teste ou lint do README rodava**. Criado
+`.venv` com o Python 3.13.0 do sistema (`/Library/Frameworks/...`). O projeto
+exige 3.12+ de verdade: `apps/analytics/derive.py:52` usa generics PEP 695.
+
+Postgres: `postgresql@16` via homebrew, iniciado como serviço durante o trabalho
+(**ficou ligado na máquina**). Os testes de concorrência exigem Postgres real —
+a `UniqueConstraint` parcial não funciona em SQLite.
+
+### 9.7 O que falta para produção
+
+1. **Ligar em UMA conta de teste** com `max_per_hour=5` por alguns dias. Nenhum
+   código desta entrega foi exercitado contra a Graph API real — todo envio nos
+   testes é mockado.
+2. **Confirmar as permissões da Meta** para private reply (`pages_messaging`,
+   `instagram_manage_messages`). `reply_eligibility` não é consultada no caminho
+   da private reply (de propósito, §9.2), então uma permissão faltando vai
+   aparecer como erro da Graph API, não como recusa prévia.
+3. **`{post_url}` resolve para string vazia.** Não há fonte confiável:
+   `apps.publisher.engine` descarta `result.url` sem persistir, e usar
+   `permalink_url` do payload deixaria um comentário forjado fazer a conta
+   postar um link escolhido por um atacante. Para implementar de verdade, é
+   preciso primeiro persistir a URL de publicação em `PlatformPost` — mudança em
+   `publisher`, fora deste escopo. `{sender_name}` e `{account_name}` funcionam.
+4. **Rate limit do webhook** (`@ratelimit(60/m)` em `apps/inbox/webhooks.py:131`)
+   — risco pré-existente que a automação torna visível (§6.1).
+5. **v2 de IA**: `AutomationRule.ai_*` já existe e está inerte; o form filtra
+   `ReplyMode.AI` dos choices. Falta `providers/ai.py` e a ramificação em
+   `actions.py`. ~10–14 h.
