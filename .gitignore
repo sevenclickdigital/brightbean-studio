@@ -136,6 +136,10 @@ celerybeat.pid
 
 # Environments
 .env
+# Filled-in copies of .env.dokploy.example / .env.example. The templates
+# themselves stay tracked as documentation; these hold the real secrets.
+.env.local
+.env.*.local
 .envrc
 .venv
 env/
