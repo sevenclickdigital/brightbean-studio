@@ -12,7 +12,9 @@ regress, rather than around line coverage:
   still work).
 * **The dry run writing nothing** — asserted on the tables, not on the response.
 * **The editor's data round trip** — the JSON lists have to survive server →
-  Alpine → POST → server. See ``test_edit_form_emits_parseable_json_arrays``.
+  Alpine → POST → server. See ``test_edit_form_emits_parseable_json_arrays``,
+  and ``test_the_form_closes_no_script_block_early`` for the script block that
+  carries them.
 """
 
 import json
@@ -686,6 +688,48 @@ def test_edit_form_emits_parseable_json_arrays(client, workspace, account, org_o
     assert json.loads(payloads["public_reply_texts"]) == ["a </script> b", 'say "hi"']
     # The literal closing tag must not survive, or it would end the script block.
     assert "</script> b" not in html
+
+
+@pytest.mark.django_db
+def test_the_form_closes_no_script_block_early(client, workspace, org_owner, user):
+    """The page's own script source must not contain a closing tag either.
+
+    The sibling test above covers *user data* reaching a ``<script>`` block,
+    which ``json_script`` escapes. This covers the other half, which no escaping
+    reaches: the block's own source closing it early. Both ways of doing that
+    had shipped here, in the same ``//`` comment describing this very hazard —
+
+    * a literal ``</script>`` in the prose. The HTML parser does not read JS
+      comments, so it ends the block there.
+    * the text ``{{ ... |json_script }}``, written to *name* the filter. Django
+      renders template syntax inside comments like anywhere else, so it emitted
+      a whole nested ``<script type="application/json">`` block, whose closing
+      tag ended the outer one.
+
+    Either way the remaining editor source renders as visible text at the bottom
+    of the page and the Alpine components are never defined, so every list
+    editor on the form is dead.
+
+    Asserted by parsing rather than by eye: the symptom is far from the cause,
+    and prose is exactly what gets rewritten without re-reading the tests.
+    """
+    _member(workspace, user, WorkspaceMembership.WorkspaceRole.OWNER)
+    client.force_login(user)
+
+    html = client.get(_url(workspace, "create/")).content.decode()
+
+    # Every inline block, matched by taking the tag's own attributes only
+    # (``[^>]*`` before the ``>``) and then its body non-greedily. A stray
+    # closing tag inside the source would split one block into two, so the
+    # editor definitions would land outside every body.
+    bodies = [
+        body for attrs, body in re.findall(r"<script([^>]*)>(.*?)</script>", html, re.DOTALL) if "src=" not in attrs
+    ]
+    for body in bodies:
+        assert "</script" not in body
+    # The editors are what breaks, so pin that their definitions are inside a
+    # block rather than stranded as text after an early close.
+    assert any("Alpine.data('keywordEditor'" in body for body in bodies)
 
 
 @pytest.mark.django_db

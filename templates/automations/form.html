@@ -404,13 +404,14 @@ stale is a rule that silently saves the previous keyword list.
     // the Test button issues an hx-post and the Enter key submits the form, and
     // neither of those is guaranteed to run a submit handler first. A hidden
     // input one edit behind would save the previous keyword list with no error.
-    // Server data reaches these components through {{ ... |json_script }}
+    // Server data reaches these components through the json_script filter
     // rather than through the x-data attribute itself. Interpolating JSON into
     // an HTML attribute does not survive the round trip: Django escapes the
     // quotes to &quot;, the browser decodes them before Alpine ever evaluates
-    // the expression, and a reply text containing a quote or a </script> ends
-    // up as a broken JS literal — at which point the editor initialises empty
-    // and the author's saved text is silently dropped on the next save.
+    // the expression, and a reply text containing a quote or a closing script
+    // tag ends up as a broken JS literal — at which point the editor
+    // initialises empty and the author's saved text is silently dropped on the
+    // next save.
     // json_script escapes for a JS context, which is the actual context.
     function initialData(name) {
         const node = document.getElementById('initial-' + name);
