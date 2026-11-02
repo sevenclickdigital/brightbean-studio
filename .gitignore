@@ -140,6 +140,7 @@ celerybeat.pid
 # themselves stay tracked as documentation; these hold the real secrets.
 .env.local
 .env.*.local
+.env.dokploy
 .envrc
 .venv
 env/
