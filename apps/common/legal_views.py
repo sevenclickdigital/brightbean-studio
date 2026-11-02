@@ -21,8 +21,10 @@ def _context():
         "last_updated": LAST_UPDATED,
         # DEFAULT_FROM_EMAIL is often a noreply address, so prefer an explicit
         # contact when one is configured.
+        # Keep in step with the Meta app's "Email de contato": App Review
+        # compares the two, and a mismatch reads as an inconsistent policy.
         "contact_email": getattr(settings, "LEGAL_CONTACT_EMAIL", "")
-        or "contato@sevenclick.com.br",
+        or "robison@sevenclick.com.br",
     }
 
 
