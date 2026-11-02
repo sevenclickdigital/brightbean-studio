@@ -100,20 +100,34 @@ def restore_migrations():
     The damage then surfaces in an unrelated app's test much later in the run:
     deleting a user touches every table with an FK to it, one of which no longer
     exists, and the failure reads as a bug in whichever test happened to run
-    next. ``migrate`` with no target reapplies the whole graph, which is the
-    only restore that matches what this fixture's name claims.
+    next.
+
+    The repair cannot go through the migration graph at all, because what
+    Postgres destroyed does not line up with it. ``automations.0001_initial``
+    creates both ``automation_rule`` and ``automation_log``; only the latter
+    holds an FK to ``inbox_message``, so only the latter is cascaded away.
+    Rewinding that app runs ``reverse`` against tables that are already gone
+    (and mutates the app registry mid-run, surfacing far from here as ``Model
+    class … doesn't declare an explicit app_label``); unrecording it and
+    re-applying instead tries to ``CREATE TABLE automation_rule``, which never
+    left — ``relation "automation_rule" already exists``.
+
+    So the restore works at the table level: re-apply ``inbox`` through the
+    graph, then recreate exactly those dependant tables that are missing, from
+    the model state the graph already describes.
     """
     yield
-    # Rewind the dependants first so their migrations are no longer recorded as
-    # applied; re-applying the graph then genuinely recreates their tables
-    # rather than deciding there is nothing to do.
-    for app_label in _dependent_apps():
-        MigrationExecutor(connection).migrate([(app_label, None)])
     _migrate(_head())
-    for app_label in _dependent_apps():
-        leaf = MigrationExecutor(connection).loader.graph.leaf_nodes(app_label)
-        if leaf:
-            MigrationExecutor(connection).migrate([leaf[0]])
+    dependants = set(_dependent_apps())
+    state = MigrationExecutor(connection).loader.project_state()
+    existing = set(connection.introspection.table_names())
+    with connection.schema_editor() as schema_editor:
+        for app_label, model_name in state.models:
+            if app_label not in dependants:
+                continue
+            model = state.apps.get_model(app_label, model_name)
+            if model._meta.db_table not in existing:
+                schema_editor.create_model(model)
 
 
 @pytest.mark.django_db(transaction=True)

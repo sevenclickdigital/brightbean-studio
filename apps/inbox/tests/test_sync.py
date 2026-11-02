@@ -740,6 +740,19 @@ def _last_month_sweep():
     return (timezone.now() - timedelta(days=40)).replace(day=15, hour=12, minute=0, second=0, microsecond=0)
 
 
+def _mid_month_now():
+    """A ``now`` late enough in its month that an overdue sweep stays inside it.
+
+    The counterpart to ``_last_month_sweep``: a test about the *ordinary* sweep
+    has to keep ``now`` and the last sweep in one calendar month, or
+    ``_full_reply_walk_due`` turns true and widens the window it is asserting
+    on. No real date can do that during the first days of a month — a sweep
+    over a week old is necessarily in the previous one — so such a test pins
+    the clock here instead of stamping around the real today.
+    """
+    return timezone.now().replace(day=20, hour=12, minute=0, second=0, microsecond=0)
+
+
 @pytest.mark.django_db
 def test_the_full_walk_reaches_back_to_the_last_full_walk(workspace):
     """Keeping last week's cutoff would fetch a skipped reply only to drop it as too old."""
@@ -931,12 +944,21 @@ def test_the_sweep_asks_for_the_window_since_the_last_sweep(workspace):
     than the newest message already imported. Reusing that mark as ``since``
     would drop exactly those messages after paying for the full walk, leaving a
     sweep that costs everything and recovers nothing.
+
+    The clock is pinned mid-month so the overdue sweep stays in the same
+    calendar month. A plain ``now() - 8 days`` crosses into the previous month
+    for the first days of every month, which makes this the month's first
+    sweep and widens ``since`` to that month's floor — so the plain form fails
+    on those days and passes on the rest. The widening is correct behaviour,
+    covered by ``test_the_full_walk_reaches_back_to_the_last_full_walk``; this
+    test is about the ordinary sweep's window.
     """
     account = _youtube_account(workspace)
-    swept_at = timezone.now() - timedelta(days=8)
+    now = _mid_month_now()
+    swept_at = now - timedelta(days=8)
     account.inbox_last_deep_sweep_at = swept_at
     account.save(update_fields=["inbox_last_deep_sweep_at"])
-    # A message imported an hour ago, so the high-water mark is recent.
+    # A message imported an hour before that, so the high-water mark is recent.
     InboxMessage.objects.create(
         workspace=workspace,
         social_account=account,
@@ -944,13 +966,16 @@ def test_the_sweep_asks_for_the_window_since_the_last_sweep(workspace):
         sender_name="S",
         body="hi",
         message_type=InboxMessage.MessageType.COMMENT,
-        received_at=timezone.now() - timedelta(hours=1),
+        received_at=now - timedelta(hours=1),
     )
 
     provider = MagicMock()
     provider.credentials = {}
     provider.get_messages.return_value = []
-    with patch("apps.inbox.tasks.get_provider", return_value=provider):
+    with (
+        patch("apps.inbox.tasks.get_provider", return_value=provider),
+        patch("apps.inbox.tasks.timezone.now", return_value=now),
+    ):
         InboxSyncEngine().sync_all()
 
     kwargs = provider.get_messages.call_args.kwargs
