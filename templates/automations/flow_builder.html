@@ -143,6 +143,15 @@ any zoom level.
          @mousedown="onCanvasDown($event)"
          @mousemove.window="onMove($event)"
          @mouseup.window="onUp()"
+         {% comment %}
+         Three ways a gesture ends without the ``mouseup`` above: the pointer
+         leaves the document, the browser starts its own drag (on an image or a
+         text selection), or the window loses focus. Without these the node
+         keeps following the cursor with no button held.
+         {% endcomment %}
+         @mouseleave.document="onLeave($event)"
+         @dragstart.window.prevent="onUp()"
+         @blur.window="onUp()"
          @wheel.prevent="onWheel($event)"
          :class="panning ? 'cursor-grabbing' : 'cursor-grab'"
          {% comment %}
@@ -273,10 +282,17 @@ any zoom level.
                     <!-- Ports. The right one starts a link, the left one receives it. -->
                     <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-orange-500 cursor-crosshair transition-colors"
                          @mousedown.stop="startLink(node, $event)"></div>
+                    {% comment %}
+                    No ``.stop`` on this one. Stopping propagation here keeps
+                    the event from reaching the window-level ``mouseup``, which
+                    is what clears ``dragging`` — so releasing a node over an
+                    input port left it stuck to the cursor. ``finishLink`` runs
+                    first and ``onUp`` runs after; both are idempotent.
+                    {% endcomment %}
                     <div x-show="node.type !== 'trigger_comment'"
                          class="absolute -left-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300"
                          :class="linking ? 'border-orange-400' : ''"
-                         @mouseup.stop="finishLink(node)"></div>
+                         @mouseup="finishLink(node)"></div>
                 </div>
             </template>
         </div>
@@ -499,6 +515,17 @@ function flowBuilder() {
         },
 
         onMove(event) {
+            // The backstop for every lost ``mouseup``. ``event.buttons`` is a
+            // bitmask of what is held *right now*, so a move with nothing held
+            // means the gesture is over however it ended — the pointer left the
+            // window, a ``.stop`` on some child swallowed the release, the
+            // browser hijacked it for a native drag. Checking live state beats
+            // enumerating the ways a release can go missing, which is what left
+            // a node glued to the cursor after a plain click.
+            if (!event.buttons && (this.dragging || this.panning || this.linking)) {
+                this.onUp();
+                return;
+            }
             this.cursor = this.toCanvas(event);
             if (this.dragging) {
                 const node = this.nodes.find(n => n.id === this.dragging);
@@ -517,6 +544,17 @@ function flowBuilder() {
             // A link released over empty canvas is abandoned rather than left
             // dangling, so the dashed line cannot outlive the gesture.
             this.linking = null;
+        },
+
+        // A gesture can end without a ``mouseup`` the component ever sees: the
+        // pointer leaves the window, the browser starts a native drag, another
+        // window takes focus. Each of those used to leave ``dragging`` set, and
+        // a set ``dragging`` makes the node follow the cursor with no button
+        // held — the "stuck to the mouse" state. These are the escape hatches.
+        onLeave(event) {
+            // Only when the pointer actually left the document, not when it
+            // crossed into a child element.
+            if (event.relatedTarget === null) this.onUp();
         },
 
         onWheel(event) {
