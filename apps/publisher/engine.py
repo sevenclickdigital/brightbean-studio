@@ -103,6 +103,19 @@ def _resolve_publish_credentials(account):
                 "Bluesky PDS URL failed SSRF check for account %s",
                 account.id,
             )
+    elif platform == "google_business":
+        # The location the author picked at connect time. Without it the
+        # provider falls back to whichever location the API lists first, so a
+        # second location's posts would all go to the first one.
+        #
+        # Guarded on the prefix because accounts connected before the picker
+        # existed stored whatever ``get_profile`` returned, which falls back to
+        # the *account* resource name when the grant reached no locations.
+        # Passing that as ``location_id`` would build an unroutable post URL;
+        # leaving it unset keeps those accounts on the lookup path they have
+        # always used.
+        if account.account_platform_id.startswith("locations/"):
+            credentials["location_id"] = account.account_platform_id
     elif platform == "facebook":
         credentials["page_id"] = account.account_platform_id
     elif platform in ("instagram", "instagram_login"):

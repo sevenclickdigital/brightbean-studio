@@ -16,6 +16,11 @@ logger = logging.getLogger(__name__)
 class LinkedInCompanyProvider(LinkedInProvider):
     """LinkedIn provider scoped to Company Page posting."""
 
+    # One login can administer several company pages; see ``get_user_pages``.
+    # Set here rather than on ``LinkedInProvider``: the personal variant
+    # connects the authenticated member, with nothing to pick.
+    offers_account_picker = True
+
     @property
     def platform_name(self) -> str:
         return "LinkedIn (Company Page)"

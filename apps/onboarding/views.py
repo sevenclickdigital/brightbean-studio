@@ -433,6 +433,13 @@ def connection_oauth_callback(request, platform):
         # Handle Facebook/Instagram multi-page: derive every Page token from a
         # long-lived user token and connect all publishable accounts exposed by
         # the login. Connection links are the bulk/agency onboarding path.
+        #
+        # Deliberately a platform list and not ``offers_account_picker``: this
+        # path connects *everything* the grant reaches, with no one present to
+        # choose. That suits Meta Pages, but LinkedIn company pages and Google
+        # Business locations are opted out — connecting every location a Google
+        # account can manage is rarely what the sender meant, and the
+        # interactive callback is where those get picked one at a time.
         if platform in (
             PlatformCredential.Platform.FACEBOOK,
             PlatformCredential.Platform.INSTAGRAM,

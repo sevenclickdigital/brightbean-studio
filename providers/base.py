@@ -66,6 +66,16 @@ class SocialProvider(ABC):
     # unit of work via :meth:`reset_quota_counter`.
     last_call_quota_units: int = 0
 
+    # Whether one grant reaches several connectable targets — Facebook Pages,
+    # LinkedIn company pages, Google Business locations — so the callback must
+    # offer a picker instead of connecting a single profile.
+    #
+    # Declared rather than inferred from ``hasattr(provider, "get_user_pages")``:
+    # the callback is also handed test doubles, and a Mock answers yes to every
+    # attribute, so inference routes platforms that have no picker into one.
+    # A provider implementing ``get_user_pages`` sets this to True.
+    offers_account_picker: bool = False
+
     def __init__(self, credentials: dict | None = None):
         self.credentials = credentials or {}
 

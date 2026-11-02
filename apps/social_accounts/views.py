@@ -279,6 +279,8 @@ def oauth_callback(request, platform):
     ``social1`` for TikTok). Normalise it before any platform-keyed lookup
     or comparison against the signed state.
     """
+    from providers import offers_account_picker
+
     platform = from_url_slug(platform)
     error = request.GET.get("error")
     if error:
@@ -341,12 +343,15 @@ def oauth_callback(request, platform):
         redirect_uri = redirect_uri_from_request(request)
         tokens = provider.exchange_code(code, redirect_uri, **pkce_kwargs(session_data.get("code_verifier")))
 
-        # Facebook/Instagram/LinkedIn Company: connect Pages, not personal profiles
-        if platform in (
-            PlatformCredential.Platform.FACEBOOK,
-            PlatformCredential.Platform.INSTAGRAM,
-            PlatformCredential.Platform.LINKEDIN_COMPANY,
-        ) and hasattr(provider, "get_user_pages"):
+        # Platforms where one grant reaches several connectable targets — Pages,
+        # company pages, Business locations — rather than one personal profile.
+        # Asked of the provider rather than matched against a list of platforms
+        # kept here: the two had to agree, and a provider that grew
+        # ``get_user_pages`` without being added to the list fell through to the
+        # single-account path below, which connects ``[0]`` and never asks. That
+        # is what Google Business did — it silently connected whichever location
+        # the API listed first, with no way to pick the intended one.
+        if offers_account_picker(platform):
             tokens, promoted = promote_meta_user_token(provider, platform, tokens)
             pages = provider.get_user_pages(tokens.access_token)
             if pages:
@@ -392,6 +397,14 @@ def oauth_callback(request, platform):
                         "If you expected to see a Page, ask the page owner to grant "
                         "you Admin access in LinkedIn \u2192 Admin tools \u2192 "
                         "Manage admins, then reconnect."
+                    )
+                elif platform == PlatformCredential.Platform.GOOGLE_BUSINESS:
+                    warning = (
+                        "No Google Business locations were found for your account. "
+                        "Only verified locations can be connected. If you expected to "
+                        "see one, check that it is verified and that this Google account "
+                        "has access to it in Google Business Profile → Businesses, "
+                        "then reconnect."
                     )
                 else:
                     if platform == PlatformCredential.Platform.INSTAGRAM:
@@ -986,11 +999,20 @@ def resolve_page_account_token(page: dict, platform: str, user_access_token: str
     Legacy Instagram publishing/comments can fall back to the user token when
     Meta omits the Page token. Such a connection must keep DMs disabled.
 
+    Google Business issues no per-location token at all: one grant covers every
+    location it can reach, so the user token *is* the account's token rather
+    than a stand-in for a missing one. Without this the picker rejected every
+    location it had just offered, with "the platform did not provide an account
+    token".
+
     Returns "" when no usable token exists, which callers must treat as "cannot
     connect this account" rather than substituting one.
     """
     token = page.get("access_token")
-    if not token and platform == PlatformCredential.Platform.INSTAGRAM:
+    if not token and platform in (
+        PlatformCredential.Platform.INSTAGRAM,
+        PlatformCredential.Platform.GOOGLE_BUSINESS,
+    ):
         token = user_access_token
     return token or ""
 

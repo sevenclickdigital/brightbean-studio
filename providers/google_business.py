@@ -52,6 +52,11 @@ class GoogleBusinessProvider(SocialProvider):
     # can skip downloading the asset to local disk entirely.
     needs_local_media = False
 
+    # One grant reaches every location the Google account can manage, and a
+    # business with two storefronts must be able to say which; see
+    # ``get_user_pages``.
+    offers_account_picker = True
+
     # ------------------------------------------------------------------
     # Metadata
     # ------------------------------------------------------------------
@@ -243,12 +248,19 @@ class GoogleBusinessProvider(SocialProvider):
         # Return the first account's resource name (e.g. "accounts/123")
         return accounts[0]["name"]
 
-    def _get_location_id(self, access_token: str, account_id: str) -> str:
-        """Return the location ID from credentials or by listing locations."""
+    def _get_location_id(self, access_token: str) -> str:
+        """The location to act on: the connected one, or the account's first.
+
+        A connected account carries its location, so neither lookup runs. The
+        fallback is only reachable without one — accounts connected before the
+        picker existed — and it resolves the account itself, which is why that
+        call is here rather than in the caller: asking for it up front spent an
+        ``accounts.list`` on every publish that never needed it.
+        """
         if self.credentials.get("location_id"):
             return self.credentials["location_id"]
 
-        locations = self._list_locations(access_token, account_id)
+        locations = self._list_locations(access_token, self._get_account_id(access_token))
         if not locations:
             raise PublishError(
                 "No locations found for Google Business account",
@@ -305,8 +317,7 @@ class GoogleBusinessProvider(SocialProvider):
                 retryable=False,
             )
 
-        account_id = self._get_account_id(access_token)
-        location_id = self._get_location_id(access_token, account_id)
+        location_id = self._get_location_id(access_token)
 
         # Determine topic type
         topic_type = content.extra.get("topic_type", "STANDARD")

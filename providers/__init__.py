@@ -104,6 +104,28 @@ def requires_media(platform: str) -> bool:
     return PostType.TEXT not in provider_cls().supported_post_types
 
 
+def offers_account_picker(platform: str) -> bool:
+    """Whether connecting ``platform`` must let the author pick a target.
+
+    True where one grant reaches several connectable things — Facebook Pages,
+    LinkedIn company pages, Google Business locations — so the OAuth callback
+    has to offer a choice instead of connecting a single profile.
+
+    Derived from the provider class, like ``requires_media``, so a new platform
+    is covered without a list to update: the platform list the callback used to
+    carry had to agree with the providers implementing ``get_user_pages``, and
+    when it did not, the platform silently connected the API's first result.
+
+    Reads the registered class rather than the instance the callback holds,
+    which is also the test doubles: ``hasattr`` on a Mock answers yes to every
+    attribute, routing platforms that have no picker into one.
+    """
+    provider_cls = PROVIDER_REGISTRY.get(platform)
+    if provider_cls is None:
+        return False
+    return provider_cls.offers_account_picker
+
+
 def get_provider(platform: str, credentials: dict | None = None) -> SocialProvider:
     """Instantiate and return a provider for the given platform.
 

@@ -104,6 +104,10 @@ class InstagramProvider(SocialProvider):
     # can skip downloading the asset to local disk entirely.
     needs_local_media = False
 
+    # One login reaches every Business account linked to a Page it administers;
+    # see ``get_user_pages``.
+    offers_account_picker = True
+
     def __init__(self, credentials: dict | None = None):
         creds = dict(credentials or {})
         # Normalize: accept app_id/app_secret as aliases for client_id/client_secret
