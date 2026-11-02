@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 Dry-run result. Rendered into the form's result div by hx-post.
 
@@ -18,8 +19,8 @@ this panel could mislead.
     <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-stone-50 border border-stone-200 mb-3">
         <svg class="w-4 h-4 text-stone-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
         <p class="text-[12px] text-stone-600 leading-relaxed">
-            <span class="font-semibold text-stone-700">This is a preview. Nothing was sent.</span>
-            It replays the rule against the {{ sample_size }} most recent comment{{ sample_size|pluralize }} already in your inbox — no replies and no DMs were posted, and nobody was notified.
+            <span class="font-semibold text-stone-700">{% translate "This is a preview. Nothing was sent." %}</span>
+            {% blocktranslate with count=sample_size %}It replays the rule against the {{ count }} most recent comment{{ count|pluralize }} already in your inbox — no replies and no DMs were posted, and nobody was notified.{% endblocktranslate %}
         </p>
     </div>
 
@@ -27,8 +28,8 @@ this panel could mislead.
     <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200 mb-3">
         <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <p class="text-[12px] text-amber-800 leading-relaxed">
-            <span class="font-semibold">This rule is off.</span>
-            Matches below show what it <em>would</em> pick up. While it is off, it does not reply to new comments at all.
+            <span class="font-semibold">{% translate "This rule is off." %}</span>
+            {% translate "Matches below show what it would pick up. While it is off, it does not reply to new comments at all." %}
         </p>
     </div>
     {% endif %}
@@ -37,8 +38,8 @@ this panel could mislead.
     <div class="flex items-start gap-2 px-3.5 py-2.5 rounded-lg bg-amber-50 border border-amber-200 mb-3">
         <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
         <p class="text-[12px] text-amber-800 leading-relaxed">
-            <span class="font-semibold">This rule has nothing to send.</span>
-            No reply channel is both switched on and filled in, so even when it is active it is skipped before matching happens. Write a public reply or a DM.
+            <span class="font-semibold">{% translate "This rule has nothing to send." %}</span>
+            {% translate "No reply channel is both switched on and filled in, so even when it is active it is skipped before matching happens. Write a public reply or a DM." %}
         </p>
     </div>
     {% endif %}
@@ -47,7 +48,7 @@ this panel could mislead.
     <div class="bg-white border border-stone-200 rounded-xl overflow-hidden" style="box-shadow: var(--shadow-xs);">
         <div class="px-4 py-3 border-b border-stone-100 flex items-center justify-between">
             <p class="text-[13px] font-semibold text-stone-800">
-                {{ matched_count }} of {{ sample_size }} recent comment{{ sample_size|pluralize }} would match
+                {% blocktranslate with matched=matched_count total=sample_size %}{{ matched }} of {{ total }} recent comment{{ total|pluralize }} would match{% endblocktranslate %}
             </p>
         </div>
 
@@ -56,7 +57,7 @@ this panel could mislead.
             {% for message in matched_messages %}
             <div class="px-4 py-3">
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="text-[12px] font-semibold text-stone-700">{{ message.sender_name|default:"Unknown" }}</span>
+                    <span class="text-[12px] font-semibold text-stone-700">{{ message.sender_name|default:_("Unknown") }}</span>
                     <span class="text-[11px] text-stone-400">{{ message.social_account.account_name }}</span>
                     <span class="text-[11px] text-stone-400">&middot; {{ message.received_at|date:"j M, H:i" }}</span>
                 </div>
@@ -67,12 +68,12 @@ this panel could mislead.
         </div>
         {% elif sample_size == 0 %}
         <div class="px-4 py-8 text-center">
-            <p class="text-[13px] text-stone-500">There are no comments in this workspace's inbox yet, so there is nothing to preview against.</p>
+            <p class="text-[13px] text-stone-500">{% translate "There are no comments in this workspace's inbox yet, so there is nothing to preview against." %}</p>
         </div>
         {% else %}
         <div class="px-4 py-8 text-center">
-            <p class="text-[13px] text-stone-500">None of the {{ sample_size }} most recent comment{{ sample_size|pluralize }} match this rule.</p>
-            <p class="text-[12px] text-stone-400 mt-1">Check the keyword match types, the post scope, and the exclude list — exclude wins over include.</p>
+            <p class="text-[13px] text-stone-500">{% blocktranslate with count=sample_size %}None of the {{ count }} most recent comment{{ count|pluralize }} match this rule.{% endblocktranslate %}</p>
+            <p class="text-[12px] text-stone-400 mt-1">{% translate "Check the keyword match types, the post scope, and the exclude list — exclude wins over include." %}</p>
         </div>
         {% endif %}
     </div>

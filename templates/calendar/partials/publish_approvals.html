@@ -1,4 +1,5 @@
 {% if render_tab_counts_oob %}{% include "calendar/partials/_tab_counts_oob.html" %}{% endif %}
+{% load tz approval_extras i18n %}
 {% comment %}
 Approvals tab for the Publish page — one row per post, matching the approved design.
 Loaded into #tab-content. Re-fetches itself on approvalAction / bulkActionComplete
@@ -6,7 +7,6 @@ Loaded into #tab-content. Re-fetches itself on approvalAction / bulkActionComple
 The toast host lives in calendar.html (outside #tab-content) so a refresh doesn't
 tear down the toast.
 {% endcomment %}
-{% load tz approval_extras %}
 
 <div x-data="{ selectedPosts: [], diffOpen: false, rejectOpen: false, bulkReason: '' }"
      hx-trigger="approvalAction from:body, bulkActionComplete from:body"
@@ -15,14 +15,25 @@ tear down the toast.
      {% if is_htmx %}class="tab-slide-in"{% endif %}>
 
     {# filter pills #}
+    {# Each label is resolved to a variable first. A tag cannot be nested inside #}
+    {# an include's argument — the parser reads the quoted value as a string and #}
+    {# fails on the brace — so `translate ... as` is how a translated label is #}
+    {# handed to a partial. #}
+    {% translate "All" as label_all %}
+    {% translate "Pending Review" as label_pending_review %}
+    {% translate "Pending Client" as label_pending_client %}
+    {% translate "Approved" as label_approved %}
+    {% translate "Rejected" as label_rejected %}
+    {% translate "Changes Requested" as label_changes_requested %}
+    {% translate "Hold" as label_on_hold %}
     <div class="flex flex-wrap items-center gap-x-1 gap-y-2 mb-5">
-        {% include "calendar/partials/_approval_pill.html" with pid="all" label="All" count=all_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="pending_review" label="Pending Review" count=pending_review_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="pending_client" label="Pending Client" count=pending_client_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="approved" label="Approved" count=approved_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="rejected" label="Rejected" count=rejected_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="changes_requested" label="Changes Requested" count=changes_requested_count %}
-        {% include "calendar/partials/_approval_pill.html" with pid="on_hold" label="Hold" count=on_hold_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="all" label=label_all count=all_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="pending_review" label=label_pending_review count=pending_review_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="pending_client" label=label_pending_client count=pending_client_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="approved" label=label_approved count=approved_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="rejected" label=label_rejected count=rejected_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="changes_requested" label=label_changes_requested count=changes_requested_count %}
+        {% include "calendar/partials/_approval_pill.html" with pid="on_hold" label=label_on_hold count=on_hold_count %}
     </div>
 
     {# post list #}
@@ -34,8 +45,8 @@ tear down the toast.
             <div class="mx-auto w-14 h-14 rounded-full border-2 border-stone-200 flex items-center justify-center text-stone-300 mb-3">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 6L9 17l-5-5"/></svg>
             </div>
-            <p class="text-stone-500 font-medium">No posts pending approval</p>
-            <p class="text-sm text-stone-400 mt-1">Posts submitted for review will appear here</p>
+            <p class="text-stone-500 font-medium">{% translate "No posts pending approval" %}</p>
+            <p class="text-sm text-stone-400 mt-1">{% translate "Posts submitted for review will appear here" %}</p>
         </div>
         {% endfor %}
     </div>
@@ -54,9 +65,9 @@ tear down the toast.
             <div class="w-px h-5 bg-stone-700"></div>
             <button hx-post="{% url 'approvals:bulk_action' workspace_id=workspace.id %}"
                     hx-include="[name='post_ids']" hx-vals='{"action": "approve"}' hx-swap="none"
-                    class="px-3.5 py-1.5 text-[0.8125rem] font-semibold rounded-full bg-emerald-500 hover:bg-emerald-600 text-white">Approve all</button>
+                    class="px-3.5 py-1.5 text-[0.8125rem] font-semibold rounded-full bg-emerald-500 hover:bg-emerald-600 text-white">{% translate "Approve all" %}</button>
             <button @click="rejectOpen = true"
-                    class="px-3.5 py-1.5 text-[0.8125rem] font-semibold rounded-full bg-red-500 hover:bg-red-600 text-white">Reject all</button>
+                    class="px-3.5 py-1.5 text-[0.8125rem] font-semibold rounded-full bg-red-500 hover:bg-red-600 text-white">{% translate "Reject all" %}</button>
             <button @click="selectedPosts = []" class="ml-1 text-stone-400 hover:text-white">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
@@ -69,16 +80,16 @@ tear down the toast.
         <div class="relative bg-white rounded-2xl shadow-2xl w-full modal-pop" style="max-width: 440px;" @click.stop>
             <div class="p-6">
                 <h3 class="text-[1.0625rem] font-bold text-stone-900 mb-1" x-text="'Reject ' + selectedPosts.length + (selectedPosts.length > 1 ? ' posts' : ' post')"></h3>
-                <p class="text-[0.8125rem] text-stone-500 mb-4">Tell the creator why. This comment is shared with them.</p>
+                <p class="text-[0.8125rem] text-stone-500 mb-4">{% translate "Tell the creator why. This comment is shared with them." %}</p>
                 <textarea id="bulk-reject-comment" name="comment" x-model="bulkReason" rows="3" placeholder="Reason for rejection…"
                           class="w-full px-3 py-2 text-[0.875rem] border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-transparent resize-none"></textarea>
                 <div class="flex justify-end gap-2 mt-4">
-                    <button @click="rejectOpen = false" class="px-4 py-2 text-[0.8125rem] font-medium text-stone-600 hover:bg-stone-100 rounded-full">Cancel</button>
+                    <button @click="rejectOpen = false" class="px-4 py-2 text-[0.8125rem] font-medium text-stone-600 hover:bg-stone-100 rounded-full">{% translate "Cancel" %}</button>
                     <button hx-post="{% url 'approvals:bulk_action' workspace_id=workspace.id %}"
                             hx-include="[name='post_ids'], #bulk-reject-comment" hx-vals='{"action": "reject"}' hx-swap="none"
                             :disabled="!bulkReason.trim()"
                             class="px-4 py-2 text-[0.8125rem] font-semibold text-white rounded-full"
-                            :class="bulkReason.trim() ? 'bg-red-500 hover:bg-red-600' : 'bg-stone-300 cursor-not-allowed'">Reject all</button>
+                            :class="bulkReason.trim() ? 'bg-red-500 hover:bg-red-600' : 'bg-stone-300 cursor-not-allowed'">{% translate "Reject all" %}</button>
                 </div>
             </div>
         </div>
@@ -91,7 +102,7 @@ tear down the toast.
         <div class="relative bg-white rounded-2xl shadow-2xl w-full modal-pop max-h-[80vh] overflow-y-auto" style="max-width: 620px;" @click.stop>
             <div class="p-6">
                 <div class="flex items-start justify-between mb-3">
-                    <h3 class="text-[1.0625rem] font-bold text-stone-900">Version changes</h3>
+                    <h3 class="text-[1.0625rem] font-bold text-stone-900">{% translate "Version changes" %}</h3>
                     <button @click="diffOpen = false" class="text-stone-400 hover:text-stone-600">
                         <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                     </button>

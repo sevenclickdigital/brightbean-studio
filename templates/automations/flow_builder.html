@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Flow builder - {{ workspace.name }} - Brightbean{% endblock %}
+{% block title %}{% translate "Flow builder" %} - {{ workspace.name }} - Brightbean{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -54,11 +55,11 @@ any zoom level.
         </a>
 
         <div class="min-w-0">
-            <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">Flow builder</h2>
+            <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">{% translate "Flow builder" %}</h2>
             <p class="text-xs text-stone-500 truncate">
                 {{ platform_post.social_account.account_name|default:platform_post.social_account.account_handle }}
                 &middot;
-                {% if is_published %}Published post{% else %}Not published yet{% endif %}
+                {% if is_published %}{% translate "Published post" %}{% else %}{% translate "Not published yet" %}{% endif %}
             </p>
         </div>
 
@@ -75,7 +76,7 @@ any zoom level.
                     'bg-amber-500': status === 'pending',
                     'bg-stone-400': status === 'paused' || !status
                   }"></span>
-            <span x-text="statusLabel || 'Not set up'"></span>
+            <span x-text="statusLabel || '{% translate "Not set up" %}'"></span>
         </div>
 
         <div class="flex-1"></div>
@@ -83,16 +84,16 @@ any zoom level.
         <!-- Zoom -->
         <div class="flex items-center gap-1 shrink-0">
             <button type="button" @click="zoomBy(-0.1)"
-                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="Zoom out">
+                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="{% translate 'Zoom out' %}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <span class="text-xs text-stone-400 tabular-nums w-10 text-center" x-text="Math.round(zoom * 100) + '%'"></span>
             <button type="button" @click="zoomBy(0.1)"
-                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="Zoom in">
+                    class="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer" title="{% translate 'Zoom in' %}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <button type="button" @click="fitView()"
-                    class="ml-1 px-2 py-1 text-xs text-stone-500 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer">Fit</button>
+                    class="ml-1 px-2 py-1 text-xs text-stone-500 hover:text-stone-700 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer">{% translate "Fit" %}</button>
         </div>
 
         {% if can_manage %}
@@ -100,7 +101,7 @@ any zoom level.
 
         <button type="button" @click="save(false)" :disabled="saving"
                 class="px-3 py-1.5 text-sm font-medium text-stone-600 rounded-lg border border-stone-200 bg-white hover:border-stone-300 hover:text-stone-800 transition-colors cursor-pointer disabled:opacity-50 shrink-0">
-            <span x-text="saving ? 'Saving…' : 'Save'"></span>
+            <span x-text="saving ? '{% translate "Saving…" %}' : '{% translate "Save" %}'"></span>
         </button>
 
         <button type="button" @click="status === 'active' ? toggle() : save(true)" :disabled="saving"
@@ -108,7 +109,7 @@ any zoom level.
                 :class="status === 'active'
                     ? 'bg-stone-100 text-stone-700 hover:bg-stone-200'
                     : 'bg-orange-500 text-white hover:bg-orange-600'">
-            <span x-text="status === 'active' ? 'Pause' : 'Turn on'"></span>
+            <span x-text="status === 'active' ? '{% translate "Pause" %}' : '{% translate "Turn on" %}'"></span>
         </button>
         {% endif %}
     </div>
@@ -116,8 +117,7 @@ any zoom level.
     <!-- Banners ------------------------------------------------------------ -->
     {% if not supports_automation %}
     <div class="px-5 py-2.5 bg-stone-100 border-b border-stone-200 text-[13px] text-stone-600 shrink-0">
-        Comment automations run on Instagram and Facebook only. This account is
-        <strong>{{ platform_post.social_account.platform }}</strong>, so this flow cannot run.
+        {% blocktranslate with platform=platform_post.social_account.platform %}Comment automations run on Instagram and Facebook only. This account is <strong>{{ platform }}</strong>, so this flow cannot run.{% endblocktranslate %}
     </div>
     {% elif not has_platform_id %}
     {% comment %}
@@ -127,7 +127,7 @@ any zoom level.
     {% endcomment %}
     <div class="px-5 py-2.5 bg-amber-50 border-b border-amber-200 text-[13px] text-amber-800 shrink-0 flex items-center gap-2">
         <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
-        <span>This post isn't published yet. Save the flow now &mdash; it starts watching for comments by itself the moment the post goes live.</span>
+        <span>{% translate "This post isn't published yet. Save the flow now — it starts watching for comments by itself the moment the post goes live." %}</span>
     </div>
     {% endif %}
 
@@ -301,16 +301,16 @@ any zoom level.
         {% if can_manage %}
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-2 rounded-2xl bg-white border border-stone-200 shadow-lg"
              @mousedown.stop>
-            <span class="px-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Add step</span>
+            <span class="px-2 text-[11px] font-semibold text-stone-400 uppercase tracking-wider">{% translate "Add step" %}</span>
             <button type="button" @click="addNode('reply_comment')"
                     class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></svg>
-                Reply to comment
+                {% translate "Reply to comment" %}
             </button>
             <button type="button" @click="addNode('send_dm')"
                     class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
                 <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                Send a DM
+                {% translate "Send a DM" %}
             </button>
         </div>
         {% endif %}

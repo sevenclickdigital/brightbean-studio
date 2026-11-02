@@ -1,10 +1,10 @@
-{% load analytics_extras %}
+{% load analytics_extras i18n %}
 <div id="analytics-post-table">
     {# Toolbar #}
     <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 16px; border-bottom: 1px solid var(--neutral-100);">
         <span style="font-size: 0.8125rem; color: var(--text-secondary);">
-            <strong class="a-mono" style="color: var(--text-primary);">{{ table.total }}</strong> post{{ table.total|pluralize }} ·
-            {% if table.days_filter %}last {{ table.days_filter }} days{% else %}all time{% endif %}
+            <strong class="a-mono" style="color: var(--text-primary);">{{ table.total }}</strong> {% blocktranslate count counter=table.total %}post{% plural %}posts{% endblocktranslate %} ·
+            {% if table.days_filter %}{% blocktranslate %}last {{ table.days_filter }} days{% endblocktranslate %}{% else %}{% translate "all time" %}{% endif %}
         </span>
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
             {% if table.media_kinds|length > 1 %}
@@ -13,7 +13,7 @@
                    hx-get="?range={{ days }}&type=all&table_range={{ table.days_filter|default_if_none:'all' }}&partial=table"
                    hx-target="#analytics-post-table"
                    hx-swap="outerHTML"
-                   class="{% if table.type_filter == 'all' %}active{% endif %}">All</a>
+                   class="{% if table.type_filter == 'all' %}active{% endif %}">{% translate "All" %}</a>
                 {% for k in table.media_kinds %}
                 <a href="?range={{ days }}&type={{ k }}&table_range={{ table.days_filter|default_if_none:'all' }}"
                    hx-get="?range={{ days }}&type={{ k }}&table_range={{ table.days_filter|default_if_none:'all' }}&partial=table"
@@ -35,7 +35,7 @@
                    hx-get="?range={{ days }}&table_range=all&type={{ table.type_filter }}&partial=table"
                    hx-target="#analytics-post-table"
                    hx-swap="outerHTML"
-                   class="{% if table.days_filter is None %}active{% endif %}">All time</a>
+                   class="{% if table.days_filter is None %}active{% endif %}">{% translate "All time" %}</a>
             </div>
         </div>
     </div>
@@ -45,7 +45,7 @@
         <table class="a-table">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border);">
-                    <th class="first">Post</th>
+                    <th class="first">{% translate "Post" %}</th>
                     {% with toggled_dir=table.toggled_dir %}
                     <th>
                         <a href="?range={{ days }}&sort=date&dir={% if table.sort_key == 'date' %}{{ toggled_dir }}{% else %}desc{% endif %}&type={{ table.type_filter }}&table_range={{ table.days_filter|default_if_none:'all' }}"
@@ -53,7 +53,7 @@
                            hx-target="#analytics-post-table"
                            hx-swap="outerHTML"
                            style="text-decoration: none; color: inherit;">
-                            Date {% if table.sort_key == 'date' %}<span>{% if table.sort_dir == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+                            {% translate "Date" %} {% if table.sort_key == 'date' %}<span>{% if table.sort_dir == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
                         </a>
                     </th>
                     {% for ml in table.metric_labels %}
@@ -94,7 +94,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="{{ table.metric_labels|length|add:2 }}" style="padding: 28px; text-align: center; color: var(--text-tertiary); font-family: inherit;">No posts match these filters.</td>
+                    <td colspan="{{ table.metric_labels|length|add:2 }}" style="padding: 28px; text-align: center; color: var(--text-tertiary); font-family: inherit;">{% translate "No posts match these filters." %}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -116,7 +116,7 @@
             {% else %}
             <span style="width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius-md); border: 1px solid var(--border); background: #fff; opacity: 0.4; color: var(--text-secondary);">‹</span>
             {% endif %}
-            <span class="a-mono" style="font-size: 0.75rem; color: var(--text-secondary); min-width: 84px; text-align: center;">Page {{ table.page }} of {{ table.total_pages }}</span>
+            <span class="a-mono" style="font-size: 0.75rem; color: var(--text-secondary); min-width: 84px; text-align: center;">{% blocktranslate with page=table.page total_pages=table.total_pages %}Page {{ page }} of {{ total_pages }}{% endblocktranslate %}</span>
             {% if table.page < table.total_pages %}
             <a href="?range={{ days }}&sort={{ table.sort_key }}&dir={{ table.sort_dir }}&type={{ table.type_filter }}&table_range={{ table.days_filter|default_if_none:'all' }}&page={{ table.page|add:1 }}"
                hx-get="?range={{ days }}&sort={{ table.sort_key }}&dir={{ table.sort_dir }}&type={{ table.type_filter }}&table_range={{ table.days_filter|default_if_none:'all' }}&page={{ table.page|add:1 }}&partial=table"

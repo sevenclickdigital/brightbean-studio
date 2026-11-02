@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load analytics_extras %}
+{% load analytics_extras i18n %}
 
-{% block title %}Analytics — {{ active_account.account_name }} — Brightbean{% endblock %}
+{% block title %}{% translate "Analytics" %} — {{ active_account.account_name }} — Brightbean{% endblock %}
 
 {% block extra_head %}
 <style>

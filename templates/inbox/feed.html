@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize i18n %}
 
 {% block title %}Inbox - {{ workspace.name }} - Brightbean{% endblock %}
 
@@ -128,41 +128,41 @@
     <!-- Header -->
     <div class="flex flex-wrap items-center justify-between gap-2 px-3 sm:px-5 py-3 border-b border-stone-200 flex-shrink-0">
         <div class="flex items-center gap-3 sm:gap-4">
-            <h1 class="text-base font-semibold text-stone-900" style="letter-spacing: -0.01em;">Inbox</h1>
+            <h1 class="text-base font-semibold text-stone-900" style="letter-spacing: -0.01em;">{% translate "Inbox" %}</h1>
             <div class="flex items-center gap-1 bg-stone-50 rounded-full p-0.5">
                 <a href="{% url 'inbox:feed' workspace_id=workspace.id %}"
                    class="inbox-tab {% if current_view == 'all' %}active{% endif %}"
                    hx-get="{% url 'inbox:feed' workspace_id=workspace.id %}?view=all"
                    hx-target="#inbox-message-list"
                    hx-swap="innerHTML"
-                   hx-push-url="true">All</a>
+                   hx-push-url="true">{% translate "All" %}</a>
                 <a href="{% url 'inbox:feed' workspace_id=workspace.id %}?view=mine"
                    class="inbox-tab {% if current_view == 'mine' %}active{% endif %}"
                    hx-get="{% url 'inbox:feed' workspace_id=workspace.id %}?view=mine"
                    hx-target="#inbox-message-list"
                    hx-swap="innerHTML"
-                   hx-push-url="true">My Queue</a>
+                   hx-push-url="true">{% translate "My Queue" %}</a>
                 <a href="{% url 'inbox:feed' workspace_id=workspace.id %}?view=unassigned"
                    class="inbox-tab {% if current_view == 'unassigned' %}active{% endif %}"
                    hx-get="{% url 'inbox:feed' workspace_id=workspace.id %}?view=unassigned"
                    hx-target="#inbox-message-list"
                    hx-swap="innerHTML"
-                   hx-push-url="true">Unassigned</a>
+                   hx-push-url="true">{% translate "Unassigned" %}</a>
             </div>
         </div>
         <div class="flex items-center gap-2">
             <a href="{% url 'inbox:saved_replies' workspace_id=workspace.id %}"
                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-stone-600 bg-white border border-stone-200 rounded-full hover:border-stone-300 hover:bg-stone-50 transition-all duration-150"
-               title="Saved Replies">
+               title="{% translate 'Saved Replies' %}">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                <span class="hidden sm:inline">Saved Replies</span>
+                <span class="hidden sm:inline">{% translate "Saved Replies" %}</span>
             </a>
             {% if sla_config %}
             <a href="{% url 'inbox:sla_config' workspace_id=workspace.id %}"
                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-semibold text-stone-600 bg-white border border-stone-200 rounded-full hover:border-stone-300 hover:bg-stone-50 transition-all duration-150"
-               title="SLA Settings">
+               title="{% translate 'SLA Settings' %}">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span class="hidden sm:inline">SLA</span>
+                <span class="hidden sm:inline">{% translate "SLA" %}</span>
             </a>
             {% endif %}
         </div>
@@ -185,9 +185,9 @@
             <!-- Bulk action bar -->
             <div x-show="selectedCount > 0" x-cloak class="bulk-bar">
                 <span x-text="selectedCount + ' selected'"></span>
-                <button @click="bulkAction('mark_read')">Mark Read</button>
-                <button @click="bulkAction('resolve')">Resolve</button>
-                <button @click="bulkAction('archive')">Archive</button>
+                <button @click="bulkAction('mark_read')">{% translate "Mark Read" %}</button>
+                <button @click="bulkAction('resolve')">{% translate "Resolve" %}</button>
+                <button @click="bulkAction('archive')">{% translate "Archive" %}</button>
                 <button @click="closeBulk()" class="ml-auto" style="border: none;">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -202,13 +202,13 @@
                 <button @click="activePanel = 'list'"
                         class="flex items-center gap-1.5 text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors cursor-pointer">
                     <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-                    Back
+                    {% translate "Back" %}
                 </button>
             </div>
             <!-- Empty state shown when no message is selected -->
             <div class="inbox-empty-detail">
                 <svg class="w-12 h-12" style="color: var(--neutral-300);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-                <p class="text-sm font-medium" style="color: var(--text-tertiary);">Select a message to view details</p>
+                <p class="text-sm font-medium" style="color: var(--text-tertiary);">{% translate "Select a message to view details" %}</p>
             </div>
         </div>
 

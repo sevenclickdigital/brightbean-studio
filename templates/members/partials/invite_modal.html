@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Invite Team Member Modal -->
 <template x-teleport="body">
     <div x-show="showInviteModal" x-transition.opacity
@@ -11,7 +12,7 @@
 
             <!-- Header -->
             <div class="flex items-center justify-between px-6 py-4 flex-shrink-0" style="border-bottom: 1px solid var(--border);">
-                <h3 class="text-base font-semibold" style="color: var(--text-primary);">Invite Team Member</h3>
+                <h3 class="text-base font-semibold" style="color: var(--text-primary);">{% translate "Invite Team Member" %}</h3>
                 <button @click="showInviteModal = false" class="cursor-pointer" style="color: var(--text-tertiary);">
                     <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
@@ -28,7 +29,7 @@
 
                 <!-- Email -->
                 <div class="mb-5">
-                    <label for="invite-email" class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">Email Address</label>
+                    <label for="invite-email" class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">{% translate "Email Address" %}</label>
                     <input type="email" id="invite-email" name="email" required placeholder="colleague@example.com"
                            class="input-focus w-full px-4 py-2.5 text-sm rounded-lg outline-none transition-all"
                            style="border: 1px solid var(--border); color: var(--text-primary); background: var(--surface-1);">
@@ -36,7 +37,7 @@
 
                 <!-- Org Role -->
                 <div class="mb-5">
-                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">Organization Role</label>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">{% translate "Organization Role" %}</label>
                     <div class="flex gap-4">
                         {% for value, label in org_role_choices %}
                         <div class="flex items-center">
@@ -54,8 +55,8 @@
 
                 <!-- Workspace Assignments -->
                 <div class="mb-5">
-                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">Assign to Workspaces</label>
-                    <p class="text-xs mb-3" style="color: var(--text-tertiary);">Select workspaces and roles for this team member.</p>
+                    <label class="block text-sm font-medium mb-1.5" style="color: var(--text-primary);">{% translate "Assign to Workspaces" %}</label>
+                    <p class="text-xs mb-3" style="color: var(--text-tertiary);">{% translate "Select workspaces and roles for this team member." %}</p>
 
                     <div class="space-y-2 max-h-48 overflow-y-auto">
                         {% for ws in org_workspaces %}
@@ -77,7 +78,7 @@
                     </div>
 
                     <p class="text-xs mt-2" style="color: var(--text-tertiary);">
-                        Tip: For external clients who only need portal access, use the Client Portal invite from workspace settings instead.
+                        {% translate "Tip: For external clients who only need portal access, use the Client Portal invite from workspace settings instead." %}
                     </p>
                 </div>
 
@@ -89,12 +90,12 @@
                     <button type="button" @click="showInviteModal = false"
                             class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors"
                             style="background: var(--neutral-100); color: var(--text-primary);">
-                        Cancel
+                        {% translate "Cancel" %}
                     </button>
                     <button type="submit"
                             class="btn-opacity px-5 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors"
                             style="background: var(--primary); color: white;">
-                        Send Invitation
+                        {% translate "Send Invitation" %}
                     </button>
                 </div>
             </form>

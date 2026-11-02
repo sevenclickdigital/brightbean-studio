@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="px-6 py-4 flex items-center gap-4" id="invite-{{ invite.id }}"
      style="border-bottom: 1px solid var(--border);">
     <!-- Email icon -->
@@ -17,9 +18,9 @@
     <!-- Role Badge -->
     <div class="flex-shrink-0">
         {% if invite.org_role == "admin" %}
-        <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #DBEAFE; color: #1E40AF;">Admin</span>
+        <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #DBEAFE; color: #1E40AF;">{% translate "Admin" %}</span>
         {% else %}
-        <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: var(--neutral-100); color: var(--text-secondary);">Member</span>
+        <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: var(--neutral-100); color: var(--text-secondary);">{% translate "Member" %}</span>
         {% endif %}
     </div>
 
@@ -42,7 +43,7 @@
             <button type="submit"
                     class="btn-neutral-surface text-xs px-3 py-1.5 rounded-full font-medium cursor-pointer transition-colors"
                     style="border: 1px solid var(--border); color: var(--text-primary); background: var(--surface-0);">
-                Resend
+                {% translate "Resend" %}
             </button>
         </form>
         <form hx-post="{% url 'members:revoke_invite' invitation_id=invite.id %}"
@@ -53,7 +54,7 @@
             <button type="submit"
                     class="btn-danger-soft-bg text-xs px-3 py-1.5 rounded-full font-medium cursor-pointer transition-colors"
                     style="color: #DC2626; background: transparent;">
-                Revoke
+                {% translate "Revoke" %}
             </button>
         </form>
     </div>

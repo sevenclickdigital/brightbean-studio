@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block page_title %}Notification Preferences{% endblock %}
+{% block page_title %}{% translate "Notification Preferences" %}{% endblock %}
 
 {% block content %}
 <div class="max-w-3xl">
@@ -12,9 +13,9 @@
                 <a href="{% url 'notifications:list' %}" class="text-stone-400 hover:text-stone-600 transition-colors duration-150">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
                 </a>
-                <h2 class="text-xl font-semibold text-stone-900 tracking-tight">Notification Preferences</h2>
+                <h2 class="text-xl font-semibold text-stone-900 tracking-tight">{% translate "Notification Preferences" %}</h2>
             </div>
-            <p class="text-sm text-stone-500 mt-1 ml-8">Choose which notifications you receive and how.</p>
+            <p class="text-sm text-stone-500 mt-1 ml-8">{% translate "Choose which notifications you receive and how." %}</p>
         </div>
     </div>
 
@@ -24,13 +25,13 @@
         {# Channel toggles matrix #}
         <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(23,20,18,0.05)] mb-5">
             <div class="px-5 py-4 border-b border-stone-100 bg-stone-50/50">
-                <h3 class="text-[13px] font-semibold text-stone-900">Event Channels</h3>
-                <p class="text-xs text-stone-500 mt-0.5">Toggle delivery channels for each event type.</p>
+                <h3 class="text-[13px] font-semibold text-stone-900">{% translate "Event Channels" %}</h3>
+                <p class="text-xs text-stone-500 mt-0.5">{% translate "Toggle delivery channels for each event type." %}</p>
             </div>
 
             {# Table header #}
             <div class="grid grid-cols-[1fr_80px_80px_80px] gap-0 px-5 py-2.5 border-b border-stone-100 bg-stone-50/30">
-                <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Event</div>
+                <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{% translate "Event" %}</div>
                 {% for ch_value, ch_label in channel_choices %}
                 <div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest text-center">{{ ch_label }}</div>
                 {% endfor %}
@@ -60,16 +61,16 @@
         {# Quiet hours & digest #}
         <div class="bg-white border border-stone-200 rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(23,20,18,0.05)] mb-5" x-data="{ quietEnabled: {{ quiet_hours.is_enabled|yesno:'true,false' }} }">
             <div class="px-5 py-4 border-b border-stone-100 bg-stone-50/50">
-                <h3 class="text-[13px] font-semibold text-stone-900">Quiet Hours & Digest</h3>
-                <p class="text-xs text-stone-500 mt-0.5">Suppress non-critical notifications during specific hours.</p>
+                <h3 class="text-[13px] font-semibold text-stone-900">{% translate "Quiet Hours & Digest" %}</h3>
+                <p class="text-xs text-stone-500 mt-0.5">{% translate "Suppress non-critical notifications during specific hours." %}</p>
             </div>
 
             <div class="p-5 space-y-5">
                 {# Quiet hours toggle #}
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[13px] font-semibold text-stone-900">Enable quiet hours</p>
-                        <p class="text-xs text-stone-500 mt-0.5">Non-critical notifications are held until quiet hours end.</p>
+                        <p class="text-[13px] font-semibold text-stone-900">{% translate "Enable quiet hours" %}</p>
+                        <p class="text-xs text-stone-500 mt-0.5">{% translate "Non-critical notifications are held until quiet hours end." %}</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input
@@ -87,7 +88,7 @@
                 <div x-show="quietEnabled" x-collapse class="space-y-4 pl-0">
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label for="quiet-start" class="block text-xs font-semibold text-stone-600 mb-1.5">Start time</label>
+                            <label for="quiet-start" class="block text-xs font-semibold text-stone-600 mb-1.5">{% translate "Start time" %}</label>
                             <input
                                 type="time"
                                 name="quiet_hours_start"
@@ -97,7 +98,7 @@
                             >
                         </div>
                         <div>
-                            <label for="quiet-end" class="block text-xs font-semibold text-stone-600 mb-1.5">End time</label>
+                            <label for="quiet-end" class="block text-xs font-semibold text-stone-600 mb-1.5">{% translate "End time" %}</label>
                             <input
                                 type="time"
                                 name="quiet_hours_end"
@@ -108,7 +109,7 @@
                         </div>
                     </div>
                     <div>
-                        <label for="quiet-tz" class="block text-xs font-semibold text-stone-600 mb-1.5">Timezone</label>
+                        <label for="quiet-tz" class="block text-xs font-semibold text-stone-600 mb-1.5">{% translate "Timezone" %}</label>
                         <input
                             type="text"
                             name="quiet_hours_timezone"
@@ -117,7 +118,7 @@
                             placeholder="e.g. America/New_York"
                             class="w-full text-[13px] text-stone-700 bg-stone-50 border border-stone-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-orange-500 transition-all duration-150 font-mono"
                         >
-                        <p class="text-[11px] text-stone-400 mt-1">IANA timezone identifier. Leave as UTC if unsure.</p>
+                        <p class="text-[11px] text-stone-400 mt-1">{% translate "IANA timezone identifier. Leave as UTC if unsure." %}</p>
                     </div>
                 </div>
 
@@ -127,8 +128,8 @@
                 {# Digest mode #}
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-[13px] font-semibold text-stone-900">Daily digest</p>
-                        <p class="text-xs text-stone-500 mt-0.5">Batch email notifications into a single daily summary instead of individual emails.</p>
+                        <p class="text-[13px] font-semibold text-stone-900">{% translate "Daily digest" %}</p>
+                        <p class="text-xs text-stone-500 mt-0.5">{% translate "Batch email notifications into a single daily summary instead of individual emails." %}</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input
@@ -149,7 +150,7 @@
                 type="submit"
                 class="inline-flex items-center gap-2 px-6 py-2.5 text-[13px] font-semibold text-white bg-orange-500 rounded-full hover:bg-orange-600 transition-all duration-150 shadow-[0_4px_14px_rgba(249,115,22,0.28)] hover:shadow-[0_6px_20px_rgba(249,115,22,0.35)] hover:-translate-y-px"
             >
-                Save Preferences
+                {% translate "Save Preferences" %}
             </button>
         </div>
     </form>

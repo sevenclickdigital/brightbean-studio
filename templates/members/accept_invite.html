@@ -1,5 +1,9 @@
+{% load i18n %}
 <!DOCTYPE html>
-<html lang="en">
+{# Standalone page: it does not extend base.html, so it carries its own load tag #}
+{# and its own lang attribute. #}
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,9 +85,9 @@
     <div class="card">
         <div class="logo">Brightbean</div>
 
-        <h1>Join {{ invitation.organization.name }}</h1>
+        <h1>{% blocktranslate with org=invitation.organization.name %}Join {{ org }}{% endblocktranslate %}</h1>
         <p class="subtitle">
-            {{ invitation.invited_by.display_name }} invited you to join their team on Brightbean.
+            {% blocktranslate with inviter=invitation.invited_by.display_name %}{{ inviter }} invited you to join their team on Brightbean.{% endblocktranslate %}
         </p>
 
         {% if error %}
@@ -92,14 +96,15 @@
 
         <!-- Details -->
         <div class="info-box">
-            <div class="info-label">Organization</div>
+            <div class="info-label">{% translate "Organization" %}</div>
             <div class="info-value" style="margin-bottom: 12px;">{{ invitation.organization.name }}</div>
 
-            <div class="info-label">Role</div>
-            <div class="info-value" style="margin-bottom: 12px; text-transform: capitalize;">{{ invitation.org_role }}</div>
+            <div class="info-label">{% translate "Role" %}</div>
+            <div class="info-value" style="margin-bottom: 12px; text-transform: capitalize;">
+            {% if invitation.org_role == 'owner' %}{% translate "Owner" %}{% elif invitation.org_role == 'admin' %}{% translate "Admin" %}{% elif invitation.org_role == 'member' %}{% translate "Member" %}{% else %}{{ invitation.org_role }}{% endif %}</div>
 
             {% if ws_display %}
-            <div class="info-label">Workspaces</div>
+            <div class="info-label">{% translate "Workspaces" %}</div>
             <ul class="workspace-list">
                 {% for ws in ws_display %}
                 <li>
@@ -116,17 +121,17 @@
         <form method="POST" action="{{ accept_url }}">
             {% csrf_token %}
             <button type="submit" class="btn btn-primary">
-                Join {{ invitation.organization.name }}
+                {% blocktranslate with org=invitation.organization.name %}Join {{ org }}{% endblocktranslate %}
             </button>
         </form>
         {% else %}
         <!-- Not logged in: signup or login -->
         <a href="/accounts/signup/?next={{ accept_url }}" class="btn btn-primary">
-            Sign Up to Join
+            {% translate "Sign Up to Join" %}
         </a>
-        <div class="or-divider">or</div>
+        <div class="or-divider">{% translate "or" %}</div>
         <a href="/accounts/login/?next={{ accept_url }}" class="btn btn-secondary">
-            Log In to Join
+            {% translate "Log In to Join" %}
         </a>
         {% endif %}
     </div>

@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 One rule row. Swapped in place by the toggle (hx-swap="outerHTML"), so the
 wrapper id and the outermost element have to survive the swap — the toggle
@@ -16,7 +17,7 @@ because the thing that needs fixing is this row.
               class="flex-shrink-0 pt-0.5">
             {% csrf_token %}
             <button type="submit"
-                    title="{% if rule.is_active %}Turn this rule off{% else %}Turn this rule on{% endif %}"
+                    title="{% if rule.is_active %}{% translate 'Turn this rule off' %}{% else %}{% translate 'Turn this rule on' %}{% endif %}"
                     class="relative inline-flex items-center cursor-pointer">
                 <span class="w-9 h-5 rounded-full transition-colors block {% if rule.is_active %}bg-orange-500{% else %}bg-stone-200{% endif %}"></span>
                 <span class="absolute top-[2px] left-[2px] bg-white rounded-full h-4 w-4 transition-all {% if rule.is_active %}translate-x-full{% endif %}"></span>
@@ -27,28 +28,28 @@ because the thing that needs fixing is this row.
             <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-[14px] font-semibold text-stone-800">{{ rule.name }}</h3>
                 {% if not rule_can_act %}
-                <span class="text-[11px] font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">Nothing to send</span>
+                <span class="text-[11px] font-medium px-1.5 py-0.5 rounded bg-amber-50 text-amber-700">{% translate "Nothing to send" %}</span>
                 {% endif %}
                 {% if rule.max_per_hour == 0 %}
-                <span class="text-[11px] font-medium px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">Limit 0 — never sends</span>
+                <span class="text-[11px] font-medium px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">{% translate "Limit 0 — never sends" %}</span>
                 {% endif %}
             </div>
 
             <p class="text-[12px] text-stone-500 mt-1 leading-relaxed">
-                <span class="text-stone-400">Priority {{ rule.priority }}</span>
+                <span class="text-stone-400">{% blocktranslate with priority=rule.priority %}Priority {{ priority }}{% endblocktranslate %}</span>
                 &middot;
-                {% if rule.social_account %}{{ rule.social_account.account_name }}{% else %}All Instagram and Facebook accounts{% endif %}
+                {% if rule.social_account %}{{ rule.social_account.account_name }}{% else %}{% translate "All Instagram and Facebook accounts" %}{% endif %}
                 &middot;
-                {% if rule.post_scope == 'specific' %}{{ rule.post_ids|length }} post{{ rule.post_ids|length|pluralize }}{% else %}Every post{% endif %}
-                {% if rule.include_keywords %}&middot; {{ rule.include_keywords|length }} keyword{{ rule.include_keywords|length|pluralize }}{% else %}&middot; Every comment{% endif %}
+                {% if rule.post_scope == 'specific' %}{% blocktranslate with count=rule.post_ids|length %}{{ count }} post{{ count|pluralize }}{% endblocktranslate %}{% else %}{% translate "Every post" %}{% endif %}
+                {% if rule.include_keywords %}&middot; {% blocktranslate with count=rule.include_keywords|length %}{{ count }} keyword{{ count|pluralize }}{% endblocktranslate %}{% else %}&middot; {% translate "Every comment" %}{% endif %}
             </p>
 
             <p class="text-[12px] text-stone-500 mt-0.5">
-                {% if rule.public_reply_enabled %}<span class="text-stone-600">Public reply</span>{% endif %}
+                {% if rule.public_reply_enabled %}<span class="text-stone-600">{% translate "Public reply" %}</span>{% endif %}
                 {% if rule.public_reply_enabled and rule.private_reply_enabled %} + {% endif %}
-                {% if rule.private_reply_enabled %}<span class="text-stone-600">DM</span>{% endif %}
-                {% if not rule.public_reply_enabled and not rule.private_reply_enabled %}<span class="text-stone-400">No reply configured</span>{% endif %}
-                &middot; <span class="text-stone-400">{{ sent_24h|default:0 }} sent in the last 24h</span>
+                {% if rule.private_reply_enabled %}<span class="text-stone-600">{% translate "DM" %}</span>{% endif %}
+                {% if not rule.public_reply_enabled and not rule.private_reply_enabled %}<span class="text-stone-400">{% translate "No reply configured" %}</span>{% endif %}
+                &middot; <span class="text-stone-400">{% blocktranslate with count=sent_24h|default:0 %}{{ count }} sent in the last 24h{% endblocktranslate %}</span>
             </p>
 
             {% if row_error %}
@@ -61,7 +62,7 @@ because the thing that needs fixing is this row.
 
         <div class="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
             <a href="{% url 'automations:edit' workspace_id=workspace.id rule_id=rule.id %}"
-               title="Edit this rule"
+               title="{% translate 'Edit this rule' %}"
                class="w-7 h-7 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </a>
@@ -72,10 +73,10 @@ because the thing that needs fixing is this row.
               erases its trail.
             {% endcomment %}
             <form x-data method="post" action="{% url 'automations:delete' workspace_id=workspace.id rule_id=rule.id %}"
-                  @submit="if(!confirm('Delete this rule? Its history in the activity log is kept — deleting the rule does not erase what it already posted.')) $event.preventDefault()">
+                  @submit="if(!confirm('{% translate 'Delete this rule? Its history in the activity log is kept — deleting the rule does not erase what it already posted.' %}')) $event.preventDefault()">
                 {% csrf_token %}
                 <button type="submit"
-                        title="Delete this rule"
+                        title="{% translate 'Delete this rule' %}"
                         class="w-7 h-7 flex items-center justify-center rounded-md text-stone-400 hover:text-red-500 hover:bg-red-50 transition-all cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
                 </button>

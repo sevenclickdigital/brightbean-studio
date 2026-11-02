@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load humanize i18n %}
 
 {% block title %}{{ message.sender_name }} - Inbox - {{ workspace.name }} - Brightbean{% endblock %}
 
@@ -51,7 +51,7 @@
         <a href="{% url 'inbox:feed' workspace_id=workspace.id %}"
            class="inline-flex items-center gap-1.5 text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-            Back to Inbox
+            {% translate "Back to Inbox" %}
         </a>
     </div>
     <div id="inbox-detail-panel" class="flex-1" style="height: calc(100% - 41px);">

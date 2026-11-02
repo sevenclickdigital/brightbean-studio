@@ -1,4 +1,4 @@
-{% if not checklist_dismissed and checklist_items %}
+{% load i18n %}{% if not checklist_dismissed and checklist_items %}
 <div id="onboarding-checklist" x-data="{ open: true }"
      {% if request.workspace %}
      hx-get="{% url 'onboarding:checklist_partial' workspace_id=request.workspace.id %}"
@@ -20,8 +20,8 @@
             </svg>
         </div>
         <div class="flex-1 min-w-0">
-            <div class="text-sm font-semibold text-stone-800">Get started</div>
-            <div class="text-xs text-stone-400">{{ checklist_completed_count }} of {{ checklist_total_count }} complete</div>
+            <div class="text-sm font-semibold text-stone-800">{% translate "Get started" %}</div>
+            <div class="text-xs text-stone-400">{% blocktranslate %}{{ checklist_completed_count }} of {{ checklist_total_count }} complete{% endblocktranslate %}</div>
         </div>
         <!-- Progress ring -->
         <div class="relative w-8 h-8 flex-shrink-0">
@@ -54,8 +54,8 @@
                     </svg>
                 </div>
                 <div>
-                    <div class="text-sm font-semibold text-stone-800">Get started</div>
-                    <div class="text-xs text-stone-400">{{ checklist_completed_count }} of {{ checklist_total_count }} complete</div>
+                    <div class="text-sm font-semibold text-stone-800">{% translate "Get started" %}</div>
+                    <div class="text-xs text-stone-400">{% blocktranslate %}{{ checklist_completed_count }} of {{ checklist_total_count }} complete{% endblocktranslate %}</div>
                 </div>
             </div>
             <div class="flex items-center gap-1">
@@ -66,7 +66,7 @@
                 <!-- Collapse button -->
                 <button @click="open = false"
                         class="w-6 h-6 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
-                        title="Minimize">
+                        title="{% translate 'Minimize' %}">
                     <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="6 9 12 15 18 9"/>
                     </svg>
@@ -76,7 +76,7 @@
                         hx-target="#onboarding-checklist"
                         hx-swap="outerHTML"
                         class="w-6 h-6 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer"
-                        title="Dismiss checklist">
+                        title="{% translate 'Dismiss checklist' %}">
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>

@@ -1,4 +1,4 @@
-{% load intelligence_extras %}
+{% load intelligence_extras i18n %}
 {% with channel=result.channel niche=result.niche %}
 <div>
     {% comment %} Hero, channel identity only. The niche match strength
@@ -7,10 +7,10 @@
     <div class="mb-4">
         <div class="text-base font-semibold text-stone-900 truncate">{{ channel.title }}</div>
         <div class="mt-1 text-xs text-stone-500">
-            {{ channel.subscriber_count|humanize_count }} subscribers
-            · {{ channel.video_count|humanize_count }} videos
+            {{ channel.subscriber_count|humanize_count }} {% translate "subscribers" %}
+            · {{ channel.video_count|humanize_count }} {% translate "videos" %}
             {% if channel.sample_window_days %}
-            · {{ channel.sample_window_days }}-day sample
+            · {{ channel.sample_window_days }}-{% translate "day sample" %}
             {% endif %}
         </div>
     </div>
@@ -19,14 +19,11 @@
     <div class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1 items-start mt-2 pt-4 border-t border-stone-100">
         <div>
             <div class="flex items-center">
-                <div class="text-xs uppercase tracking-wide text-stone-500">Overall percentile</div>
+                <div class="text-xs uppercase tracking-wide text-stone-500">{% translate "Overall percentile" %}</div>
                 <span class="intel-tooltip-trigger" tabindex="0" aria-describedby="bc-overall-tooltip">
                     <span class="intel-tooltip-icon" aria-hidden="true">?</span>
                     <span id="bc-overall-tooltip" role="tooltip" class="intel-tooltip" data-align="left">
-                        Composite rank vs other channels in the same niche.
-                        <strong>50</strong> is the median; <strong>80+</strong>
-                        is top-tier engagement; below 30 means most niche peers
-                        outperform this channel on the engagement metrics below.
+                        {% translate "Composite rank vs other channels in the same niche." %} <strong>50</strong> {% translate "is the median;" %} <strong>80+</strong> {% translate "is top-tier engagement; below 30 means most niche peers outperform this channel on the engagement metrics below." %}
                     </span>
                 </span>
             </div>
@@ -35,7 +32,7 @@
             </div>
         </div>
         <div class="text-right">
-            <div class="text-xs uppercase tracking-wide text-stone-500">Niche</div>
+            <div class="text-xs uppercase tracking-wide text-stone-500">{% translate "Niche" %}</div>
             <div class="mt-1 text-sm font-medium text-stone-900">{{ niche.name }}</div>
             <div class="mt-1 flex items-center gap-2 justify-end flex-wrap">
                 <span class="text-[11px] font-mono px-1.5 py-0.5 rounded bg-stone-100 text-stone-500">{{ niche.slug }}</span>
@@ -72,23 +69,13 @@
     {% if channel.engagement_percentiles %}
     <div class="mt-6 pt-5 border-t border-stone-100">
         <div class="flex items-center mb-3">
-            <div class="text-xs uppercase tracking-wide text-stone-500">Engagement vs niche distribution</div>
+            <div class="text-xs uppercase tracking-wide text-stone-500">{% translate "Engagement vs niche distribution" %}</div>
             <span class="intel-tooltip-trigger" tabindex="0" aria-describedby="bc-engagement-tooltip">
                 <span class="intel-tooltip-icon" aria-hidden="true">?</span>
                 <span id="bc-engagement-tooltip" role="tooltip" class="intel-tooltip" data-align="left">
-                    Each row compares one engagement ratio against the niche's
-                    distribution. <strong>Views / sub</strong> is recent views
-                    divided by subscriber count; <strong>Likes / view</strong>
-                    and <strong>Comments / view</strong> are the equivalent
-                    per-video ratios.
+                    {% translate "Each row compares one engagement ratio against the niche's distribution." %} <strong>Views / sub</strong> {% translate "is recent views divided by subscriber count;" %} <strong>Likes / view</strong> {% translate "and" %} <strong>Comments / view</strong> {% translate "are the equivalent per-video ratios." %}
                     <br><br>
-                    <strong>Niche p50</strong> is the median niche channel on
-                    that ratio, half of the niche scores below it, half
-                    above. The <strong>pNN</strong> readout on the right is
-                    your channel's percentile rank: <strong>p50</strong> means
-                    you sit exactly at the niche median, <strong>p80</strong>
-                    means you outperform 80% of niche peers, <strong>p20</strong>
-                    means 80% of peers outperform you.
+                    <strong>Niche p50</strong> {% translate "is the median niche channel on that ratio, half of the niche scores below it, half above. The" %} <strong>pNN</strong> {% translate "readout on the right is your channel's percentile rank:" %} <strong>p50</strong> {% translate "means you sit exactly at the niche median," %} <strong>p80</strong> {% translate "means you outperform 80% of niche peers," %} <strong>p20</strong> {% translate "means 80% of peers outperform you." %}
                 </span>
             </span>
         </div>
@@ -149,34 +136,34 @@
     {% endcomment %}
     {% if channel.title_patterns and niche.title_patterns %}
     <div class="mt-6 pt-5 border-t border-stone-100">
-        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">Title patterns</div>
+        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">{% translate "Title patterns" %}</div>
         <div class="grid grid-cols-[1fr_auto_auto] gap-x-6 gap-y-2 text-xs">
             <div></div>
-            <div class="text-stone-500 font-medium uppercase tracking-wide text-right">You</div>
-            <div class="text-stone-500 font-medium uppercase tracking-wide text-right">Niche</div>
+            <div class="text-stone-500 font-medium uppercase tracking-wide text-right">{% translate "You" %}</div>
+            <div class="text-stone-500 font-medium uppercase tracking-wide text-right">{% translate "Niche" %}</div>
 
             {% with ch=channel.title_patterns nc=niche.title_patterns %}
-            <div class="text-stone-700">Avg title length</div>
-            <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.mean_length_chars|floatformat:0 }} characters</div>
-            <div class="text-right text-stone-500 tabular-nums">{{ nc.mean_length_chars|floatformat:0 }} characters</div>
+            <div class="text-stone-700">{% translate "Avg title length" %}</div>
+            <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.mean_length_chars|floatformat:0 }} {% translate "characters" %}</div>
+            <div class="text-right text-stone-500 tabular-nums">{{ nc.mean_length_chars|floatformat:0 }} {% translate "characters" %}</div>
 
-            <div class="text-stone-700">Avg word count</div>
+            <div class="text-stone-700">{% translate "Avg word count" %}</div>
             <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.mean_length_words|floatformat:1 }}</div>
             <div class="text-right text-stone-500 tabular-nums">{{ nc.mean_length_words|floatformat:1 }}</div>
 
-            <div class="text-stone-700">Has a question mark</div>
+            <div class="text-stone-700">{% translate "Has a question mark" %}</div>
             <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.share_with_question_mark|pretty_percent:0 }}</div>
             <div class="text-right text-stone-500 tabular-nums">{{ nc.share_with_question_mark|pretty_percent:0 }}</div>
 
-            <div class="text-stone-700">Has a number</div>
+            <div class="text-stone-700">{% translate "Has a number" %}</div>
             <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.share_with_number|pretty_percent:0 }}</div>
             <div class="text-right text-stone-500 tabular-nums">{{ nc.share_with_number|pretty_percent:0 }}</div>
 
-            <div class="text-stone-700">Median uppercase ratio</div>
+            <div class="text-stone-700">{% translate "Median uppercase ratio" %}</div>
             <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.median_uppercase_ratio|pretty_percent:0 }}</div>
             <div class="text-right text-stone-500 tabular-nums">{{ nc.median_uppercase_ratio|pretty_percent:0 }}</div>
 
-            <div class="text-stone-700">Has an emoji</div>
+            <div class="text-stone-700">{% translate "Has an emoji" %}</div>
             <div class="text-right text-stone-900 font-medium tabular-nums">{{ ch.share_with_emoji|pretty_percent:0 }}</div>
             <div class="text-right text-stone-500 tabular-nums">{{ nc.share_with_emoji|pretty_percent:0 }}</div>
             {% endwith %}
@@ -192,7 +179,7 @@
     {% endcomment %}
     {% if niche.title_patterns.common_niche_phrases %}
     <div class="mt-6 pt-5 border-t border-stone-100">
-        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">Common phrases in niche</div>
+        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">{% translate "Common phrases in niche" %}</div>
         <div class="flex flex-wrap gap-1.5">
             {% for ph in niche.title_patterns.common_niche_phrases|slice:":12" %}
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px]
@@ -208,7 +195,7 @@
         </div>
         {% if niche.title_patterns.common_niche_phrases|length > 12 %}
         <div class="mt-2 text-[11px] text-stone-400">
-            + {{ niche.title_patterns.common_niche_phrases|length|add:"-12" }} more
+            + {{ niche.title_patterns.common_niche_phrases|length|add:"-12" }} {% translate "more" %}
         </div>
         {% endif %}
     </div>
@@ -217,7 +204,7 @@
     {% comment %} Exemplar channels, peers in the niche {% endcomment %}
     {% if niche.exemplar_channels %}
     <div class="mt-6 pt-5 border-t border-stone-100">
-        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">Exemplar channels in this niche</div>
+        <div class="text-xs uppercase tracking-wide text-stone-500 mb-3">{% translate "Exemplar channels in this niche" %}</div>
         <ul class="space-y-1.5">
             {% for ec in niche.exemplar_channels %}
             <li class="flex items-center justify-between gap-3 text-xs">

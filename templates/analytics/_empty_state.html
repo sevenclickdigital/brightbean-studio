@@ -1,4 +1,4 @@
-{% load analytics_extras %}
+{% load analytics_extras i18n %}
 <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px;">
     <div style="text-align: center; max-width: 420px;">
         {% if active_account.platform != "youtube" %}<div style="position: relative; width: 72px; height: 72px; margin: 0 auto 20px;">
@@ -8,17 +8,17 @@
             <span style="position: absolute; right: -4px; bottom: -4px; width: 28px; height: 28px; border-radius: 50%; background: var(--success-500); border: 3px solid #fff; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700;">✓</span>
         </div>{% endif %}
         <h2 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.01em;">
-            {{ active_account.account_name }} is connected
+            {% blocktranslate with name=active_account.account_name %}{{ name }} is connected{% endblocktranslate %}
         </h2>
         <p style="font-size: 0.9375rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 8px;">
-            {% if active_account.platform == "youtube" %}YouTube has not returned analytics for this reporting period. Reports refresh daily and may arrive after a delay.{% else %}We started collecting analytics when you connected this account. Metrics for this account usually appear within <strong>24–48 hours</strong> of your first published post.{% endif %}
+            {% if active_account.platform == "youtube" %}{% translate "YouTube has not returned analytics for this reporting period. Reports refresh daily and may arrive after a delay." %}{% else %}{% translate "We started collecting analytics when you connected this account. Metrics for this account usually appear within 24–48 hours of your first published post." %}{% endif %}
         </p>
         <div style="display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--radius-full); margin-top: 12px;">
             <span style="width: 8px; height: 8px; border-radius: 50%; background: var(--warning-500);"></span>
-            <span style="font-size: 0.8125rem; color: var(--text-secondary); font-weight: 500;">{% if active_account.platform == "youtube" %}Awaiting YouTube report{% else %}Awaiting first full sync{% endif %}</span>
+            <span style="font-size: 0.8125rem; color: var(--text-secondary); font-weight: 500;">{% if active_account.platform == "youtube" %}{% translate "Awaiting YouTube report" %}{% else %}{% translate "Awaiting first full sync" %}{% endif %}</span>
         </div>
         <div style="margin-top: 28px; display: flex; gap: 10px; justify-content: center;">
-            <a href="{% url 'composer:create_landing' workspace_id=workspace.id %}" class="btn-brand" style="width: auto; padding: 9px 20px;">Create a post</a>
+            <a href="{% url 'composer:create_landing' workspace_id=workspace.id %}" class="btn-brand" style="width: auto; padding: 9px 20px;">{% translate "Create a post" %}</a>
         </div>
     </div>
 </div>

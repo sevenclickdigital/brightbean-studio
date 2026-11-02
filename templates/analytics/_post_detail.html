@@ -1,4 +1,4 @@
-{% load analytics_extras %}
+{% load analytics_extras i18n %}
 {# Loaded into the slide-over drawer by openPost(url) in index.html. #}
 <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--neutral-100); flex-shrink: 0;">
     {% if account.avatar_url %}
@@ -29,13 +29,13 @@
         <span style="position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: rgba(23,20,18,0.7); color: #fff; border-radius: var(--radius-full); font-size: 0.6875rem; font-weight: 600;">{{ media_kind }}</span>
     </div>
 
-    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-ghost); margin-bottom: 6px;">Post copy</div>
+    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-ghost); margin-bottom: 6px;">{% translate "Post copy" %}</div>
     <p style="font-size: 0.9375rem; color: var(--text-primary); line-height: 1.65; margin-bottom: 14px; white-space: pre-wrap;">{{ caption|default:"(no caption)" }}</p>
     <div class="a-mono" style="display: flex; align-items: center; gap: 8px; font-size: 0.75rem; color: var(--text-tertiary); padding-bottom: 18px; border-bottom: 1px solid var(--neutral-100);">
-        Published {{ date }}{% if days_ago is not None %} · {{ days_ago }}d ago{% endif %}
+        {% blocktranslate %}Published {{ date }}{% endblocktranslate %}{% if days_ago is not None %} · {{ days_ago }}d {% translate "ago" %}{% endif %}
     </div>
 
-    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-ghost); margin: 18px 0 10px;">Performance</div>
+    <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-ghost); margin: 18px 0 10px;">{% translate "Performance" %}</div>
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         {% for tile in metric_tiles %}
         <div style="padding: 12px 14px; border-radius: var(--radius-lg); border: 1px solid {% if tile.is_primary %}transparent{% else %}var(--border){% endif %}; background: {% if tile.is_primary %}var(--primary-soft){% else %}#fff{% endif %};">
@@ -50,5 +50,5 @@
 </div>
 
 <div style="padding: 14px 20px; border-top: 1px solid var(--neutral-100); display: flex; gap: 10px; flex-shrink: 0;">
-    <a href="{% if account.platform == 'youtube' %}https://www.youtube.com/watch?v={{ post.platform_post_id|urlencode }}{% else %}#{% endif %}" target="_blank" rel="noopener noreferrer" class="btn-outline" style="padding: 9px 16px; width: auto;">View on {{ account.get_platform_display }}</a>
+    <a href="{% if account.platform == 'youtube' %}https://www.youtube.com/watch?v={{ post.platform_post_id|urlencode }}{% else %}#{% endif %}" target="_blank" rel="noopener noreferrer" class="btn-outline" style="padding: 9px 16px; width: auto;">{% blocktranslate with platform=account.get_platform_display %}View on {{ platform }}{% endblocktranslate %}</a>
 </div>

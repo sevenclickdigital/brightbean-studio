@@ -1,22 +1,22 @@
 {% extends "base.html" %}
-{% load intelligence_extras humanize %}
+{% load intelligence_extras humanize i18n %}
 
-{% block title %}Activate Intelligence - {{ organization.name }} - Brightbean{% endblock %}
+{% block title %}{% translate "Activate Intelligence" %} - {{ organization.name }} - Brightbean{% endblock %}
 
 {% block page_header %}
 <div class="flex items-start justify-between gap-4 mb-4 lg:mb-[25px]">
     <div>
         <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">
-            Activate Intelligence
+            {% translate "Activate Intelligence" %}
         </h1>
         <p class="text-sm text-stone-500 mt-1">
-            YouTube packaging scoring, channel benchmarks, and content-gap research for <strong>{{ organization.name }}</strong>.
+            {% blocktranslate with org_name=organization.name %}YouTube packaging scoring, channel benchmarks, and content-gap research for {{ org_name }}.{% endblocktranslate %}
         </p>
     </div>
     <a href="{% url 'intelligence:playground' org_id=organization.id %}"
        class="intel-cta-text-link flex-shrink-0">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-        Cancel
+        {% translate "Cancel" %}
     </a>
 </div>
 {% endblock %}
@@ -30,14 +30,14 @@
          style="border-color: var(--primary); background: var(--primary-soft, #fff7ed);">
         <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--primary);"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         <div class="flex-1 min-w-0">
-            <h2 class="text-sm font-semibold" style="color: var(--primary);">Resume your checkout</h2>
+            <h2 class="text-sm font-semibold" style="color: var(--primary);">{% translate "Resume your checkout" %}</h2>
             <p class="text-sm mt-1 text-stone-700">
-                Someone in your org already started a checkout for this organization.
+                {% translate "Someone in your org already started a checkout for this organization." %}
             </p>
             <div class="mt-3 flex items-center gap-2 flex-wrap">
                 <a href="{{ resumable_attempt.checkout_url }}"
                    class="intel-cta-primary">
-                    Continue to Stripe
+                    {% translate "Continue to Stripe" %}
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
                 <form method="post"
@@ -46,7 +46,7 @@
                     {% csrf_token %}
                     <button type="submit"
                             class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-stone-600 bg-white border border-stone-300 rounded-full hover:bg-stone-50 cursor-pointer">
-                        Discard Checkout Session
+                        {% translate "Discard Checkout Session" %}
                     </button>
                 </form>
             </div>
@@ -56,9 +56,9 @@
     <div class="mb-6 p-4 rounded-xl border border-stone-200 bg-stone-50 flex items-start gap-3">
         <svg class="w-5 h-5 flex-shrink-0 mt-0.5 animate-spin text-stone-400" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/></svg>
         <div class="flex-1">
-            <h2 class="text-sm font-semibold text-stone-900">Setting up your checkout…</h2>
+            <h2 class="text-sm font-semibold text-stone-900">{% translate "Setting up your checkout…" %}</h2>
             <p class="text-sm text-stone-700 mt-1">
-                We're talking to the billing service. This usually finishes in a few seconds.
+                {% translate "We're talking to the billing service. This usually finishes in a few seconds." %}
             </p>
         </div>
     </div>
@@ -70,15 +70,15 @@
         {% comment %} ===== PLANS ===== {% endcomment %}
         {% if not plans %}
         <div class="rounded-xl border border-stone-200 bg-stone-50 p-6 text-center">
-            <p class="text-sm text-stone-600">No plans are available for this deployment.</p>
-            <p class="text-xs text-stone-400 mt-1">Contact support if you think this is a mistake.</p>
+            <p class="text-sm text-stone-600">{% translate "No plans are available for this deployment." %}</p>
+            <p class="text-xs text-stone-400 mt-1">{% translate "Contact support if you think this is a mistake." %}</p>
         </div>
         {% else %}
         <div>
             <div class="flex items-center justify-between mb-4">
                 <div>
-                    <h2 class="text-base font-semibold text-stone-900">Choose a plan</h2>
-                    <p class="text-xs text-stone-500 mt-0.5">Per-org subscription, billed monthly. Cancel anytime.</p>
+                    <h2 class="text-base font-semibold text-stone-900">{% translate "Choose a plan" %}</h2>
+                    <p class="text-xs text-stone-500 mt-0.5">{% translate "Per-org subscription, billed monthly. Cancel anytime." %}</p>
                 </div>
             </div>
 

@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Assignment dropdown -->
 <div x-data="{ assignOpen: false }" class="relative">
     <button @click="assignOpen = !assignOpen"
@@ -9,7 +10,7 @@
         <span class="text-stone-700">{{ message.assigned_to.get_short_name|default:message.assigned_to.email|truncatechars:12 }}</span>
         {% else %}
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-        Assign
+        {% translate "Assign" %}
         {% endif %}
     </button>
     <div x-show="assignOpen" @click.away="assignOpen = false" x-cloak x-transition
@@ -23,7 +24,7 @@
                 @click="assignOpen = false"
                 class="w-full text-left px-3 py-2 text-[12px] text-stone-500 hover:bg-stone-50 transition-colors flex items-center gap-2">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-            Unassign
+            {% translate "Unassign" %}
         </button>
         <div class="border-t border-stone-100 my-0.5"></div>
         {% endif %}

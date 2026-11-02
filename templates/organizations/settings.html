@@ -1,8 +1,9 @@
 {% extends "layouts/settings.html" %}
+{% load i18n %}
 {% block title %}General - Settings - Brightbean{% endblock %}
 {% block content %}
 <div class="max-w-2xl">
-    <h2 class="text-xl font-semibold mb-8" style="color: var(--text-primary);">General</h2>
+    <h2 class="text-xl font-semibold mb-8" style="color: var(--text-primary);">{% translate "General" %}</h2>
 
     <!-- Organization Name section -->
     <form method="POST" class="mb-10">
@@ -10,7 +11,7 @@
         <input type="hidden" name="action" value="update_name">
         <div class="flex items-end gap-4">
             <div class="flex-1">
-                <label for="name" class="block text-sm font-semibold mb-2" style="color: var(--text-primary);">Organization Name</label>
+                <label for="name" class="block text-sm font-semibold mb-2" style="color: var(--text-primary);">{% translate "Organization Name" %}</label>
                 <input type="text" id="name" name="name" value="{{ organization.name }}" required maxlength="100"
                        class="input-focus w-full px-3 py-2 text-sm rounded-lg outline-none transition-colors"
                        style="border: 1px solid var(--border); color: var(--text-primary); background: var(--surface-0);">
@@ -18,7 +19,7 @@
             <button type="submit"
                     class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap"
                     style="background: var(--neutral-100); color: var(--text-primary);">
-                Save Changes
+                {% translate "Save Changes" %}
             </button>
         </div>
     </form>
@@ -29,17 +30,17 @@
         <input type="hidden" name="action" value="update_timezone">
         <div class="flex items-end gap-4">
             <div class="flex-1">
-                <label for="timezone" class="block text-sm font-semibold mb-1" style="color: var(--text-primary);">Default Timezone</label>
-                <p class="text-xs mb-2" style="color: var(--text-tertiary);">Used as the fallback for workspaces that don't set their own.</p>
+                <label for="timezone" class="block text-sm font-semibold mb-1" style="color: var(--text-primary);">{% translate "Default Timezone" %}</label>
+                <p class="text-xs mb-2" style="color: var(--text-tertiary);">{% translate "Used as the fallback for workspaces that don't set their own." %}</p>
                 <select id="timezone" name="timezone"
                         class="input-focus w-full px-3 py-2 text-sm rounded-lg outline-none transition-colors"
                         style="border: 1px solid var(--border); color: var(--text-primary); background: var(--surface-0);">
-                    <optgroup label="Common">
+                    <optgroup label="{% translate 'Common' %}">
                         {% for tz in common_timezones %}
                         <option value="{{ tz }}" {% if tz == organization.default_timezone %}selected{% endif %}>{{ tz }}</option>
                         {% endfor %}
                     </optgroup>
-                    <optgroup label="All Timezones">
+                    <optgroup label="{% translate 'All Timezones' %}">
                         {% for tz in all_timezones %}
                         <option value="{{ tz }}" {% if tz == organization.default_timezone %}selected{% endif %}>{{ tz }}</option>
                         {% endfor %}
@@ -49,7 +50,7 @@
             <button type="submit"
                     class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap"
                     style="background: var(--neutral-100); color: var(--text-primary);">
-                Save Changes
+                {% translate "Save Changes" %}
             </button>
         </div>
     </form>
@@ -65,11 +66,11 @@
          style="background: var(--error-soft, #FEE2E2); border: 1px solid var(--error-500, #EF4444);">
         <div class="flex items-start justify-between gap-4">
             <div>
-                <h3 class="text-sm font-semibold mb-1" style="color: var(--error-500, #EF4444);">Deletion scheduled</h3>
+                <h3 class="text-sm font-semibold mb-1" style="color: var(--error-500, #EF4444);">{% translate "Deletion scheduled" %}</h3>
                 <p class="text-sm" style="color: var(--text-secondary);">
-                    This organization is scheduled for deletion on <strong>{{ organization.deletion_scheduled_for|date:"F j, Y" }}</strong>.
+                    {% blocktranslate with date=organization.deletion_scheduled_for|date:"F j, Y" %}This organization is scheduled for deletion on <strong>{{ date }}</strong>.
                     All workspaces, posts, social accounts, media, and team data will be permanently removed after this date.
-                    YouTube connections and API data have already been deleted. Cancelling will require reconnecting YouTube.
+                    YouTube connections and API data have already been deleted. Cancelling will require reconnecting YouTube.{% endblocktranslate %}
                 </p>
             </div>
             <div class="flex flex-col gap-3 shrink-0">
@@ -79,13 +80,13 @@
                     <button type="submit"
                             class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap"
                             style="background: var(--neutral-100); color: var(--text-primary);">
-                        Cancel Deletion
+                        {% translate "Cancel Deletion" %}
                     </button>
                 </form>
                 <button type="button" @click="showImmediateDeleteModal = true"
                         class="btn-opacity px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap"
                         style="background: var(--error-500, #EF4444); color: white;">
-                    Delete Now
+                    {% translate "Delete Now" %}
                 </button>
             </div>
         </div>
@@ -104,7 +105,7 @@
 
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4" style="border-bottom: 1px solid var(--border);">
-                        <h3 class="text-base font-semibold" style="color: var(--text-primary);">Delete immediately?</h3>
+                        <h3 class="text-base font-semibold" style="color: var(--text-primary);">{% translate "Delete immediately?" %}</h3>
                         <button type="button" @click="showImmediateDeleteModal = false" class="cursor-pointer" style="color: var(--text-tertiary);">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -113,17 +114,17 @@
                     <!-- Body -->
                     <div class="px-6 py-5">
                         <p class="text-sm mb-3" style="color: var(--text-secondary);">
-                            This will permanently delete <strong>{{ organization.name }}</strong> right now, bypassing the 14-day grace period. This action cannot be undone.
+                            {% blocktranslate with org=organization.name %}This will permanently delete <strong>{{ org }}</strong> right now, bypassing the 14-day grace period. This action cannot be undone.{% endblocktranslate %}
                         </p>
                         <p class="text-sm" style="color: var(--text-secondary);">
-                            All of the following will be permanently removed:
+                            {% translate "All of the following will be permanently removed:" %}
                         </p>
                         <ul class="text-sm mt-2 ml-4 list-disc space-y-1" style="color: var(--text-secondary);">
-                            <li>All workspaces and their settings</li>
-                            <li>All scheduled and published posts</li>
-                            <li>Connected social accounts and credentials</li>
-                            <li>Media assets and files</li>
-                            <li>Team memberships and invitations</li>
+                            <li>{% translate "All workspaces and their settings" %}</li>
+                            <li>{% translate "All scheduled and published posts" %}</li>
+                            <li>{% translate "Connected social accounts and credentials" %}</li>
+                            <li>{% translate "Media assets and files" %}</li>
+                            <li>{% translate "Team memberships and invitations" %}</li>
                         </ul>
                     </div>
 
@@ -132,7 +133,7 @@
                         <button type="button" @click="showImmediateDeleteModal = false"
                                 class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer"
                                 style="background: var(--neutral-100); color: var(--text-primary);">
-                            Cancel
+                            {% translate "Cancel" %}
                         </button>
                         <form method="POST">
                             {% csrf_token %}
@@ -140,7 +141,7 @@
                             <button type="submit"
                                     class="btn-opacity px-5 py-2 text-sm font-semibold rounded-full cursor-pointer whitespace-nowrap"
                                     style="background: var(--error-500, #EF4444); color: white;">
-                                Yes, delete permanently
+                                {% translate "Yes, delete permanently" %}
                             </button>
                         </form>
                     </div>
@@ -153,16 +154,16 @@
     <div x-data="{ showDeleteModal: false }">
         <div class="flex flex-col sm:flex-row items-start justify-between gap-4">
             <div>
-                <h3 class="text-base font-semibold mb-1" style="color: var(--text-primary);">Delete this organization</h3>
+                <h3 class="text-base font-semibold mb-1" style="color: var(--text-primary);">{% translate "Delete this organization" %}</h3>
                 <p class="text-sm" style="color: var(--text-secondary); max-width: 480px;">
-                    Request deletion of this organization and its workspaces, posts, media and team memberships. YouTube connections and API data are removed immediately. Other data has a 14-day grace period. Cancelling requires reconnecting YouTube.
+                    {% translate "Request deletion of this organization and its workspaces, posts, media and team memberships. YouTube connections and API data are removed immediately. Other data has a 14-day grace period. Cancelling requires reconnecting YouTube." %}
                 </p>
             </div>
 
             <button type="button" @click="showDeleteModal = true"
                     class="btn-danger-soft px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap shrink-0"
                     style="background: var(--error-soft, #FEE2E2); color: var(--error-500, #EF4444);">
-                Delete Organization
+                {% translate "Delete Organization" %}
             </button>
         </div>
 
@@ -180,7 +181,7 @@
 
                     <!-- Header -->
                     <div class="flex items-center justify-between px-6 py-4" style="border-bottom: 1px solid var(--border);">
-                        <h3 class="text-base font-semibold" style="color: var(--text-primary);">Delete this organization</h3>
+                        <h3 class="text-base font-semibold" style="color: var(--text-primary);">{% translate "Delete this organization" %}</h3>
                         <button type="button" @click="showDeleteModal = false" class="cursor-pointer" style="color: var(--text-tertiary);">
                             <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                         </button>
@@ -189,17 +190,17 @@
                     <!-- Body -->
                     <div class="px-6 py-5">
                         <p class="text-sm mb-3" style="color: var(--text-secondary);">
-                            Are you sure you want to delete <strong>{{ organization.name }}</strong>? This will schedule the organization for permanent deletion in 14 days. YouTube connections, API data and notification copies are deleted immediately. Cancelling deletion will require reconnecting YouTube.
+                            {% blocktranslate with org=organization.name %}Are you sure you want to delete <strong>{{ org }}</strong>? This will schedule the organization for permanent deletion in 14 days. YouTube connections, API data and notification copies are deleted immediately. Cancelling deletion will require reconnecting YouTube.{% endblocktranslate %}
                         </p>
                         <p class="text-sm" style="color: var(--text-secondary);">
-                            All of the following will be permanently removed:
+                            {% translate "All of the following will be permanently removed:" %}
                         </p>
                         <ul class="text-sm mt-2 ml-4 list-disc space-y-1" style="color: var(--text-secondary);">
-                            <li>All workspaces and their settings</li>
-                            <li>All scheduled and published posts</li>
-                            <li>Connected social accounts and credentials</li>
-                            <li>Media assets and files</li>
-                            <li>Team memberships and invitations</li>
+                            <li>{% translate "All workspaces and their settings" %}</li>
+                            <li>{% translate "All scheduled and published posts" %}</li>
+                            <li>{% translate "Connected social accounts and credentials" %}</li>
+                            <li>{% translate "Media assets and files" %}</li>
+                            <li>{% translate "Team memberships and invitations" %}</li>
                         </ul>
                     </div>
 
@@ -208,7 +209,7 @@
                         <button type="button" @click="showDeleteModal = false"
                                 class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer"
                                 style="background: var(--neutral-100); color: var(--text-primary);">
-                            Cancel
+                            {% translate "Cancel" %}
                         </button>
                         <form method="POST">
                             {% csrf_token %}
@@ -216,7 +217,7 @@
                             <button type="submit"
                                     class="btn-opacity px-5 py-2 text-sm font-semibold rounded-full cursor-pointer whitespace-nowrap"
                                     style="background: var(--error-500, #EF4444); color: white;">
-                                Yes, delete this organization
+                                {% translate "Yes, delete this organization" %}
                             </button>
                         </form>
                     </div>

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Accounts Connected - {{ org.name }}{% endblock %}
+{% block title %}{% translate "Accounts Connected" %} - {{ org.name }}{% endblock %}
 
 {% block auth_content %}
 <div style="width: 100%; max-width: 440px; padding: 0 16px; text-align: center;">
@@ -26,7 +27,7 @@
         color: var(--text-primary);
         letter-spacing: -0.015em;
         margin-bottom: 8px;
-    ">All done!</h1>
+    ">{% translate "All done!" %}</h1>
 
     <p style="
         font-size: 0.9375rem;
@@ -35,9 +36,9 @@
         margin-bottom: 8px;
     ">
         {% if connected_count %}
-            {{ connected_count }} account{{ connected_count|pluralize }} connected to <strong style="color: var(--text-primary);">{{ workspace.name }}</strong>.
+            {% blocktranslate count counter=connected_count with workspace=workspace.name %}{{ counter }} account connected to <strong style="color: var(--text-primary);">{{ workspace }}</strong>.{% plural %}{{ counter }} accounts connected to <strong style="color: var(--text-primary);">{{ workspace }}</strong>.{% endblocktranslate %}
         {% else %}
-            Your accounts have been connected to <strong style="color: var(--text-primary);">{{ workspace.name }}</strong>.
+            {% blocktranslate with workspace=workspace.name %}Your accounts have been connected to <strong style="color: var(--text-primary);">{{ workspace }}</strong>.{% endblocktranslate %}
         {% endif %}
     </p>
 
@@ -47,7 +48,7 @@
         line-height: 1.6;
         margin-bottom: 28px;
     ">
-        <strong style="color: var(--text-secondary);">{{ org.name }}</strong> has been notified and will take it from here.
+        {% blocktranslate with org=org.name %}<strong style="color: var(--text-secondary);">{{ org }}</strong> has been notified and will take it from here.{% endblocktranslate %}
     </p>
 
     <div style="
@@ -59,7 +60,7 @@
         color: var(--brand-800);
         line-height: 1.6;
     ">
-        You can close this page. Your agency team will be in touch soon.
+        {% translate "You can close this page. Your agency team will be in touch soon." %}
     </div>
 </div>
 {% endblock %}

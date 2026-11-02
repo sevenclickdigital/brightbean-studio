@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}
 Day view - single-day timeline with hourly divisions.
 Context: day_slots, target_date, workspace.
@@ -17,7 +18,7 @@ Context: day_slots, target_date, workspace.
         <div class="flex-1 p-2 flex flex-col justify-center gap-1 cal-drop"
              data-date="{{ cell.compose_date }}" data-time="{{ cell.compose_time }}">
             {% if not is_past_day and not is_today or not is_past_day and cell.hour >= current_hour %}
-            <a href="{% url 'composer:compose' workspace_id=workspace.id %}?scheduled_date={{ cell.compose_date }}&scheduled_time={{ cell.compose_time }}" class="cal-add-btn cal-add-btn--inline" style="position:static; margin:0 auto;" title="Create post">
+            <a href="{% url 'composer:compose' workspace_id=workspace.id %}?scheduled_date={{ cell.compose_date }}&scheduled_time={{ cell.compose_time }}" class="cal-add-btn cal-add-btn--inline" style="position:static; margin:0 auto;" title="{% translate 'Create post' %}">
                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
             </a>
             {% endif %}
@@ -37,7 +38,7 @@ Context: day_slots, target_date, workspace.
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
                     </a>
                     {% else %}
-                    <span class="calendar-slot-state">Open</span>
+                    <span class="calendar-slot-state">{% translate "Open" %}</span>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -63,7 +64,7 @@ Context: day_slots, target_date, workspace.
                 {% endwith %}
                 <span class="truncate">{{ pp.post.title|default:pp.post.caption_snippet|truncatechars:28 }}</span>
                 {% if pp.takes_calendar_slot %}
-                <span class="calendar-post-slot-check" title="Scheduled in a channel slot">
+                <span class="calendar-post-slot-check" title="{% translate 'Scheduled in a channel slot' %}">
                     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                 </span>
                 {% endif %}

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block page_title %}Dashboard{% endblock %}
 
@@ -26,14 +27,14 @@
             color: var(--text-primary);
             letter-spacing: -0.015em;
             margin-bottom: 8px;
-        ">No workspaces yet</h2>
+        ">{% translate "No workspaces yet" %}</h2>
 
         <p style="
             font-size: 0.9375rem;
             color: var(--text-secondary);
             line-height: 1.7;
             margin-bottom: 32px;
-        ">Create a workspace to start scheduling posts, managing content, and collaborating with your team.</p>
+        ">{% translate "Create a workspace to start scheduling posts, managing content, and collaborating with your team." %}</p>
 
         <!-- Create workspace form -->
         <form method="post" action="{% url 'workspaces:create' %}" style="
@@ -51,7 +52,7 @@
                 font-weight: 600;
                 color: var(--text-primary);
                 margin-bottom: 6px;
-            ">Workspace name</label>
+            ">{% translate "Workspace name" %}</label>
             <input
                 type="text"
                 name="name"
@@ -61,7 +62,7 @@
                 style="margin-bottom: 16px;"
             >
             <button type="submit" class="btn-brand">
-                Create Workspace
+                {% translate "Create Workspace" %}
             </button>
         </form>
     </div>

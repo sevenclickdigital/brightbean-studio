@@ -1,4 +1,4 @@
-{% load humanize %}
+{% load humanize i18n %}
 <!-- Reply composer -->
 <div class="border-t border-stone-200 px-5 py-3 flex-shrink-0" style="background: var(--surface-1);"
      x-data="{ mode: 'reply', noteText: '', replyText: '' }">
@@ -6,7 +6,7 @@
     <!-- Pending draft replies (agent-created or saved for later) -->
     {% if draft_replies %}
     <div class="space-y-2 mb-3">
-        <p class="text-[10px] font-semibold uppercase tracking-wide text-stone-400">Pending replies</p>
+        <p class="text-[10px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Pending replies" %}</p>
         {% for draft in draft_replies %}
         {% include "inbox/partials/_draft_reply_item.html" with draft=draft %}
         {% endfor %}
@@ -18,12 +18,12 @@
         <button @click="mode = 'reply'"
                 class="text-[12px] font-semibold px-3 py-1 rounded-full transition-all"
                 :class="mode === 'reply' ? 'bg-white text-stone-900 shadow-sm border border-stone-200' : 'text-stone-500 hover:text-stone-700'">
-            Reply
+            {% translate "Reply" %}
         </button>
         <button @click="mode = 'note'"
                 class="text-[12px] font-semibold px-3 py-1 rounded-full transition-all"
                 :class="mode === 'note' ? 'bg-amber-50 text-amber-800 border border-amber-200' : 'text-stone-500 hover:text-stone-700'">
-            Internal Note
+            {% translate "Internal Note" %}
         </button>
 
         <!-- Saved replies dropdown -->
@@ -32,7 +32,7 @@
             <button @click="srOpen = !srOpen"
                     class="text-[11px] font-medium text-stone-500 hover:text-stone-700 flex items-center gap-1 transition-colors">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                Saved Replies
+                {% translate "Saved Replies" %}
             </button>
             <div x-show="srOpen" @click.away="srOpen = false" x-cloak x-transition
                  class="absolute right-0 bottom-full mb-1 bg-white rounded-lg shadow-lg ring-1 ring-stone-200 py-1 z-50 min-w-[200px] max-h-[200px] overflow-y-auto">
@@ -51,9 +51,9 @@
     <!-- Reply form -->
     <div x-show="mode === 'reply'" x-transition>
         {% if not reply_eligibility.can_send %}
-        <p class="mb-2 text-xs text-amber-800">{{ reply_eligibility.reason }} You can still save a draft.</p>
+        <p class="mb-2 text-xs text-amber-800">{% blocktranslate with reason=reply_eligibility.reason %}{{ reason }} You can still save a draft.{% endblocktranslate %}</p>
         {% elif reply_eligibility.human_agent %}
-        <p class="mb-2 text-xs text-amber-800">Human support reply: review the message before sending. This reply uses your app's approved seven-day Human Agent access.</p>
+        <p class="mb-2 text-xs text-amber-800">{% translate "Human support reply: review the message before sending. This reply uses your app's approved seven-day Human Agent access." %}</p>
         {% endif %}
         <form hx-post="{% url 'inbox:send_reply' workspace_id=workspace.id message_id=message.id %}"
               hx-target="#inbox-thread"
@@ -62,12 +62,18 @@
             {% csrf_token %}
             <textarea name="body"
                       x-model="replyText"
-                      placeholder="Write a reply..."
+                      placeholder="{% translate 'Write a reply...' %}"
                       rows="2"
                       class="w-full px-3 py-2 text-[13px] bg-white border border-stone-200 rounded-lg resize-none focus:outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
                       required></textarea>
             <div class="flex {% if message.social_account.platform == 'youtube' %}flex-col sm:flex-row gap-2{% endif %} items-center justify-between mt-2">
-                <p class="text-[10px] text-stone-400">Reply will be posted on {% if message.social_account.platform == "youtube" %}YouTube{% else %}{{ message.social_account.get_platform_display|default:message.social_account.platform|title }}{% endif %}</p>
+                {# The platform name is resolved first so the sentence reaches the #}
+                {# catalogue whole. Split around the name, the translator gets a #}
+                {# trailing fragment and no way to reorder it — and Portuguese does #}
+                {# not put the name where English does. YouTube stays verbatim: that #}
+                {# branch is required attribution, not a display name. #}
+                {% if message.social_account.platform == "youtube" %}{% firstof "YouTube" as platform_name %}{% else %}{% firstof message.social_account.get_platform_display message.social_account.platform|title as platform_name %}{% endif %}
+                <p class="text-[10px] text-stone-400">{% blocktranslate %}Reply will be posted on {{ platform_name }}{% endblocktranslate %}</p>
                 <div class="flex items-center gap-2">
                     <button type="button"
                             hx-post="{% url 'inbox:save_reply_draft' workspace_id=workspace.id message_id=message.id %}"
@@ -75,14 +81,14 @@
                             hx-swap="innerHTML"
                             :disabled="!replyText.trim()"
                             class="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-stone-600 rounded-full border border-stone-200 hover:bg-stone-50 transition-all duration-150 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
-                        Save as draft
+                        {% translate "Save as draft" %}
                     </button>
                     <button type="submit"
                             {% if not reply_eligibility.can_send %}disabled{% endif %}
                             class="btn-primary-hover inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-white rounded-full transition-all duration-150 cursor-pointer"
                             style="background: var(--primary); box-shadow: var(--shadow-primary);">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-                        Send Reply
+                        {% translate "Send Reply" %}
                     </button>
                 </div>
             </div>
@@ -98,7 +104,7 @@
             {% csrf_token %}
             <textarea name="body"
                       x-model="noteText"
-                      placeholder="Add an internal note (only visible to your team)..."
+                      placeholder="{% translate 'Add an internal note (only visible to your team)...' %}"
                       rows="2"
                       class="w-full px-3 py-2 text-[13px] bg-amber-50 border border-amber-200 rounded-lg resize-none focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-100 transition-all"
                       required></textarea>
@@ -106,7 +112,7 @@
                 <button type="submit"
                         class="inline-flex items-center gap-1.5 px-4 py-1.5 text-[12px] font-semibold text-amber-800 bg-amber-100 border border-amber-200 rounded-full hover:bg-amber-200 transition-all duration-150 cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                    Add Note
+                    {% translate "Add Note" %}
                 </button>
             </div>
         </form>

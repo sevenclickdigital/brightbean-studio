@@ -2,7 +2,7 @@
 Single connected account card - HTMX-swappable.
 Usage: {% include "social_accounts/partials/_account_card.html" with account=account workspace_id=workspace_id %}
 {% endcomment %}
-{% load social_accounts_tags %}
+{% load social_accounts_tags i18n %}
 <div id="account-{{ account.id }}" class="group relative bg-white rounded-xl border border-stone-200 p-5 transition-all duration-200 hover:shadow">
     <div class="flex items-start gap-4">
         <!-- Avatar -->
@@ -41,20 +41,20 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
             <form method="post" action="{% url 'social_accounts:reconnect' workspace_id=workspace_id account_id=account.id %}">
                 {% csrf_token %}
                 <button type="submit" class="inline-flex items-center px-3 py-1.5 text-xs font-semibold text-orange-700 bg-orange-50 rounded-full hover:bg-orange-100 transition-colors">
-                    Reconnect
+                    {% translate "Reconnect" %}
                 </button>
             </form>
             {% endif %}
 
             <!-- Disconnect -->
-            <button @click="confirmDisconnect = true" class="inline-flex items-center p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" title="Disconnect">
+            <button @click="confirmDisconnect = true" class="inline-flex items-center p-1.5 text-stone-400 hover:text-red-500 rounded-lg hover:bg-red-50 transition-colors cursor-pointer" title="{% translate 'Disconnect' %}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
 
             <!-- Disconnect confirmation -->
             <div x-show="confirmDisconnect" x-cloak @click.away="confirmDisconnect = false"
                  class="absolute right-4 top-12 z-10 w-72 bg-white rounded-xl shadow-xl border border-stone-200 p-4">
-                <p class="text-sm text-stone-700 mb-2">Disconnect <strong>{{ account.account_name|default:account.account_handle }}</strong>?</p>
+                <p class="text-sm text-stone-700 mb-2">{% blocktranslate with name=account.account_name|default:account.account_handle %}Disconnect <strong>{{ name }}</strong>?{% endblocktranslate %}</p>
                 {% comment %}
                 Say what disconnect really does; the privacy policy promises it
                 and platform reviewers read this against the policy. Only claim
@@ -65,24 +65,22 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
                 {% endcomment %}
                 <p class="text-xs text-stone-500 mb-2">
                     {% if account.revokes_platform_grant_on_disconnect %}
-                    This revokes BrightBean's access to the account.
+                    {% translate "This revokes BrightBean's access to the account." %}
                     {% elif account.keeps_platform_grant_on_disconnect %}
-                    This removes the account from BrightBean only. To revoke our access entirely,
-                    remove BrightBean in Facebook &rsaquo; Settings &rsaquo; Apps and Websites.
+                    {% translate "This removes the account from BrightBean only. To revoke our access entirely, remove BrightBean in Facebook › Settings › Apps and Websites." %}
                     {% else %}
-                    This removes the account from BrightBean only. To revoke our access entirely,
-                    remove BrightBean in your {{ account.get_platform_display }} settings.
+                    {% blocktranslate with platform=account.get_platform_display %}This removes the account from BrightBean only. To revoke our access entirely, remove BrightBean in your {{ platform }} settings.{% endblocktranslate %}
                     {% endif %}
                 </p>
                 <p class="text-xs text-stone-500 mb-3">
                     {% if account.platform == "youtube" %}
-                    YouTube data, analytics and copied comments are deleted immediately, including notification copies. Your original uploads and posts shared with other channels stay.
+                    {% translate "YouTube data, analytics and copied comments are deleted immediately, including notification copies. Your original uploads and posts shared with other channels stay." %}
                     {% else %}
-                    Its analytics, inbox messages and posts made only for it are deleted from BrightBean. Posts shared with other channels stay.
+                    {% translate "Its analytics, inbox messages and posts made only for it are deleted from BrightBean. Posts shared with other channels stay." %}
                     {% endif %}
                 </p>
                 <div class="flex gap-2 justify-end">
-                    <button @click="confirmDisconnect = false" class="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 rounded-full hover:bg-stone-200 transition-colors cursor-pointer">Cancel</button>
+                    <button @click="confirmDisconnect = false" class="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-stone-100 rounded-full hover:bg-stone-200 transition-colors cursor-pointer">{% translate "Cancel" %}</button>
                     <form method="post"
                           action="{% url 'social_accounts:disconnect' workspace_id=workspace_id account_id=account.id %}"
                           hx-post="{% url 'social_accounts:disconnect' workspace_id=workspace_id account_id=account.id %}"
@@ -94,7 +92,7 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
                         {% csrf_token %}
                         <button type="submit" :disabled="disconnecting" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-red-500 rounded-full hover:bg-red-600 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                             <svg x-show="disconnecting" class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                            <span x-text="disconnecting ? 'Disconnecting…' : 'Disconnect'">Disconnect</span>
+                            <span x-text="disconnecting ? '{% translate 'Disconnecting…' %}' : '{% translate 'Disconnect' %}'">{% translate "Disconnect" %}</span>
                         </button>
                     </form>
                 </div>
@@ -112,17 +110,16 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
     {% if account.connection_missing_scopes %}
     <div class="mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
         <p class="text-xs text-amber-800">
-            <span class="font-semibold">Some features are unavailable.</span>
-            This account was connected without {{ account.connection_missing_scopes|join:", " }}.
-            Anything relying on them will fail until the permission is granted — reconnect to try again.
+            <span class="font-semibold">{% translate "Some features are unavailable." %}</span>
+            {% blocktranslate with scopes=account.connection_missing_scopes|join:", " %}This account was connected without {{ scopes }}. Anything relying on them will fail until the permission is granted — reconnect to try again.{% endblocktranslate %}
         </p>
     </div>
     {% endif %}
 
     {% if account.instagram_dm_permission_request_disabled %}
-    <p class="mt-3 text-xs text-amber-800">Instagram DM access is unavailable for this connection. Contact your administrator to enable it.</p>
+    <p class="mt-3 text-xs text-amber-800">{% translate "Instagram DM access is unavailable for this connection. Contact your administrator to enable it." %}</p>
     {% elif account.messaging_access is False %}
-    <p class="mt-3 text-xs text-amber-800">DMs unavailable: grant messaging access on the linked Facebook Page, then reconnect this account.</p>
+    <p class="mt-3 text-xs text-amber-800">{% translate "DMs unavailable: grant messaging access on the linked Facebook Page, then reconnect this account." %}</p>
     {% endif %}
     {% if account.last_error and account.connection_status == "error" %}
     <div class="mt-3 px-3 py-2 bg-red-50 rounded-lg">
@@ -157,7 +154,7 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
             <form method="post" action="{% url 'social_accounts:reconnect' workspace_id=workspace_id account_id=account.id %}">
                 {% csrf_token %}
                 <button type="submit" class="inline-flex flex-shrink-0 items-center whitespace-nowrap px-3 py-1.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full hover:bg-amber-200 transition-colors cursor-pointer">
-                    Reconnect
+                    {% translate "Reconnect" %}
                 </button>
             </form>
             {% else %}
@@ -179,7 +176,7 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
                 {% csrf_token %}
                 <button type="submit" :disabled="retrying" class="inline-flex flex-shrink-0 items-center whitespace-nowrap gap-1.5 px-3 py-1.5 text-xs font-semibold text-amber-800 bg-amber-100 rounded-full hover:bg-amber-200 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
                     <svg x-show="retrying" x-cloak class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
-                    <span x-text="retrying ? 'Trying…' : 'Try again'">Try again</span>
+                    <span x-text="retrying ? '{% translate 'Trying…' %}' : '{% translate 'Try again' %}'">{% translate "Try again" %}</span>
                 </button>
             </form>
             {% endif %}
@@ -192,8 +189,8 @@ Usage: {% include "social_accounts/partials/_account_card.html" with account=acc
     {% if account.connection_status == "connected" %}
     <div class="border-t border-stone-100 mt-4 pt-4">
         <div class="mb-3">
-            <h4 class="text-xs font-semibold text-stone-700 uppercase tracking-wider">Posting Schedule</h4>
-            <p class="text-xs text-stone-400 mt-0.5">Set recurring time slots for when queued posts are automatically published.</p>
+            <h4 class="text-xs font-semibold text-stone-700 uppercase tracking-wider">{% translate "Posting Schedule" %}</h4>
+            <p class="text-xs text-stone-400 mt-0.5">{% translate "Set recurring time slots for when queued posts are automatically published." %}</p>
         </div>
         {% include "social_accounts/partials/_posting_slots_grid.html" with account=account workspace_id=workspace_id %}
     </div>

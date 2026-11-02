@@ -1,4 +1,5 @@
 {% if render_tab_counts_oob %}{% include "calendar/partials/_tab_counts_oob.html" %}{% endif %}
+{% load i18n %}
 {% comment %}
 Sent tab partial for the Publish page.
 Shows all published/partially_published platform posts. Loaded via HTMX into #tab-content.
@@ -10,13 +11,13 @@ Shows all published/partially_published platform posts. Loaded via HTMX into #ta
         <thead>
             <tr class="border-b border-stone-200 text-left">
                 <th class="pl-4 w-8"></th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Media</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Status</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Published</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Caption</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Platform</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Author</th>
-                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">Automation</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Media" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Status" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Published" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Caption" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Platform" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Author" %}</th>
+                <th class="px-4 py-3 text-xs font-semibold text-stone-400 uppercase tracking-wider">{% translate "Automation" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -71,7 +72,7 @@ Shows all published/partially_published platform posts. Loaded via HTMX into #ta
                     the post itself went out fine.
                     {% endcomment %}
                     {% if pp.first_comment_status == "failed" %}
-                    <p class="text-[11px] text-amber-600 mt-1 max-w-[220px] truncate" title="{{ pp.first_comment_error }}">First comment failed</p>
+                    <p class="text-[11px] text-amber-600 mt-1 max-w-[220px] truncate" title="{{ pp.first_comment_error }}">{% translate "First comment failed" %}</p>
                     {% endif %}
                 </td>
                 <td class="px-4 py-3 text-xs text-stone-500 tabular-nums whitespace-nowrap">

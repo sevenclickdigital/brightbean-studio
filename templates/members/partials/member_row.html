@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="px-6 py-4 group" id="member-{{ member.membership.id }}"
      style="border-bottom: 1px solid var(--border);"
      x-data="{ showActions: false, showWorkspaces: false, menuStyle: {} }">
@@ -16,7 +17,7 @@
                     {{ member.user.display_name }}
                 </span>
                 {% if member.user.id == current_user.id %}
-                <span class="text-xs px-1.5 py-0.5 rounded" style="background: var(--neutral-100); color: var(--text-tertiary);">you</span>
+                <span class="text-xs px-1.5 py-0.5 rounded" style="background: var(--neutral-100); color: var(--text-tertiary);">{% translate "you" %}</span>
                 {% endif %}
             </div>
             <div class="text-xs truncate" style="color: var(--text-tertiary);">{{ member.user.email }}</div>
@@ -25,11 +26,11 @@
         <!-- Org Role Badge -->
         <div class="flex-shrink-0">
             {% if member.membership.org_role == "owner" %}
-            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #FEF3C7; color: #92400E;">Owner</span>
+            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #FEF3C7; color: #92400E;">{% translate "Owner" %}</span>
             {% elif member.membership.org_role == "admin" %}
-            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #DBEAFE; color: #1E40AF;">Admin</span>
+            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: #DBEAFE; color: #1E40AF;">{% translate "Admin" %}</span>
             {% else %}
-            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: var(--neutral-100); color: var(--text-secondary);">Member</span>
+            <span class="text-xs font-medium px-2.5 py-1 rounded-full" style="background: var(--neutral-100); color: var(--text-secondary);">{% translate "Member" %}</span>
             {% endif %}
         </div>
 
@@ -59,7 +60,7 @@
                       hx-swap="outerHTML"
                       class="px-3 py-2" style="border-bottom: 1px solid var(--border);">
                     {% csrf_token %}
-                    <label class="text-xs font-medium block mb-1" style="color: var(--text-secondary);">Organization Role</label>
+                    <label class="text-xs font-medium block mb-1" style="color: var(--text-secondary);">{% translate "Organization Role" %}</label>
                     <div class="flex gap-2">
                         <select name="org_role" class="text-xs flex-1 px-2 py-1 rounded border outline-none"
                                 style="border-color: var(--border); background: var(--surface-0); color: var(--text-primary);">
@@ -70,7 +71,7 @@
                         <button type="submit"
                                 class="text-xs px-2 py-1 rounded font-medium cursor-pointer"
                                 style="background: var(--neutral-100); color: var(--text-primary);">
-                            Save
+                            {% translate "Save" %}
                         </button>
                     </div>
                 </form>
@@ -82,7 +83,7 @@
                         hx-swap="innerHTML"
                         class="btn-neutral-surface w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors"
                         style="color: var(--text-primary);">
-                    Manage Workspaces
+                    {% translate "Manage Workspaces" %}
                 </button>
 
                 <!-- Remove Member -->
@@ -94,7 +95,7 @@
                     <button type="submit"
                             class="btn-danger-soft-bg w-full text-left px-3 py-2 text-sm cursor-pointer transition-colors"
                             style="color: #DC2626;">
-                        Remove from Organization
+                        {% translate "Remove from Organization" %}
                     </button>
                 </form>
             </div>
@@ -138,7 +139,7 @@
                     </button>
                 </div>
                 <div id="ws-modal-content-{{ member.membership.id }}">
-                    <p class="text-sm" style="color: var(--text-tertiary);">Loading...</p>
+                    <p class="text-sm" style="color: var(--text-tertiary);">{% translate "Loading..." %}</p>
                 </div>
             </div>
         </div>

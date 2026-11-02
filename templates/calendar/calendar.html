@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Publish - {{ workspace.name }} - Brightbean{% endblock %}
 
 {% block page_header %}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4 lg:mb-[25px]">
-    <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">Publish</h1>
+    <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">{% translate "Publish" %}</h1>
 
     <div class="flex items-center gap-3">
         <!-- List / Calendar toggle -->
@@ -17,7 +17,7 @@
                     hx-swap="innerHTML"
                     hx-push-url="{% url 'calendar:calendar' workspace_id=workspace.id %}?mode=list&tab={{ active_tab|default:'queue' }}">
                 <svg class="w-3.5 h-3.5 inline -mt-px mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
-                List
+                {% translate "List" %}
             </button>
             <button class="view-btn{% if mode == 'calendar' %} active{% endif %}" :class="{ active: activeMode === 'calendar' }"
                     @click="activeMode = 'calendar'"
@@ -26,7 +26,7 @@
                     hx-swap="innerHTML"
                     hx-push-url="{% url 'calendar:calendar' workspace_id=workspace.id %}?mode=calendar&view={{ view_type|default:'month' }}">
                 <svg class="w-3.5 h-3.5 inline -mt-px mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                Calendar
+                {% translate "Calendar" %}
             </button>
         </div>
 
@@ -364,10 +364,10 @@ ticked (see the `sel` Alpine store).{% endcomment %}
          class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] flex items-center gap-1 bg-stone-900 text-white rounded-full shadow-2xl pl-4 pr-2 py-2">
         <span class="text-sm font-medium whitespace-nowrap" x-text="$store.sel.count + ' selected'"></span>
         <span class="w-px h-5 bg-white/20 mx-1.5"></span>
-        <button @click="ask('draft')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full hover:bg-white/10 transition-colors disabled:opacity-50">Draft</button>
-        <button @click="ask('publish')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors disabled:opacity-50">Publish</button>
-        <button @click="ask('delete')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-50">Delete</button>
-        <button @click="$store.sel.clear()" class="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" title="Clear selection">
+        <button @click="ask('draft')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full hover:bg-white/10 transition-colors disabled:opacity-50">{% translate "Draft" %}</button>
+        <button @click="ask('publish')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full bg-emerald-500 hover:bg-emerald-600 transition-colors disabled:opacity-50">{% translate "Publish" %}</button>
+        <button @click="ask('delete')" :disabled="busy" class="px-3 py-1.5 text-xs font-semibold rounded-full text-red-300 hover:bg-red-500/20 transition-colors disabled:opacity-50">{% translate "Delete" %}</button>
+        <button @click="$store.sel.clear()" class="w-7 h-7 rounded-full hover:bg-white/10 flex items-center justify-center transition-colors" title="{% translate 'Clear selection' %}">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
     </div>
@@ -382,17 +382,17 @@ ticked (see the `sel` Alpine store).{% endcomment %}
                 <svg x-show="confirmAction === 'delete'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 <svg x-show="confirmAction === 'publish'" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
             </div>
-            <h3 class="text-base font-bold text-stone-900" x-text="confirmAction === 'delete' ? 'Delete posts?' : 'Publish now?'"></h3>
+            <h3 class="text-base font-bold text-stone-900" x-text="confirmAction === 'delete' ? '{% translate "Delete posts?" %}' : '{% translate "Publish now?" %}'"></h3>
             <p class="text-sm text-stone-500 mt-1 leading-relaxed"
                x-text="confirmAction === 'delete'
                    ? ('Permanently delete ' + $store.sel.count + ' selected post' + ($store.sel.count === 1 ? '' : 's') + '. This can\'t be undone.')
                    : ('Publish ' + $store.sel.count + ' selected post' + ($store.sel.count === 1 ? '' : 's') + ' now — they go out on their platforms shortly.')"></p>
             <div class="flex gap-2 mt-5">
-                <button @click="confirmAction = null" class="flex-1 px-4 py-2 text-sm font-semibold rounded-full border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors">Cancel</button>
+                <button @click="confirmAction = null" class="flex-1 px-4 py-2 text-sm font-semibold rounded-full border border-stone-200 text-stone-600 hover:bg-stone-50 transition-colors">{% translate "Cancel" %}</button>
                 <button @click="exec(confirmAction)" :disabled="busy"
                         :class="confirmAction === 'delete' ? 'bg-red-500 hover:bg-red-600' : 'bg-emerald-500 hover:bg-emerald-600'"
                         class="flex-1 px-4 py-2 text-sm font-semibold rounded-full text-white transition-colors disabled:opacity-50"
-                        x-text="confirmAction === 'delete' ? 'Delete' : 'Publish'"></button>
+                        x-text="confirmAction === 'delete' ? '{% translate "Delete" %}' : '{% translate "Publish" %}'"></button>
             </div>
         </div>
     </div>

@@ -1,10 +1,10 @@
-{% load analytics_extras %}
+{% load analytics_extras i18n %}
 <div class="a-card a-card-hover" style="padding: 16px; display: flex; flex-direction: column; gap: 8px; height: 100%; justify-content: space-between;">
     <div style="display: flex; flex-direction: column; gap: 10px;">
         <div>
             <div style="font-size: 0.75rem; font-weight: 600; color: var(--text-secondary);">{{ label }}</div>
-            {% if derived.estimated %}<div class="a-calc-note" style="margin-top: 2px;">{% if derived.averaged %}Daily average, estimated{% else %}Estimated{% endif %} by BrightBean from per-{{ content_noun }} counts</div>
-            {% elif derived.averaged %}<div class="a-calc-note" style="margin-top: 2px;">Daily average · calculated by BrightBean</div>{% endif %}
+            {% if derived.estimated %}<div class="a-calc-note" style="margin-top: 2px;">{% if derived.averaged %}{% translate "Daily average, estimated" %}{% else %}{% translate "Estimated" %}{% endif %} {% translate "by BrightBean from per-" %}{{ content_noun }} {% translate "counts" %}</div>
+            {% elif derived.averaged %}<div class="a-calc-note" style="margin-top: 2px;">{% translate "Daily average" %} · {% translate "calculated by BrightBean" %}</div>{% endif %}
         </div>
         <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 8px;">
             <span style="font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); line-height: 1;">{% if derived.available %}{{ derived.value|fmt_metric:derived.kind }}{% else %}—{% endif %}</span>

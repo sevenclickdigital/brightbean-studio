@@ -1,10 +1,11 @@
 {% extends "layouts/workspace_settings.html" %}
+{% load i18n %}
 {% block title %}Approvals - {{ workspace.name }} - Brightbean{% endblock %}
 {% block content %}
 <div class="max-w-2xl">
-    <h2 class="text-xl font-semibold mb-2" style="color: var(--text-primary);">Approvals</h2>
+    <h2 class="text-xl font-semibold mb-2" style="color: var(--text-primary);">{% translate "Approvals" %}</h2>
     <p class="text-sm mb-8" style="color: var(--text-secondary);">
-        Control whether posts need to be reviewed before they can be scheduled or published.
+        {% translate "Control whether posts need to be reviewed before they can be scheduled or published." %}
     </p>
 
     <form method="POST" x-data="{ mode: '{{ workspace.approval_workflow_mode }}' }">
@@ -26,22 +27,22 @@
                        {% if workspace.approval_workflow_mode == value %}checked{% endif %}>
                 <div class="flex-1">
                     <div class="text-sm font-semibold mb-0.5" style="color: var(--text-primary);">
-                        {% if value == 'none' %}No approvals
-                        {% elif value == 'optional' %}Optional approvals
-                        {% elif value == 'required_internal' %}Internal review required
-                        {% elif value == 'required_internal_and_client' %}Internal review + client approval
+                        {% if value == 'none' %}{% translate "No approvals" %}
+                        {% elif value == 'optional' %}{% translate "Optional approvals" %}
+                        {% elif value == 'required_internal' %}{% translate "Internal review required" %}
+                        {% elif value == 'required_internal_and_client' %}{% translate "Internal review + client approval" %}
                         {% else %}{{ label }}
                         {% endif %}
                     </div>
                     <div class="text-xs" style="color: var(--text-secondary);">
                         {% if value == 'none' %}
-                            Anyone with publishing rights can schedule or publish directly.
+                            {% translate "Anyone with publishing rights can schedule or publish directly." %}
                         {% elif value == 'optional' %}
-                            Creators can choose to submit a post for review, but it's not required.
+                            {% translate "Creators can choose to submit a post for review, but it's not required." %}
                         {% elif value == 'required_internal' %}
-                            Every post must be approved by a team member with review rights before it can go out.
+                            {% translate "Every post must be approved by a team member with review rights before it can go out." %}
                         {% elif value == 'required_internal_and_client' %}
-                            Posts go through internal review, then are sent to the client portal for final sign-off.
+                            {% translate "Posts go through internal review, then are sent to the client portal for final sign-off." %}
                         {% endif %}
                     </div>
                 </div>
@@ -53,14 +54,14 @@
         <button type="submit"
                 class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer whitespace-nowrap"
                 style="background: var(--neutral-100); color: var(--text-primary);">
-            Save Changes
+            {% translate "Save Changes" %}
         </button>
         {% endif %}
     </form>
 
     <p class="text-xs mt-6" style="color: var(--text-tertiary);">
-        Reviewers are workspace members with the "Approve posts" permission.
-        Manage them on the <a href="{% url 'members:list' %}" class="underline" style="color: var(--text-secondary);">Members</a> page.
+        {% blocktranslate %} Reviewers are workspace members with the "Approve posts" permission.
+        Manage them on the {% endblocktranslate %}<a href="{% url 'members:list' %}" class="underline" style="color: var(--text-secondary);">{% translate "Members" %}</a>{% blocktranslate %} page.{% endblocktranslate %}
     </p>
 </div>
 {% endblock %}

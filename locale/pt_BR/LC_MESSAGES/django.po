@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:22+0000\n"
+"POT-Creation-Date: 2026-11-02 20:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,362 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: apps/accounts/views.py:94
+msgid "Photo removed."
+msgstr ""
+
+#: apps/accounts/views.py:106
+msgid "Photo must be a JPEG, PNG, WebP, or GIF image."
+msgstr ""
+
+#: apps/accounts/views.py:112
+msgid "Photo must be under 2 MB."
+msgstr ""
+
+#: apps/accounts/views.py:128
+msgid "Photo must be at least 180×180 pixels."
+msgstr ""
+
+#: apps/accounts/views.py:131
+msgid "Could not read image file."
+msgstr ""
+
+#: apps/accounts/views.py:142
+msgid "Photo updated."
+msgstr ""
+
+#: apps/accounts/views.py:149
+msgid "Name cannot be empty."
+msgstr ""
+
+#: apps/accounts/views.py:154
+msgid "Name updated."
+msgstr ""
+
+#: apps/accounts/views.py:164
+msgid "Current password is required."
+msgstr ""
+
+#: apps/accounts/views.py:168
+msgid "Current password is incorrect."
+msgstr ""
+
+#: apps/accounts/views.py:172
+msgid "New password cannot be empty."
+msgstr ""
+
+#: apps/accounts/views.py:176
+msgid "New password must be at least 8 characters."
+msgstr ""
+
+#: apps/accounts/views.py:180
+msgid "New passwords do not match."
+msgstr ""
+
+#: apps/accounts/views.py:186
+msgid "Password changed."
+msgstr ""
+
+#: apps/accounts/views.py:216
+#, python-format
+msgid ""
+"You are the sole owner of: %(orgs)s. Transfer ownership or delete the "
+"organization before deleting your account."
+msgstr ""
+
+#: apps/accounts/views.py:226
+msgid "Your account has been deleted."
+msgstr ""
+
+#: apps/accounts/views.py:242
+msgid "You must agree to the Terms of Service and Privacy Policy to continue."
+msgstr ""
+
+#: apps/api_keys/views.py:470
+#, python-format
+msgid "Revoked key “%(name)s”."
+msgstr ""
+
+#: apps/api_keys/views.py:472
+#, python-format
+msgid "Key “%(name)s” was already revoked."
+msgstr ""
+
+#: apps/api_keys/views.py:501
+#, python-format
+msgid "Key “%(name)s” is not active; it can't be edited."
+msgstr ""
+
+#: apps/api_keys/views.py:534
+#, python-format
+msgid "Updated “%(name)s”."
+msgstr ""
+
+#: apps/notifications/views.py:187
+msgid "Notification preferences saved."
+msgstr ""
+
+#: apps/onboarding/views.py:140
+msgid "Connection link created."
+msgstr ""
+
+#: apps/onboarding/views.py:156
+msgid "Connection link revoked."
+msgstr ""
+
+#: apps/onboarding/views.py:170
+msgid "Email address is required."
+msgstr ""
+
+#: apps/onboarding/views.py:174
+msgid "This connection link is no longer active."
+msgstr ""
+
+#: apps/onboarding/views.py:205
+msgid "We could not send that link right now. Please try again shortly."
+msgstr ""
+
+#: apps/onboarding/views.py:209
+#, python-format
+msgid "Connection link sent to %(email)s."
+msgstr ""
+
+#: apps/organizations/views.py:130
+msgid "Organization name cannot be empty."
+msgstr ""
+
+#: apps/organizations/views.py:135
+msgid "Organization name updated."
+msgstr ""
+
+#: apps/organizations/views.py:142
+msgid "Invalid timezone."
+msgstr ""
+
+#: apps/organizations/views.py:147
+msgid "Default timezone updated."
+msgstr ""
+
+#: apps/organizations/views.py:169
+msgid "Organization scheduled for deletion in 14 days."
+msgstr ""
+
+#: apps/organizations/views.py:218
+msgid ""
+"Organization deletion cancelled. Reconnect any YouTube channels removed when "
+"deletion was requested."
+msgstr ""
+
+#: apps/social_accounts/views.py:228
+msgid "This platform is not available."
+msgstr ""
+
+#: apps/social_accounts/views.py:234
+#, python-format
+msgid ""
+"Platform credentials for %(platform)s are not configured. Please contact "
+"your administrator."
+msgstr ""
+
+#: apps/social_accounts/views.py:290
+#, python-format
+msgid "OAuth error: %(error)s"
+msgstr ""
+
+#: apps/social_accounts/views.py:301
+msgid "Missing authorization code or state parameter."
+msgstr ""
+
+#: apps/social_accounts/views.py:308
+msgid "Invalid or expired OAuth state. Please try again."
+msgstr ""
+
+#: apps/social_accounts/views.py:314
+msgid "OAuth session mismatch. Please try again."
+msgstr ""
+
+#: apps/social_accounts/views.py:319
+msgid "Platform mismatch in OAuth callback."
+msgstr ""
+
+#: apps/social_accounts/views.py:396
+msgid ""
+"No LinkedIn Company Pages were found for your account. Only Company Pages "
+"you administer can be connected — personal profiles connect via the LinkedIn "
+"(Personal) option. If you expected to see a Page, ask the page owner to "
+"grant you Admin access in LinkedIn → Admin tools → Manage admins, then "
+"reconnect."
+msgstr ""
+
+#: apps/social_accounts/views.py:405
+msgid ""
+"No Google Business locations were found for your account. Only verified "
+"locations can be connected. If you expected to see one, check that it is "
+"verified and that this Google account has access to it in Google Business "
+"Profile → Businesses, then reconnect."
+msgstr ""
+
+#: apps/social_accounts/views.py:414
+msgid ""
+"No Instagram Business accounts were found for your account. Only Instagram "
+"Business or Creator accounts linked to a Facebook Page can be connected "
+"through this Instagram option. If you expected to see an account, make sure "
+"it is linked to a Page you manage, then reconnect."
+msgstr ""
+
+#: apps/social_accounts/views.py:421
+msgid ""
+"No Facebook Pages were found for your account. Only Pages can be connected — "
+"personal profiles are not supported by the Facebook API. If you expected to "
+"see a Page, make sure you have admin access and try removing the app in "
+"Facebook Settings → Business Integrations, then reconnect."
+msgstr ""
+
+#: apps/social_accounts/views.py:443
+#, python-format
+msgid "Connected %(name)s successfully."
+msgstr ""
+
+#: apps/social_accounts/views.py:459
+msgid "Failed to connect account. Please try again."
+msgstr ""
+
+#: apps/social_accounts/views.py:475
+msgid "No accounts to select. Please start over."
+msgstr ""
+
+#: apps/social_accounts/views.py:502
+msgid "Please select at least one account."
+msgstr ""
+
+#: apps/social_accounts/views.py:520
+#, python-format
+msgid ""
+"Could not connect %(name)s: your Facebook access cannot create content for "
+"this Page."
+msgstr ""
+
+#: apps/social_accounts/views.py:528
+#, python-format
+msgid ""
+"Could not connect %(name)s: the platform did not provide an account token."
+msgstr ""
+
+#: apps/social_accounts/views.py:562
+#, fuzzy, python-format
+#| msgid "Connect channels"
+msgid "Connected: %(names)s"
+msgstr "Conectar canais"
+
+#: apps/social_accounts/views.py:587
+msgid "Handle and app password are required."
+msgstr ""
+
+#: apps/social_accounts/views.py:608
+#, python-format
+msgid "Connected %(name)s on Bluesky."
+msgstr ""
+
+#: apps/social_accounts/views.py:614
+msgid "Failed to connect Bluesky account. Check your handle and app password."
+msgstr ""
+
+#: apps/social_accounts/views.py:643
+msgid "A DEV.to API key is required."
+msgstr ""
+
+#: apps/social_accounts/views.py:659
+#, python-format
+msgid "Connected %(name)s on DEV.to."
+msgstr ""
+
+#: apps/social_accounts/views.py:662
+msgid "Failed to connect DEV.to account. Check your API key."
+msgstr ""
+
+#: apps/social_accounts/views.py:687
+msgid "Instance URL is required."
+msgstr ""
+
+#: apps/social_accounts/views.py:696
+msgid "Invalid instance URL. Private or reserved addresses are not allowed."
+msgstr ""
+
+#: apps/social_accounts/views.py:729
+#, python-format
+msgid "Failed to register with %(url)s. Check the URL."
+msgstr ""
+
+#: apps/social_accounts/views.py:833
+#, python-format
+msgid "Reconnect %(label)s first — its connection isn't healthy."
+msgstr ""
+
+#: apps/social_accounts/views.py:849
+#, python-format
+msgid "Real-time updates are back on for %(label)s."
+msgstr ""
+
+#: apps/social_accounts/views.py:851
+msgid "Couldn't set up real-time updates. Please try again."
+msgstr ""
+
+#: apps/social_accounts/views.py:880
+#, python-format
+msgid "Disconnected %(name)s. YouTube data was deleted immediately."
+msgstr ""
+
+#: apps/social_accounts/views.py:925
+#, python-format
+msgid "Disconnected %(name)s."
+msgstr ""
+
+#: apps/workspaces/views.py:80
+msgid "Cannot archive the last workspace in the organization."
+msgstr ""
+
+#: apps/workspaces/views.py:84
+#, python-format
+msgid "Workspace \"%(name)s\" has been archived."
+msgstr ""
+
+#: apps/workspaces/views.py:90
+#, python-format
+msgid "Workspace \"%(name)s\" has been restored."
+msgstr ""
+
+#: apps/workspaces/views.py:101
+msgid "Cannot delete the last workspace in the organization."
+msgstr ""
+
+#: apps/workspaces/views.py:106
+#, python-format
+msgid "Workspace \"%(name)s\" has been permanently deleted."
+msgstr ""
+
+#: apps/workspaces/views.py:126
+msgid "Logo must be a JPEG, PNG, WebP, or GIF image."
+msgstr ""
+
+#: apps/workspaces/views.py:132
+msgid "Logo must be under 2 MB."
+msgstr ""
+
+#: apps/workspaces/views.py:141
+#, fuzzy
+#| msgid "Workspace settings"
+msgid "Workspace settings updated."
+msgstr "Configurações do workspace"
+
+#: apps/workspaces/views.py:186
+msgid "Invalid approval workflow mode."
+msgstr ""
+
+#: apps/workspaces/views.py:191
+msgid "Approval workflow updated."
+msgstr ""
+
 #: config/settings/base.py:217
 msgid "Português (Brasil)"
 msgstr "Português (Brasil)"
@@ -51,109 +407,3088 @@ msgstr ""
 msgid "Back to sign in"
 msgstr "Voltar para o login"
 
-#: templates/base.html:353
-msgid "No workspaces"
+#: templates/accounts/dashboard.html:30
+#, fuzzy
+#| msgid "No workspaces"
+msgid "No workspaces yet"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:362 templates/base.html:1422
-msgid "Create workspace"
-msgstr "Criar workspace"
+#: templates/accounts/dashboard.html:37
+msgid ""
+"Create a workspace to start scheduling posts, managing content, and "
+"collaborating with your team."
+msgstr ""
 
-#: templates/base.html:373
-msgid "Workspace settings"
+#: templates/accounts/dashboard.html:55
+#, fuzzy
+#| msgid "Workspace settings"
+msgid "Workspace name"
 msgstr "Configurações do workspace"
 
-#: templates/base.html:390
-msgid "New"
-msgstr "Novo"
+#: templates/accounts/dashboard.html:65
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Create Workspace"
+msgstr "Criar workspace"
 
-#: templates/base.html:408
-msgid "Post"
-msgstr "Publicação"
+#: templates/accounts/settings.html:6
+msgid "Profile"
+msgstr ""
 
-#: templates/base.html:409
-msgid "Publish content to a channel"
-msgstr "Publicar conteúdo em um canal"
+#: templates/accounts/settings.html:40
+msgid "Photo"
+msgstr ""
 
-#: templates/base.html:418
-msgid "Idea"
-msgstr "Ideia"
+#: templates/accounts/settings.html:41
+msgid "Please choose a photo that is at least 180×180 pixels in size."
+msgstr ""
 
-#: templates/base.html:419
-msgid "Capture a content idea"
-msgstr "Registrar uma ideia de conteúdo"
+#: templates/accounts/settings.html:48
+msgid "Upload Photo"
+msgstr ""
 
-#: templates/base.html:447 templates/base.html:651
-msgid "Create Idea"
+#: templates/accounts/settings.html:61 templates/composer/categories.html:37
+msgid "Name"
+msgstr ""
+
+#: templates/accounts/settings.html:69
+#: templates/calendar/partials/event_form.html:80
+#: templates/organizations/settings.html:22
+#: templates/organizations/settings.html:53
+#: templates/workspaces/approvals_settings.html:57
+#: templates/workspaces/settings.html:21
+#, fuzzy
+#| msgid "Channels"
+msgid "Save Changes"
+msgstr "Canais"
+
+#: templates/accounts/settings.html:76
+msgid "Email"
+msgstr ""
+
+#: templates/accounts/settings.html:86
+msgid "Current password"
+msgstr ""
+
+#: templates/accounts/settings.html:92
+msgid "New password"
+msgstr ""
+
+#: templates/accounts/settings.html:98
+msgid "Confirm new password"
+msgstr ""
+
+#: templates/accounts/settings.html:107
+msgid "Change Password"
+msgstr ""
+
+#: templates/accounts/settings.html:116
+#: templates/members/accept_invite.html:102
+msgid "Role"
+msgstr ""
+
+#: templates/accounts/settings.html:122
+#: templates/members/accept_invite.html:104
+#: templates/members/partials/member_row.html:29
+msgid "Owner"
+msgstr ""
+
+#: templates/accounts/settings.html:125
+#: templates/members/accept_invite.html:104
+#: templates/members/partials/invitation_row.html:21
+#: templates/members/partials/member_row.html:31
+msgid "Admin"
+msgstr ""
+
+#: templates/accounts/settings.html:128
+#: templates/members/accept_invite.html:104
+#: templates/members/partials/invitation_row.html:23
+#: templates/members/partials/member_row.html:33
+msgid "Member"
+msgstr ""
+
+#: templates/accounts/settings.html:145
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Delete your account"
+msgstr "Criar workspace"
+
+#: templates/accounts/settings.html:147
+msgid ""
+"When you delete your account, you lose access to Brightbean Studio account "
+"services, and we permanently delete your personal data."
+msgstr ""
+
+#: templates/accounts/settings.html:154
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Delete Account"
+msgstr "Conectar canais"
+
+#: templates/analytics/_delta_chip.html:1
+#, python-format
+msgid "Change vs. the previous %(days)s days, calculated by BrightBean"
+msgstr ""
+
+#: templates/analytics/_empty_state.html:11
+#, python-format
+msgid "%(name)s is connected"
+msgstr ""
+
+#: templates/analytics/_empty_state.html:14
+msgid ""
+"YouTube has not returned analytics for this reporting period. Reports "
+"refresh daily and may arrive after a delay."
+msgstr ""
+
+#: templates/analytics/_empty_state.html:14
+msgid ""
+"We started collecting analytics when you connected this account. Metrics for "
+"this account usually appear within 24–48 hours of your first published post."
+msgstr ""
+
+#: templates/analytics/_empty_state.html:18
+msgid "Awaiting YouTube report"
+msgstr ""
+
+#: templates/analytics/_empty_state.html:18
+msgid "Awaiting first full sync"
+msgstr ""
+
+#: templates/analytics/_empty_state.html:21
+#: templates/analytics/_no_analytics_state.html:36
+#, fuzzy
+#| msgid "Create Idea"
+msgid "Create a post"
 msgstr "Criar ideia"
 
-#: templates/base.html:472
-msgid "Tags"
-msgstr "Tags"
+#: templates/analytics/_engagement_card.html:6
+msgid "Engagement rate"
+msgstr ""
 
-#: templates/base.html:559
-msgid "Add another file"
-msgstr "Adicionar outro arquivo"
+#: templates/analytics/_engagement_card.html:7
+msgid "Calculated by BrightBean"
+msgstr ""
 
-#: templates/base.html:617
-msgid "Create new tag"
-msgstr "Criar nova tag"
+#: templates/analytics/_engagement_card.html:16
+msgid "Not reported by"
+msgstr ""
 
-#: templates/base.html:647
-msgid "Publish"
-msgstr "Publicar"
+#: templates/analytics/_engagement_card.html:16
+msgid "Not enough data to calculate yet."
+msgstr ""
 
-#: templates/base.html:655
-msgid "Social Inbox"
-msgstr "Caixa de entrada"
+#: templates/analytics/_engagement_card.html:30
+#: templates/analytics/_hero_chart.html:7
+msgid "Estimated by BrightBean"
+msgstr ""
 
-#: templates/base.html:660
-msgid "Automations"
-msgstr "Automações"
+#: templates/analytics/_hero_chart.html:6
+#, python-format
+msgid "last %(days)s days"
+msgstr ""
 
-#: templates/base.html:666
-msgid "Notifications"
-msgstr "Notificações"
+#: templates/analytics/_hero_chart.html:7
+#, python-format
+msgid "Estimated by BrightBean from per-%(content_noun)s counts"
+msgstr ""
 
-#: templates/base.html:673
+#: templates/analytics/_instagram_status.html:9
+msgid "Instagram analytics."
+msgstr ""
+
+#: templates/analytics/_instagram_status.html:13
+#: templates/analytics/_page.html:11
+msgid "Reconnect for analytics"
+msgstr ""
+
+#: templates/analytics/_no_analytics_state.html:10
+#, python-format
+msgid "Analytics aren't available for %(platform)s"
+msgstr ""
+
+#: templates/analytics/_no_analytics_state.html:32
+msgid ""
+"An administrator can switch it on under Analytics platforms in the Django "
+"admin. If this account connected while it was off, it may also need "
+"reconnecting before insights can be read."
+msgstr ""
+
+#: templates/analytics/_page.html:12
+msgid ""
+"The platform rejected our analytics call as insufficient-scope. Reconnect to "
+"grant the new permissions."
+msgstr ""
+
+#: templates/analytics/_page.html:16
+#: templates/social_accounts/partials/_account_card.html:44
+#: templates/social_accounts/partials/_account_card.html:160
+msgid "Reconnect"
+msgstr ""
+
+#: templates/analytics/_page.html:26 templates/analytics/_page.html:59
+msgid "All posts"
+msgstr ""
+
+#: templates/analytics/_page_header.html:6 templates/analytics/index.html:4
+#: templates/analytics/no_accounts.html:4
+#: templates/analytics/no_accounts.html:10 templates/base.html:677
 msgid "Analytics"
 msgstr "Análises"
 
-#: templates/base.html:691
+#: templates/analytics/_page_header.html:7
+#: templates/analytics/no_accounts.html:11
+msgid "Performance across your connected channels."
+msgstr ""
+
+#: templates/analytics/_page_header.html:35
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connected accounts"
+msgstr "Conectar canais"
+
+#: templates/analytics/_page_header.html:61
+msgid "No data"
+msgstr ""
+
+#: templates/analytics/_page_header.html:75
+msgid "Followers"
+msgstr ""
+
+#: templates/analytics/_page_header.html:83
+msgid "New subscribers"
+msgstr ""
+
+#: templates/analytics/_page_header.html:83
+msgid "New followers"
+msgstr ""
+
+#: templates/analytics/_post_detail.html:32
+#, fuzzy
+#| msgid "Post"
+msgid "Post copy"
+msgstr "Publicação"
+
+#: templates/analytics/_post_detail.html:35
+#, python-format
+msgid "Published %(date)s"
+msgstr ""
+
+#: templates/analytics/_post_detail.html:35
+msgid "ago"
+msgstr ""
+
+#: templates/analytics/_post_detail.html:38
+msgid "Performance"
+msgstr ""
+
+#: templates/analytics/_post_detail.html:53
+#, python-format
+msgid "View on %(platform)s"
+msgstr ""
+
+#: templates/analytics/_post_table.html:6
+msgid "post"
+msgid_plural "posts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/analytics/_post_table.html:7
+#, python-format
+msgid "last %(table.days_filter)s days"
+msgstr ""
+
+#: templates/analytics/_post_table.html:7
+msgid "all time"
+msgstr ""
+
+#: templates/analytics/_post_table.html:16
+#: templates/calendar/partials/publish_approvals.html:22
+#: templates/inbox/feed.html:138 templates/notifications/history.html:77
+msgid "All"
+msgstr ""
+
+#: templates/analytics/_post_table.html:38
+msgid "All time"
+msgstr ""
+
+#: templates/analytics/_post_table.html:48 templates/base.html:412
+msgid "Post"
+msgstr "Publicação"
+
+#: templates/analytics/_post_table.html:56
+#: templates/calendar/partials/list_view.html:13
+#: templates/composer/compose.html:1588
+msgid "Date"
+msgstr ""
+
+#: templates/analytics/_post_table.html:97
+msgid "No posts match these filters."
+msgstr ""
+
+#: templates/analytics/_post_table.html:119
+#, python-format
+msgid "Page %(page)s of %(total_pages)s"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:6
+msgid "Daily average, estimated"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:6
+msgid "Estimated"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:6
+msgid "by BrightBean from per-"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:6
+msgid "counts"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:7
+msgid "Daily average"
+msgstr ""
+
+#: templates/analytics/_stat_card.html:7
+msgid "calculated by BrightBean"
+msgstr ""
+
+#: templates/analytics/no_accounts.html:20
+msgid "Connect an account to see analytics"
+msgstr ""
+
+#: templates/analytics/no_accounts.html:22
+msgid ""
+"This workspace has no connected accounts. Connect one to start tracking per-"
+"post performance — and if you have connected an account before, check the "
+"Channels page: one that needs reconnecting doesn't show up here."
+msgstr ""
+
+#: templates/analytics/no_accounts.html:24
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect a channel"
+msgstr "Conectar canais"
+
+#: templates/automations/flow_builder.html:4
+#: templates/automations/flow_builder.html:59
+msgid "Flow builder"
+msgstr ""
+
+#: templates/automations/flow_builder.html:63
+#, fuzzy
+#| msgid "Publish"
+msgid "Published post"
+msgstr "Publicar"
+
+#: templates/automations/flow_builder.html:63
+msgid "Not published yet"
+msgstr ""
+
+#: templates/automations/flow_builder.html:80
+msgid "Not set up"
+msgstr ""
+
+#: templates/automations/flow_builder.html:88
+#, fuzzy
+#| msgid "Log out"
+msgid "Zoom out"
+msgstr "Sair"
+
+#: templates/automations/flow_builder.html:93
+msgid "Zoom in"
+msgstr ""
+
+#: templates/automations/flow_builder.html:97
+msgid "Fit"
+msgstr ""
+
+#: templates/automations/flow_builder.html:105
+msgid "Saving…"
+msgstr ""
+
+#: templates/automations/flow_builder.html:105
+#: templates/composer/categories.html:44 templates/composer/categories.html:90
+#: templates/members/partials/member_row.html:74
+#: templates/social_accounts/partials/_posting_slots_grid.html:82
+msgid "Save"
+msgstr ""
+
+#: templates/automations/flow_builder.html:113
+msgid "Pause"
+msgstr ""
+
+#: templates/automations/flow_builder.html:113
+msgid "Turn on"
+msgstr ""
+
+#: templates/automations/flow_builder.html:121
+#, python-format
+msgid ""
+"Comment automations run on Instagram and Facebook only. This account is "
+"<strong>%(platform)s</strong>, so this flow cannot run."
+msgstr ""
+
+#: templates/automations/flow_builder.html:132
+msgid ""
+"This post isn't published yet. Save the flow now — it starts watching for "
+"comments by itself the moment the post goes live."
+msgstr ""
+
+#: templates/automations/flow_builder.html:310
+msgid "Add step"
+msgstr ""
+
+#: templates/automations/flow_builder.html:314
+msgid "Reply to comment"
+msgstr ""
+
+#: templates/automations/flow_builder.html:319
+#: templates/automations/form.html:266
+msgid "Send a DM"
+msgstr ""
+
+#: templates/automations/form.html:4 templates/automations/form.html:29
+msgid "Edit rule"
+msgstr ""
+
+#: templates/automations/form.html:4 templates/automations/form.html:29
+msgid "New rule"
+msgstr ""
+
+#: templates/automations/form.html:30
+msgid "Match a comment by keyword, then reply publicly, by DM, or both."
+msgstr ""
+
+#: templates/automations/form.html:49
+msgid "Rule name"
+msgstr ""
+
+#: templates/automations/form.html:52
+msgid "Only you and your team see this."
+msgstr ""
+
+#: templates/automations/form.html:57
+msgid "Rule is on"
+msgstr ""
+
+#: templates/automations/form.html:58
+msgid ""
+"A rule can only be turned on once it has a public reply or a DM to send."
+msgstr ""
+
+#: templates/automations/form.html:70
+msgid "When"
+msgstr ""
+
+#: templates/automations/form.html:71
+msgid "Which comments this rule picks up."
+msgstr ""
+
+#: templates/automations/form.html:76
+msgid "Account"
+msgstr ""
+
+#: templates/automations/form.html:79
+msgid "Comment automations run on Instagram and Facebook only."
+msgstr ""
+
+#: templates/automations/form.html:85
+#, fuzzy
+#| msgid "Post"
+msgid "Posts"
+msgstr "Publicação"
+
+#: templates/automations/form.html:97
+msgid "Post ID from Instagram or Facebook"
+msgstr ""
+
+#: templates/automations/form.html:108
+msgid "Add a post"
+msgstr ""
+
+#: templates/automations/form.html:110
+msgid ""
+"A rule scoped to specific posts needs at least one — otherwise it matches "
+"nothing at all."
+msgstr ""
+
+#: templates/automations/form.html:121
+msgid "Include these keywords"
+msgstr ""
+
+#: templates/automations/form.html:122
+msgid "Leave empty to reply to every comment in scope."
+msgstr ""
+
+#: templates/automations/form.html:143 templates/automations/form.html:176
+msgid "Add a keyword"
+msgstr ""
+
+#: templates/automations/form.html:154
+msgid "But skip comments with"
+msgstr ""
+
+#: templates/automations/form.html:155
+msgid "Exclude wins: a comment matching both lists does not get a reply."
+msgstr ""
+
+#: templates/automations/form.html:187
+msgid "Top-level comments only"
+msgstr ""
+
+#: templates/automations/form.html:188
+msgid "Ignore replies to other comments."
+msgstr ""
+
+#: templates/automations/form.html:202
+msgid "Reply publicly"
+msgstr ""
+
+#: templates/automations/form.html:203
+msgid "Post a reply under the comment, where everyone can see it."
+msgstr ""
+
+#: templates/automations/form.html:214 templates/automations/form.html:284
+msgid "How to pick the text"
+msgstr ""
+
+#: templates/automations/form.html:226
+msgid "Thanks! Sent you a DM with the details."
+msgstr ""
+
+#: templates/automations/form.html:238 templates/automations/form.html:308
+msgid "Add a variation"
+msgstr ""
+
+#: templates/automations/form.html:255 templates/automations/form.html:325
+msgid "AI replies — coming in v2"
+msgstr ""
+
+#: templates/automations/form.html:256 templates/automations/form.html:326
+msgid ""
+"Write a prompt instead of fixed text and have each reply drafted for the "
+"comment it answers. Not available yet."
+msgstr ""
+
+#: templates/automations/form.html:267
+msgid "Message the commenter privately."
+msgstr ""
+
+#: templates/automations/form.html:278
+msgid ""
+"Meta allows one private reply per comment, within 7 days of the comment."
+msgstr ""
+
+#: templates/automations/form.html:296
+msgid "Hi! Here is the link you asked for..."
+msgstr ""
+
+#: templates/automations/form.html:334
+msgid "Limits"
+msgstr ""
+
+#: templates/automations/form.html:335
+msgid "Guardrails, so one busy post cannot turn into a flood."
+msgstr ""
+
+#: templates/automations/form.html:340
+msgid "One reply per person, per post"
+msgstr ""
+
+#: templates/automations/form.html:341
+msgid ""
+"However many times somebody comments on the same post, they hear from this "
+"rule once."
+msgstr ""
+
+#: templates/automations/form.html:350
+msgid "Most sends per hour"
+msgstr ""
+
+#: templates/automations/form.html:354
+msgid ""
+"Set to <span class=\"font-semibold text-stone-500\">0</span> to stop this "
+"rule sending while keeping its setup — it still claims the comments it "
+"matches, so no other rule replies to them either."
+msgstr ""
+
+#: templates/automations/form.html:358
+msgid "Priority"
+msgstr ""
+
+#: templates/automations/form.html:361
+msgid ""
+"Lower runs first. A comment is answered by the first rule that matches it, "
+"and only that one."
+msgstr ""
+
+#: templates/automations/form.html:368
+msgid "Check it before you turn it on"
+msgstr ""
+
+#: templates/automations/form.html:369
+msgid ""
+"Replays this rule against your recent comments. It does not send anything."
+msgstr ""
+
+#: templates/automations/form.html:377
+msgid "Test this rule"
+msgstr ""
+
+#: templates/automations/form.html:380
+msgid ""
+"Save the rule first — it is saved off, so nothing happens until you turn it "
+"on."
+msgstr ""
+
+#: templates/automations/form.html:389
+#, fuzzy
+#| msgid "More channels"
+msgid "Save changes"
+msgstr "Mais canais"
+
+#: templates/automations/form.html:389
+#, fuzzy
+#| msgid "Create Idea"
+msgid "Create rule"
+msgstr "Criar ideia"
+
+#: templates/automations/form.html:392 templates/calendar/calendar.html:393
+#: templates/calendar/partials/_delete_post_modal.html:42
+#: templates/calendar/partials/event_form.html:77
+#: templates/calendar/partials/publish_approvals.html:87
+#: templates/calendar/queues.html:64 templates/composer/categories.html:45
+#: templates/composer/categories.html:91
+#: templates/inbox/partials/_saved_reply_form.html:24
+#: templates/inbox/sla_config.html:64 templates/intelligence/subscribe.html:19
+#: templates/members/partials/invite_modal.html:93
+#: templates/oauth2_provider/authorize.html:40
+#: templates/onboarding/connection_page.html:198
+#: templates/onboarding/connection_page.html:259
+#: templates/organizations/settings.html:136
+#: templates/organizations/settings.html:212
+#: templates/social_accounts/account_select.html:87
+#: templates/social_accounts/bluesky_connect.html:50
+#: templates/social_accounts/devto_connect.html:43
+#: templates/social_accounts/mastodon_connect.html:48
+#: templates/social_accounts/partials/_account_card.html:84
+#: templates/social_accounts/partials/_posting_slots_grid.html:87
+#: templates/social_accounts/partials/_posting_slots_grid.html:121
+#: templates/workspaces/settings.html:137
+#: templates/workspaces/settings.html:215
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/automations/list.html:4 templates/automations/list.html:11
+#: templates/base.html:664
+msgid "Automations"
+msgstr "Automações"
+
+#: templates/automations/list.html:12
+msgid ""
+"Reply to comments by keyword — a public reply, a DM, or both. Rules run in "
+"priority order and the first match wins."
+msgstr ""
+
+#: templates/automations/list.html:16
+msgid "Activity log"
+msgstr ""
+
+#: templates/automations/list.html:22
+msgid "New Rule"
+msgstr ""
+
+#: templates/automations/list.html:43
+msgid ""
+"Rules are checked from the lowest priority number up, and the first rule "
+"that matches a comment is the only one that replies to it."
+msgstr ""
+
+#: templates/automations/list.html:50
+#, fuzzy
+#| msgid "Automations"
+msgid "No automations yet"
+msgstr "Automações"
+
+#: templates/automations/list.html:51
+msgid ""
+"Create a rule to answer comments automatically — for example, reply with a "
+"link whenever somebody comments \\"
+msgstr ""
+
+#: templates/automations/list.html:56
+msgid "Create the first rule"
+msgstr ""
+
+#: templates/automations/log.html:4 templates/automations/log.html:25
+#, fuzzy
+#| msgid "Automations"
+msgid "Automation activity"
+msgstr "Automações"
+
+#: templates/automations/log.html:26
+msgid ""
+"Every comment your rules acted on, and what happened. Kept even after a rule "
+"is deleted."
+msgstr ""
+
+#: templates/automations/log.html:33
+msgid "Rule"
+msgstr ""
+
+#: templates/automations/log.html:35
+msgid "All rules"
+msgstr ""
+
+#: templates/automations/log.html:42
+msgid "Outcome"
+msgstr ""
+
+#: templates/automations/log.html:44
+msgid "All outcomes"
+msgstr ""
+
+#: templates/automations/log.html:52
+msgid "Filter"
+msgstr ""
+
+#: templates/automations/log.html:56
+#: templates/social_accounts/account_select.html:29
+msgid "Clear"
+msgstr ""
+
+#: templates/automations/log.html:71
+msgid "Pending"
+msgstr ""
+
+#: templates/automations/log.html:77
+msgid "Deleted rule"
+msgstr ""
+
+#: templates/automations/log.html:92
+#, python-format
+msgid "Public reply sent %(time)s"
+msgstr ""
+
+#: templates/automations/log.html:94
+#, python-format
+msgid "DM sent %(time)s"
+msgstr ""
+
+#: templates/automations/log.html:95
+#, fuzzy
+#| msgid "Something went wrong"
+msgid "Nothing sent"
+msgstr "Algo deu errado"
+
+#: templates/automations/log.html:110
+#, python-format
+msgid ""
+"Page %(page)s of %(total)s &middot; %(count)s "
+"entr%(count|pluralize:\"y,ies\")s"
+msgstr ""
+
+#: templates/automations/log.html:114
+msgid "Previous"
+msgstr ""
+
+#: templates/automations/log.html:118
+#: templates/notifications/partials/history_list.html:109
+msgid "Next"
+msgstr ""
+
+#: templates/automations/log.html:129
+msgid "Nothing matches these filters"
+msgstr ""
+
+#: templates/automations/log.html:129
+msgid "No automation activity yet"
+msgstr ""
+
+#: templates/automations/log.html:132
+msgid "Try clearing the filters."
+msgstr ""
+
+#: templates/automations/log.html:132
+msgid "Once a rule replies to a comment, it shows up here."
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:20
+msgid "Turn this rule off"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:20
+msgid "Turn this rule on"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:31
+msgid "Nothing to send"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:34
+msgid "Limit 0 — never sends"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:39
+#, python-format
+msgid "Priority %(priority)s"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:41
+msgid "All Instagram and Facebook accounts"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:43
+#, python-format
+msgid "%(count)s post%(count|pluralize)s"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:43
+msgid "Every post"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:44
+#, python-format
+msgid "%(count)s keyword%(count|pluralize)s"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:44
+msgid "Every comment"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:48
+msgid "Public reply"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:50
+msgid "DM"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:51
+msgid "No reply configured"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:52
+#, python-format
+msgid "%(count)s sent in the last 24h"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:65
+msgid "Edit this rule"
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:77
+msgid ""
+"Delete this rule? Its history in the activity log is kept — deleting the "
+"rule does not erase what it already posted."
+msgstr ""
+
+#: templates/automations/partials/_rule_row.html:80
+msgid "Delete this rule"
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:22
+msgid "This is a preview. Nothing was sent."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:23
+#, python-format
+msgid ""
+"It replays the rule against the %(count)s most recent "
+"comment%(count|pluralize)s already in your inbox — no replies and no DMs "
+"were posted, and nobody was notified."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:31
+msgid "This rule is off."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:32
+msgid ""
+"Matches below show what it would pick up. While it is off, it does not reply "
+"to new comments at all."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:41
+msgid "This rule has nothing to send."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:42
+msgid ""
+"No reply channel is both switched on and filled in, so even when it is "
+"active it is skipped before matching happens. Write a public reply or a DM."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:51
+#, python-format
+msgid "%(matched)s of %(total)s recent comment%(total|pluralize)s would match"
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:60
+msgid "Unknown"
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:71
+msgid ""
+"There are no comments in this workspace's inbox yet, so there is nothing to "
+"preview against."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:75
+#, python-format
+msgid ""
+"None of the %(count)s most recent comment%(count|pluralize)s match this rule."
+msgstr ""
+
+#: templates/automations/partials/_test_result.html:76
+msgid ""
+"Check the keyword match types, the post scope, and the exclude list — "
+"exclude wins over include."
+msgstr ""
+
+#: templates/base.html:357
+msgid "No workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/base.html:366 templates/base.html:1429
+msgid "Create workspace"
+msgstr "Criar workspace"
+
+#: templates/base.html:377
+msgid "Workspace settings"
+msgstr "Configurações do workspace"
+
+#: templates/base.html:394
+msgid "New"
+msgstr "Novo"
+
+#: templates/base.html:413
+msgid "Publish content to a channel"
+msgstr "Publicar conteúdo em um canal"
+
+#: templates/base.html:422
+msgid "Idea"
+msgstr "Ideia"
+
+#: templates/base.html:423
+msgid "Capture a content idea"
+msgstr "Registrar uma ideia de conteúdo"
+
+#: templates/base.html:451 templates/base.html:655
+msgid "Create Idea"
+msgstr "Criar ideia"
+
+#: templates/base.html:476 templates/organizations/cross_calendar.html:200
+msgid "Tags"
+msgstr "Tags"
+
+#: templates/base.html:563
+msgid "Add another file"
+msgstr "Adicionar outro arquivo"
+
+#: templates/base.html:621
+msgid "Create new tag"
+msgstr "Criar nova tag"
+
+#: templates/base.html:651 templates/calendar/calendar.html:8
+#: templates/calendar/calendar.html:369 templates/calendar/calendar.html:397
+msgid "Publish"
+msgstr "Publicar"
+
+#: templates/base.html:659
+msgid "Social Inbox"
+msgstr "Caixa de entrada"
+
+#: templates/base.html:670 templates/notifications/history.html:4
+#: templates/notifications/history.html:12
+#: templates/notifications/partials/drawer.html:5
+msgid "Notifications"
+msgstr "Notificações"
+
+#: templates/base.html:695
 msgid "Intelligence"
 msgstr "Inteligência"
 
-#: templates/base.html:699
+#: templates/base.html:703 templates/organizations/cross_calendar.html:188
 msgid "Channels"
 msgstr "Canais"
 
-#: templates/base.html:752
+#: templates/base.html:756
 msgid "Connect channels"
 msgstr "Conectar canais"
 
-#: templates/base.html:775
+#: templates/base.html:779
 msgid "More channels"
 msgstr "Mais canais"
 
-#: templates/base.html:842
+#: templates/base.html:846
 msgid "My Organization"
 msgstr "Minha organização"
 
-#: templates/base.html:850
+#: templates/base.html:854
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:859
+#: templates/base.html:863
+#: templates/organizations/partials/workspace_card.html:35
+#: templates/settings_manager/index.html:3
+#: templates/settings_manager/index.html:6
 msgid "Settings"
 msgstr "Configurações"
 
-#: templates/base.html:873
+#: templates/base.html:880
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:887
+#: templates/base.html:894
 msgid "Log out"
 msgstr "Sair"
+
+#: templates/calendar/calendar.html:20
+msgid "List"
+msgstr ""
+
+#: templates/calendar/calendar.html:29
+msgid "Calendar"
+msgstr ""
+
+#: templates/calendar/calendar.html:368
+#: templates/inbox/partials/_draft_reply_item.html:8
+msgid "Draft"
+msgstr ""
+
+#: templates/calendar/calendar.html:370 templates/calendar/calendar.html:397
+#: templates/calendar/partials/_delete_post_modal.html:59
+#: templates/calendar/partials/_post_actions_menu.html:35
+#: templates/inbox/saved_replies.html:50
+msgid "Delete"
+msgstr ""
+
+#: templates/calendar/calendar.html:371
+msgid "Clear selection"
+msgstr ""
+
+#: templates/calendar/calendar.html:387
+msgid "Delete posts?"
+msgstr ""
+
+#: templates/calendar/calendar.html:387
+#, fuzzy
+#| msgid "Publish"
+msgid "Publish now?"
+msgstr "Publicar"
+
+#: templates/calendar/partials/_delete_post_modal.html:36
+msgid "Delete post?"
+msgstr ""
+
+#: templates/calendar/partials/_delete_post_modal.html:37
+msgid ""
+"This action cannot be undone. The post and all associated data will be "
+"permanently removed."
+msgstr ""
+
+#: templates/calendar/partials/_delete_post_modal.html:59
+msgid "Deleting..."
+msgstr ""
+
+#: templates/calendar/partials/_no_channels_empty_state.html:10
+msgid "Welcome"
+msgstr ""
+
+#: templates/calendar/partials/_no_channels_empty_state.html:11
+msgid "Connect a channel to start posting and managing your comments"
+msgstr ""
+
+#: templates/calendar/partials/_no_channels_empty_state.html:15
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect a Channel"
+msgstr "Conectar canais"
+
+#: templates/calendar/partials/_post_actions_menu.html:30
+msgid "Edit"
+msgstr ""
+
+#: templates/calendar/partials/_select_checkbox.html:11
+msgid "Select"
+msgstr ""
+
+#: templates/calendar/partials/day_grid.html:21
+#: templates/calendar/partials/month_grid.html:26
+#: templates/calendar/partials/week_grid.html:29
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Create post"
+msgstr "Criar workspace"
+
+#: templates/calendar/partials/day_grid.html:41
+#: templates/calendar/partials/week_grid.html:49
+#: templates/inbox/partials/_filter_bar.html:52
+msgid "Open"
+msgstr ""
+
+#: templates/calendar/partials/day_grid.html:67
+#: templates/calendar/partials/week_grid.html:75
+msgid "Scheduled in a channel slot"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:5
+msgid "Edit Event"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:5
+msgid "Add Custom Event"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:18
+#: templates/inbox/partials/_saved_reply_form.html:8
+msgid "Title"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:28
+msgid "Start Date"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:35
+msgid "End Date"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:44
+#: templates/composer/categories.html:41
+msgid "Color"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:62
+msgid "Description (optional)"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:69
+msgid "Delete this event?"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:71
+msgid "Delete Event"
+msgstr ""
+
+#: templates/calendar/partials/event_form.html:80
+msgid "Add Event"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:12
+#: templates/calendar/partials/publish_sent.html:15
+#: templates/intelligence/billing_settings.html:38
+#: templates/notifications/history.html:65
+msgid "Status"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:14
+#: templates/calendar/partials/publish_drafts.html:15
+#: templates/calendar/partials/publish_sent.html:17
+msgid "Caption"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:15
+msgid "Platforms"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:16
+#: templates/calendar/partials/publish_drafts.html:17
+#: templates/calendar/partials/publish_sent.html:19
+#, fuzzy
+#| msgid "Authorize"
+msgid "Author"
+msgstr "Autorizar"
+
+#: templates/calendar/partials/list_view.html:34
+msgid "Not scheduled"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:38
+#: templates/calendar/partials/publish_queue.html:51
+#: templates/calendar/queue_detail.html:79
+msgid "(no caption)"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:66
+msgid "No content scheduled yet"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:67
+msgid "Create your first post to see it on the calendar"
+msgstr ""
+
+#: templates/calendar/partials/list_view.html:71
+#: templates/composer/drafts_list.html:67
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Create Post"
+msgstr "Criar workspace"
+
+#: templates/calendar/partials/month_grid.html:85
+#: templates/intelligence/_benchmark_channel_result.html:204
+msgid "more"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:23
+msgid "Pending Review"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:24
+msgid "Pending Client"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:25
+msgid "Approved"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:26
+msgid "Rejected"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:27
+msgid "Changes Requested"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:28
+msgid "Hold"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:48
+msgid "No posts pending approval"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:49
+msgid "Posts submitted for review will appear here"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:68
+msgid "Approve all"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:70
+#: templates/calendar/partials/publish_approvals.html:92
+msgid "Reject all"
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:83
+msgid "Tell the creator why. This comment is shared with them."
+msgstr ""
+
+#: templates/calendar/partials/publish_approvals.html:105
+msgid "Version changes"
+msgstr ""
+
+#: templates/calendar/partials/publish_calendar_shell.html:36
+msgid "Already showing today"
+msgstr ""
+
+#: templates/calendar/partials/publish_calendar_shell.html:37
+#: templates/calendar/partials/publish_calendar_shell.html:42
+#: templates/organizations/cross_calendar.html:134
+msgid "Today"
+msgstr ""
+
+#: templates/calendar/partials/publish_calendar_shell.html:60
+#: templates/organizations/cross_calendar.html:141
+#: templates/organizations/cross_calendar.html:152
+msgid "Month"
+msgstr ""
+
+#: templates/calendar/partials/publish_calendar_shell.html:64
+#: templates/organizations/cross_calendar.html:141
+#: templates/organizations/cross_calendar.html:157
+msgid "Week"
+msgstr ""
+
+#: templates/calendar/partials/publish_calendar_shell.html:68
+#: templates/organizations/cross_calendar.html:141
+#: templates/organizations/cross_calendar.html:162
+msgid "Day"
+msgstr ""
+
+#: templates/calendar/partials/publish_drafts.html:14
+#: templates/calendar/partials/publish_sent.html:14
+msgid "Media"
+msgstr ""
+
+#: templates/calendar/partials/publish_drafts.html:16
+#: templates/calendar/partials/publish_sent.html:18
+msgid "Platform"
+msgstr ""
+
+#: templates/calendar/partials/publish_drafts.html:18
+msgid "Last Updated"
+msgstr ""
+
+#: templates/calendar/partials/publish_list_shell.html:15
+#: templates/calendar/partials/publish_queue.html:32
+msgid "Queue"
+msgstr ""
+
+#: templates/calendar/partials/publish_list_shell.html:19
+#: templates/composer/drafts_list.html:11
+msgid "Drafts"
+msgstr ""
+
+#: templates/calendar/partials/publish_list_shell.html:23
+#: templates/workspaces/approvals_settings.html:6
+msgid "Approvals"
+msgstr ""
+
+#: templates/calendar/partials/publish_list_shell.html:27
+msgid "Sent"
+msgstr ""
+
+#: templates/calendar/partials/publish_queue.html:32
+msgid "Custom"
+msgstr ""
+
+#: templates/calendar/partials/publish_sent.html:16
+#, fuzzy
+#| msgid "Publish"
+msgid "Published"
+msgstr "Publicar"
+
+#: templates/calendar/partials/publish_sent.html:20
+#, fuzzy
+#| msgid "Automations"
+msgid "Automation"
+msgstr "Automações"
+
+#: templates/calendar/partials/publish_sent.html:76
+msgid "First comment failed"
+msgstr ""
+
+#: templates/calendar/posting_slots.html:5
+#: templates/calendar/posting_slots.html:10
+#: templates/social_accounts/partials/_account_card.html:196
+msgid "Posting Schedule"
+msgstr ""
+
+#: templates/calendar/posting_slots.html:11
+msgid "Define recurring time slots for automatic queue scheduling"
+msgstr ""
+
+#: templates/calendar/posting_slots.html:45
+msgid "Add Slot"
+msgstr ""
+
+#: templates/calendar/posting_slots.html:52
+msgid "No connected accounts to configure posting slots for."
+msgstr ""
+
+#: templates/calendar/queue_detail.html:102
+msgid "No slot"
+msgstr ""
+
+#: templates/calendar/queue_detail.html:110
+msgid "Remove this post from the queue? Its slot will free up."
+msgstr ""
+
+#: templates/calendar/queue_detail.html:113
+msgid "Remove from queue"
+msgstr ""
+
+#: templates/calendar/queue_detail.html:122
+msgid "Queue is empty"
+msgstr ""
+
+#: templates/calendar/queue_detail.html:123
+msgid "Add posts to this queue from the composer using \\"
+msgstr ""
+
+#: templates/calendar/queues.html:9
+msgid "Publishing Queues"
+msgstr ""
+
+#: templates/calendar/queues.html:10
+msgid "Auto-schedule posts into time slots by category and channel."
+msgstr ""
+
+#: templates/calendar/queues.html:14 templates/composer/categories.html:14
+#: templates/composer/csv_import.html:14
+msgid "Back to Calendar"
+msgstr ""
+
+#: templates/calendar/queues.html:26
+#, fuzzy
+#| msgid "Create Idea"
+msgid "Create Queue"
+msgstr "Criar ideia"
+
+#: templates/calendar/queues.html:37
+msgid "Queue Name"
+msgstr ""
+
+#: templates/calendar/queues.html:43
+#, fuzzy
+#| msgid "Channels"
+msgid "Channel"
+msgstr "Canais"
+
+#: templates/calendar/queues.html:45
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Select channel..."
+msgstr "Conectar canais"
+
+#: templates/calendar/queues.html:52
+msgid "Category (optional)"
+msgstr ""
+
+#: templates/calendar/queues.html:54
+msgid "Any category"
+msgstr ""
+
+#: templates/calendar/queues.html:63
+#: templates/inbox/partials/_saved_reply_form.html:21
+#: templates/workspaces/list.html:71
+#, fuzzy
+#| msgid "Create Idea"
+msgid "Create"
+msgstr "Criar ideia"
+
+#: templates/calendar/queues.html:103
+msgid "View"
+msgstr ""
+
+#: templates/calendar/queues.html:107
+msgid "Delete this queue?"
+msgstr ""
+
+#: templates/calendar/queues.html:121
+msgid "No queues yet"
+msgstr ""
+
+#: templates/calendar/queues.html:122
+msgid "Create a queue to auto-schedule posts into time slots."
+msgstr ""
+
+#: templates/composer/categories.html:9
+msgid "Content Categories"
+msgstr ""
+
+#: templates/composer/categories.html:10
+msgid "Organize posts by category for calendar filtering and queue scheduling."
+msgstr ""
+
+#: templates/composer/categories.html:26
+msgid "Add Category"
+msgstr ""
+
+#: templates/composer/categories.html:38
+msgid "e.g., Educational"
+msgstr ""
+
+#: templates/composer/categories.html:65
+#, python-format
+msgid "%(counter)s post"
+msgid_plural "%(counter)s posts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/composer/categories.html:72
+msgid "Delete this category?"
+msgstr ""
+
+#: templates/composer/categories.html:100
+msgid "No categories yet"
+msgstr ""
+
+#: templates/composer/categories.html:101
+msgid "Create categories to organize your posts."
+msgstr ""
+
+#: templates/composer/compose.html:298
+msgid "Preview"
+msgstr ""
+
+#: templates/composer/compose.html:354
+msgid "No accounts connected"
+msgstr ""
+
+#: templates/composer/compose.html:363
+msgid "Publishing failed"
+msgstr ""
+
+#: templates/composer/compose.html:377
+msgid "Clone to retry"
+msgstr ""
+
+#: templates/composer/compose.html:390
+msgid "First comment not posted"
+msgstr ""
+
+#: templates/composer/compose.html:398
+msgid "The post itself published successfully — only the comment failed."
+msgstr ""
+
+#: templates/composer/compose.html:406
+msgid ""
+"This post is <span class=\"font-semibold\">scheduled</span>. Saving changes "
+"will affect the scheduled post."
+msgstr ""
+
+#: templates/composer/compose.html:413
+#, python-format
+msgid ""
+"This post is <span class=\"font-semibold\">%(status)s</span> and read-only. "
+"Use <span class=\"font-semibold\">Clone</span> to repost an editable copy."
+msgstr ""
+
+#: templates/composer/compose.html:418
+msgid "Create an editable draft copy"
+msgstr ""
+
+#: templates/composer/compose.html:419
+msgid "Clone"
+msgstr ""
+
+#: templates/composer/compose.html:431
+msgid "Already published on"
+msgstr ""
+
+#: templates/composer/compose.html:433
+msgid ""
+"Shared fields like the caption are used by that post too — editing them here "
+"changes its record."
+msgstr ""
+
+#: templates/composer/compose.html:471
+msgid "Save as Template"
+msgstr ""
+
+#: templates/composer/compose.html:489
+msgid "Save Template"
+msgstr ""
+
+#: templates/composer/compose.html:499
+#: templates/composer/templates_list.html:55
+msgid "Use Template"
+msgstr ""
+
+#: templates/composer/compose.html:511
+msgid "Loading templates…"
+msgstr ""
+
+#: templates/composer/compose.html:534
+msgid "Drag & drop or"
+msgstr ""
+
+#: templates/composer/compose.html:534
+msgid "select files"
+msgstr ""
+
+#: templates/composer/compose.html:557
+msgid "Media Library"
+msgstr ""
+
+#: templates/composer/compose.html:587
+#, fuzzy
+#| msgid "Publish"
+msgid "Publish as"
+msgstr "Publicar"
+
+#: templates/composer/compose.html:592
+msgid "Regular Page video"
+msgstr ""
+
+#: templates/composer/compose.html:593
+msgid "Facebook Reel"
+msgstr ""
+
+#: templates/composer/compose.html:595
+msgid ""
+"Reels use Facebook's dedicated vertical-video flow and must be 3-90 seconds. "
+"Regular Page video suits long-form and landscape uploads."
+msgstr ""
+
+#: templates/composer/compose.html:620
+msgid "Pinterest needs an image or a video."
+msgstr ""
+
+#: templates/composer/compose.html:621
+msgid "Add one to schedule this post, or deselect the account."
+msgstr ""
+
+#: templates/composer/compose.html:626
+msgid "Select Board"
+msgstr ""
+
+#: templates/composer/compose.html:631
+msgid "Select a board…"
+msgstr ""
+
+#: templates/composer/compose.html:1474
+msgid "Save Draft"
+msgstr ""
+
+#: templates/composer/compose.html:1484
+msgid "Submit for Approval"
+msgstr ""
+
+#: templates/composer/compose.html:1485
+msgid "For Approval"
+msgstr ""
+
+#: templates/composer/compose.html:1495
+msgid "Resubmit"
+msgstr ""
+
+#: templates/composer/compose.html:1508
+msgid "Next available"
+msgstr ""
+
+#: templates/composer/compose.html:1516
+msgid "Add to Queue"
+msgstr ""
+
+#: templates/composer/compose.html:1531
+msgid "Next Available"
+msgstr ""
+
+#: templates/composer/compose.html:1532
+msgid "Place in next available slot"
+msgstr ""
+
+#: templates/composer/compose.html:1544
+msgid "Prioritise"
+msgstr ""
+
+#: templates/composer/compose.html:1545
+msgid "Add to top of queue"
+msgstr ""
+
+#: templates/composer/compose.html:1557
+#, fuzzy
+#| msgid "New"
+msgid "Now"
+msgstr "Novo"
+
+#: templates/composer/compose.html:1558
+msgid "Publish immediately"
+msgstr ""
+
+#: templates/composer/compose.html:1571
+msgid "Set Date and Time"
+msgstr ""
+
+#: templates/composer/compose.html:1572
+msgid "Choose a specific time"
+msgstr ""
+
+#: templates/composer/compose.html:1583
+msgid "Schedule Post"
+msgstr ""
+
+#: templates/composer/compose.html:1592
+msgid "Time"
+msgstr ""
+
+#: templates/composer/compose.html:1597
+#, python-format
+msgid "Timezone: %(tz)s"
+msgstr ""
+
+#: templates/composer/compose.html:1605
+msgid ""
+"Saving as a draft keeps this as a <span class=\"font-medium text-"
+"stone-500\">proposed</span> time. Use <span class=\"font-medium text-"
+"stone-500\">Set Schedule</span> to publish at this time."
+msgstr ""
+
+#: templates/composer/compose.html:1610
+msgid "Set Schedule"
+msgstr ""
+
+#: templates/composer/csv_import.html:9
+msgid "Import from CSV"
+msgstr ""
+
+#: templates/composer/csv_import.html:10
+msgid "Bulk import posts from a CSV or TSV file."
+msgstr ""
+
+#: templates/composer/csv_import.html:30
+msgid "Upload CSV File"
+msgstr ""
+
+#: templates/composer/csv_import.html:51
+msgid "Drop your CSV file here, or"
+msgstr ""
+
+#: templates/composer/csv_import.html:51
+msgid "browse"
+msgstr ""
+
+#: templates/composer/csv_import.html:52
+msgid "Supports .csv and .tsv files"
+msgstr ""
+
+#: templates/composer/csv_import.html:61
+msgid ""
+"Expected columns: date, time, platforms, caption, media_url, category, tags, "
+"first_comment"
+msgstr ""
+
+#: templates/composer/csv_import.html:64
+msgid "Upload & Map Columns"
+msgstr ""
+
+#: templates/composer/drafts_list.html:12
+#, python-format
+msgid "%(counter)s draft"
+msgid_plural "%(counter)s drafts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/composer/drafts_list.html:17
+#, fuzzy
+#| msgid "Post"
+msgid "New Post"
+msgstr "Publicação"
+
+#: templates/composer/drafts_list.html:40
+msgid "Proposed publishing time"
+msgstr ""
+
+#: templates/composer/drafts_list.html:42
+#, python-format
+msgid "Proposed Publishing %(time)s"
+msgstr ""
+
+#: templates/composer/drafts_list.html:63
+msgid "No drafts"
+msgstr ""
+
+#: templates/composer/drafts_list.html:64
+msgid "Start composing to create your first draft"
+msgstr ""
+
+#: templates/composer/partials/media_picker.html:57
+msgid "No media yet"
+msgstr ""
+
+#: templates/composer/partials/media_picker.html:58
+msgid "Upload files to your media library to use them here"
+msgstr ""
+
+#: templates/composer/partials/preview_panel.html:42
+msgid "Video thumbnail"
+msgstr ""
+
+#: templates/composer/templates_list.html:9
+msgid "Post Templates"
+msgstr ""
+
+#: templates/composer/templates_list.html:10
+msgid "Reusable templates to speed up content creation."
+msgstr ""
+
+#: templates/composer/templates_list.html:14
+msgid "Back to Composer"
+msgstr ""
+
+#: templates/composer/templates_list.html:35
+msgid "Delete this template?"
+msgstr ""
+
+#: templates/composer/templates_list.html:64
+msgid "No templates yet"
+msgstr ""
+
+#: templates/composer/templates_list.html:65
+msgid "Save a post as a template from the composer to get started."
+msgstr ""
+
+#: templates/inbox/feed.html:131
+msgid "Inbox"
+msgstr ""
+
+#: templates/inbox/feed.html:144
+msgid "My Queue"
+msgstr ""
+
+#: templates/inbox/feed.html:150
+msgid "Unassigned"
+msgstr ""
+
+#: templates/inbox/feed.html:156 templates/inbox/feed.html:158
+#: templates/inbox/partials/_reply_composer.html:35
+#: templates/inbox/saved_replies.html:4 templates/inbox/saved_replies.html:16
+msgid "Saved Replies"
+msgstr ""
+
+#: templates/inbox/feed.html:163 templates/inbox/sla_config.html:4
+#: templates/inbox/sla_config.html:15
+#, fuzzy
+#| msgid "Settings"
+msgid "SLA Settings"
+msgstr "Configurações"
+
+#: templates/inbox/feed.html:165
+msgid "SLA"
+msgstr ""
+
+#: templates/inbox/feed.html:188
+msgid "Mark Read"
+msgstr ""
+
+#: templates/inbox/feed.html:189
+msgid "Resolve"
+msgstr ""
+
+#: templates/inbox/feed.html:190
+msgid "Archive"
+msgstr ""
+
+#: templates/inbox/feed.html:205
+#: templates/social_accounts/bluesky_connect.html:10
+#: templates/social_accounts/devto_connect.html:10
+#: templates/social_accounts/mastodon_connect.html:10
+msgid "Back"
+msgstr ""
+
+#: templates/inbox/feed.html:211
+msgid "Select a message to view details"
+msgstr ""
+
+#: templates/inbox/message_detail.html:54
+#, fuzzy
+#| msgid "Back to sign in"
+msgid "Back to Inbox"
+msgstr "Voltar para o login"
+
+#: templates/inbox/partials/_assignment_dropdown.html:13
+msgid "Assign"
+msgstr ""
+
+#: templates/inbox/partials/_assignment_dropdown.html:27
+msgid "Unassign"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:6
+msgid "Failed"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:15
+#, python-format
+msgid "Last attempt failed: %(error)s"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:24
+msgid "Retry send"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:24
+msgid "Send"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:29
+msgid "Discard this draft reply?"
+msgstr ""
+
+#: templates/inbox/partials/_draft_reply_item.html:31
+msgid "Discard"
+msgstr ""
+
+#: templates/inbox/partials/_empty_state.html:9
+msgid "Your inbox is empty"
+msgstr ""
+
+#: templates/inbox/partials/_empty_state.html:13
+msgid ""
+"Comments, mentions, and DMs from your connected accounts will appear here. "
+"Messages are synced every 5 minutes."
+msgstr ""
+
+#: templates/inbox/partials/_empty_state.html:17
+msgid "Connect your social accounts to start receiving messages in your inbox."
+msgstr ""
+
+#: templates/inbox/partials/_empty_state.html:22
+#: templates/onboarding/email/connection_link.html:34
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect Accounts"
+msgstr "Conectar canais"
+
+#: templates/inbox/partials/_empty_state.html:28
+msgid "No messages match your current filters."
+msgstr ""
+
+#: templates/inbox/partials/_empty_state.html:31
+msgid "Clear all filters"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:10
+msgid "Search messages..."
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:25
+msgid "All platforms"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:37
+#: templates/notifications/history.html:58
+msgid "All types"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:38
+msgid "Comments"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:39
+msgid "Mentions"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:40
+msgid "DMs"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:41
+msgid "Reviews"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:50
+msgid "All statuses"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:51
+#: templates/notifications/history.html:78
+msgid "Unread"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:53
+msgid "Resolved"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:54
+#: templates/organizations/partials/workspace_card.html:21
+#: templates/organizations/workspaces.html:23
+msgid "Archived"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:63
+msgid "All sentiment"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:64
+msgid "Positive"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:65
+msgid "Neutral"
+msgstr ""
+
+#: templates/inbox/partials/_filter_bar.html:66
+msgid "Negative"
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:75
+msgid "This message was deleted by its sender."
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:77
+msgid "This message contains media Instagram cannot provide."
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:82
+#, python-format
+msgid "%(type)s attachment unavailable."
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:84
+msgid "Incoming image attachment"
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:86
+msgid "Video attachment unavailable."
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:88
+msgid "Audio attachment unavailable."
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:90
+#, python-format
+msgid "Open %(type)s attachment"
+msgstr ""
+
+#: templates/inbox/partials/_message_panel.html:92
+msgid "If the attachment is unavailable, open the conversation in Instagram."
+msgstr ""
+
+#: templates/inbox/partials/_note_item.html:10
+msgid "Internal"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:9
+msgid "Pending replies"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:21
+#: templates/inbox/partials/_reply_item.html:10
+#: templates/inbox/partials/_saved_reply_form.html:21
+msgid "Reply"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:26
+msgid "Internal Note"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:54
+#, python-format
+msgid "%(reason)s You can still save a draft."
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:56
+msgid ""
+"Human support reply: review the message before sending. This reply uses your "
+"app's approved seven-day Human Agent access."
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:65
+msgid "Write a reply..."
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:76
+#, python-format
+msgid "Reply will be posted on %(platform_name)s"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:84
+msgid "Save as draft"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:91
+msgid "Send Reply"
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:107
+msgid "Add an internal note (only visible to your team)..."
+msgstr ""
+
+#: templates/inbox/partials/_reply_composer.html:115
+msgid "Add Note"
+msgstr ""
+
+#: templates/inbox/partials/_reply_error.html:9
+msgid "Reply not sent"
+msgstr ""
+
+#: templates/inbox/partials/_reply_error.html:10
+msgid "just now"
+msgstr ""
+
+#: templates/inbox/partials/_reply_error.html:13
+#, python-format
+msgid ""
+"Nothing was sent to %(platform)s — %(reason)s Your text is still in the box."
+msgstr ""
+
+#: templates/inbox/partials/_saved_reply_form.html:12
+msgid "Reply Body"
+msgstr ""
+
+#: templates/inbox/partials/_saved_reply_form.html:21
+msgid "Update"
+msgstr ""
+
+#: templates/inbox/saved_replies.html:18
+msgid "Pre-written responses for common questions. Use variables:"
+msgstr ""
+
+#: templates/inbox/saved_replies.html:24
+msgid "New Reply"
+msgstr ""
+
+#: templates/inbox/saved_replies.html:63
+msgid "No saved replies yet"
+msgstr ""
+
+#: templates/inbox/saved_replies.html:64
+msgid "Create reusable response templates for common questions."
+msgstr ""
+
+#: templates/inbox/sla_config.html:16
+msgid "Set response time targets for your inbox."
+msgstr ""
+
+#: templates/inbox/sla_config.html:28
+msgid "Enable SLA Timer"
+msgstr ""
+
+#: templates/inbox/sla_config.html:29
+msgid "Show countdown timers and overdue badges on unresolved messages."
+msgstr ""
+
+#: templates/inbox/sla_config.html:39
+msgid "Target Response Time (minutes)"
+msgstr ""
+
+#: templates/inbox/sla_config.html:41
+msgid "Messages exceeding this time will show an \\"
+msgstr ""
+
+#: templates/inbox/sla_config.html:47
+msgid "Auto-resolve on Reply"
+msgstr ""
+
+#: templates/inbox/sla_config.html:48
+msgid "Automatically mark messages as resolved when a reply is sent."
+msgstr ""
+
+#: templates/inbox/sla_config.html:61
+#, fuzzy
+#| msgid "Settings"
+msgid "Save Settings"
+msgstr "Configurações"
+
+#: templates/intelligence/_benchmark_channel_result.html:11
+msgid "subscribers"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:12
+msgid "videos"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:14
+msgid "day sample"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:24
+msgid "Overall percentile"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:28
+msgid "Composite rank vs other channels in the same niche."
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:28
+msgid "is the median;"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:28
+msgid ""
+"is top-tier engagement; below 30 means most niche peers outperform this "
+"channel on the engagement metrics below."
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:37
+#: templates/intelligence/_benchmark_channel_result.html:148
+msgid "Niche"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:76
+msgid "Engagement vs niche distribution"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:80
+msgid ""
+"Each row compares one engagement ratio against the niche's distribution."
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:80
+msgid "is recent views divided by subscriber count;"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:80
+msgid "and"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:80
+msgid "are the equivalent per-video ratios."
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:82
+msgid ""
+"is the median niche channel on that ratio, half of the niche scores below "
+"it, half above. The"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:82
+msgid "readout on the right is your channel's percentile rank:"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:82
+msgid "means you sit exactly at the niche median,"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:82
+#, python-format
+msgid "means you outperform 80%% of niche peers,"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:82
+#, python-format
+msgid "means 80%% of peers outperform you."
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:144
+msgid "Title patterns"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:147
+msgid "You"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:151
+msgid "Avg title length"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:152
+#: templates/intelligence/_benchmark_channel_result.html:153
+msgid "characters"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:155
+msgid "Avg word count"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:159
+msgid "Has a question mark"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:163
+msgid "Has a number"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:167
+msgid "Median uppercase ratio"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:171
+msgid "Has an emoji"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:188
+msgid "Common phrases in niche"
+msgstr ""
+
+#: templates/intelligence/_benchmark_channel_result.html:214
+msgid "Exemplar channels in this niche"
+msgstr ""
+
+#: templates/intelligence/_billing_contact_saved.html:5
+msgid "Couldn't save, billing service was unreachable. Please try again."
+msgstr ""
+
+#: templates/intelligence/_billing_contact_saved.html:10
+msgid "Saved"
+msgstr ""
+
+#: templates/intelligence/_finalizing_completed.html:2
+msgid "Activation complete!"
+msgstr ""
+
+#: templates/intelligence/_finalizing_completed.html:4
+#, fuzzy
+#| msgid "Intelligence"
+msgid "Open Intelligence"
+msgstr "Inteligência"
+
+#: templates/intelligence/_finalizing_failed.html:2
+msgid "Setup couldn't complete after several attempts. Please contact"
+msgstr ""
+
+#: templates/intelligence/_finalizing_unauthorized.html:2
+msgid ""
+"We couldn't authorize you for this org. Your role may have changed since you "
+"started checkout. Please contact your org admin or"
+msgstr ""
+
+#: templates/intelligence/_list_niches_result.html:9
+msgid "gaps"
+msgstr ""
+
+#: templates/intelligence/_list_niches_result.html:12
+msgid "No niches available."
+msgstr ""
+
+#: templates/intelligence/_overlay_canceled.html:3
+msgid "Subscription canceled"
+msgstr ""
+
+#: templates/intelligence/_overlay_canceled.html:5
+msgid "Resubscribe to start using Intelligence again."
+msgstr ""
+
+#: templates/intelligence/_overlay_canceled.html:10
+msgid "Resubscribe"
+msgstr ""
+
+#: templates/intelligence/_overlay_finalizing.html:10
+#: templates/intelligence/finalizing.html:7
+msgid "Setting up your Intelligence access…"
+msgstr ""
+
+#: templates/intelligence/_overlay_finalizing.html:12
+msgid "Stripe confirmed your payment. We're finalizing access."
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:17
+msgid "Preview mode"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:20
+msgid "Explore the playground, activate to use it"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:23
+#, python-format
+msgid ""
+"Switch tabs, browse the inputs and try out the niche picker. When you're "
+"ready to actually score packaging, analyse hooks, or pull content gaps, "
+"activate Intelligence for %(org_name)s."
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:29
+msgid "Activate"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:42
+msgid "Predict CTR before publishing"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:49
+msgid "Score the first 6 s of any video"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:56
+msgid "Benchmark vs niche peers"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:63
+msgid "636 niches · ranked content gaps"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_admin.html:68
+msgid ""
+"Starts at <strong class=\"text-stone-700\">$19/month</strong> · per-org "
+"subscription · cancel anytime."
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_member.html:15
+msgid "You're previewing Intelligence"
+msgstr ""
+
+#: templates/intelligence/_overlay_not_subscribed_member.html:17
+#, python-format
+msgid ""
+"Switch tabs and explore. To actually score packaging, analyse hooks, or pull "
+"content gaps for %(org_name)s, ask an owner or admin of the org to activate "
+"Intelligence."
+msgstr ""
+
+#: templates/intelligence/_overlay_past_due.html:3
+msgid "Your subscription is past due"
+msgstr ""
+
+#: templates/intelligence/_overlay_past_due.html:5
+msgid "Update your payment method to continue using Intelligence."
+msgstr ""
+
+#: templates/intelligence/_overlay_past_due.html:12
+msgid "Update payment"
+msgstr ""
+
+#: templates/intelligence/_overlay_past_due.html:16
+msgid "Ask an org admin to update payment."
+msgstr ""
+
+#: templates/intelligence/_overlay_pending_activation.html:18
+msgid "Payment received"
+msgstr ""
+
+#: templates/intelligence/_overlay_pending_activation.html:21
+msgid "Finish setting up Intelligence"
+msgstr ""
+
+#: templates/intelligence/_overlay_pending_activation.html:24
+#, python-format
+msgid ""
+"Stripe confirmed your payment for %(org_name)s. One click finishes "
+"provisioning your API access, you'll be back on the playground in a few "
+"seconds."
+msgstr ""
+
+#: templates/intelligence/_overlay_pending_activation.html:31
+msgid "Complete activation"
+msgstr ""
+
+#: templates/intelligence/_overlay_provisioning_failed.html:3
+msgid "Setup couldn't complete"
+msgstr ""
+
+#: templates/intelligence/_overlay_provisioning_failed.html:5
+msgid ""
+"Stripe confirmed your payment but the billing service didn't finalize "
+"access. Please contact support, we have your payment record."
+msgstr ""
+
+#: templates/intelligence/_panel_benchmark_channel.html:4
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Benchmark channel"
+msgstr "Conectar canais"
+
+#: templates/intelligence/_panel_benchmark_channel.html:5
+msgid "credits"
+msgstr ""
+
+#: templates/intelligence/_panel_empty_state.html:5
+msgid "Submit the form to see results."
+msgstr ""
+
+#: templates/intelligence/_preview_badge.html:12
+msgid "Example"
+msgstr ""
+
+#: templates/intelligence/_preview_badge.html:14
+msgid "Sample output. Activate to run with your own inputs."
+msgstr ""
+
+#: templates/intelligence/_provisioning_in_progress.html:2
+msgid "Setup is still finalizing, refresh the page in a moment."
+msgstr ""
+
+#: templates/intelligence/_subscribe_required.html:13
+msgid "Activate Intelligence to use this"
+msgstr ""
+
+#: templates/intelligence/_subscribe_required.html:15
+msgid ""
+"You're previewing the playground. Subscribe to score, benchmark, and pull "
+"content gaps for real."
+msgstr ""
+
+#: templates/intelligence/_subscribe_required.html:19
+#: templates/intelligence/subscribe.html:4
+#: templates/intelligence/subscribe.html:10
+#, fuzzy
+#| msgid "Intelligence"
+msgid "Activate Intelligence"
+msgstr "Inteligência"
+
+#: templates/intelligence/_tool_error.html:2
+msgid "Couldn't complete the request"
+msgstr ""
+
+#: templates/intelligence/_tool_error.html:3
+msgid "Please try again."
+msgstr ""
+
+#: templates/intelligence/_tool_error_no_credits.html:2
+msgid "Out of credits"
+msgstr ""
+
+#: templates/intelligence/_tool_error_no_credits.html:3
+msgid "Upgrade your plan or top up to keep using Intelligence."
+msgstr ""
+
+#: templates/intelligence/_tool_error_no_credits.html:8
+msgid "Manage billing"
+msgstr ""
+
+#: templates/intelligence/_tool_error_rate_limited.html:2
+msgid "Slow down a sec"
+msgstr ""
+
+#: templates/intelligence/_tool_error_rate_limited.html:3
+msgid "You're calling Intelligence faster than your plan allows."
+msgstr ""
+
+#: templates/intelligence/_tool_error_rate_limited.html:4
+#, python-format
+msgid "Retry in <span class=\"font-semibold\">%(retry_after)ss</span>."
+msgstr ""
+
+#: templates/intelligence/_tool_error_unavailable.html:2
+msgid "Service unavailable"
+msgstr ""
+
+#: templates/intelligence/_tool_error_unavailable.html:3
+msgid "We couldn't reach the Intelligence service. Try again in a moment."
+msgstr ""
+
+#: templates/intelligence/activation_failed.html:3
+msgid "Activation failed"
+msgstr ""
+
+#: templates/intelligence/activation_failed.html:16
+msgid "We couldn't activate Intelligence"
+msgstr ""
+
+#: templates/intelligence/activation_failed.html:35
+msgid "Start a new checkout"
+msgstr ""
+
+#: templates/intelligence/activation_failed.html:39
+#: templates/intelligence/billing_settings.html:18
+#, fuzzy
+#| msgid "Intelligence"
+msgid "Back to Intelligence"
+msgstr "Inteligência"
+
+#: templates/intelligence/activation_failed.html:45
+msgid "If Stripe charged you and you don't see your subscription, contact"
+msgstr ""
+
+#: templates/intelligence/activation_org_mismatch.html:3
+msgid "Org mismatch"
+msgstr ""
+
+#: templates/intelligence/activation_org_mismatch.html:6
+msgid "This activation isn't for your org"
+msgstr ""
+
+#: templates/intelligence/activation_org_mismatch.html:8
+#, python-format
+msgid ""
+"The Stripe payment was made for a different organization, OR your role no "
+"longer permits managing billing for %(org_name)s."
+msgstr ""
+
+#: templates/intelligence/activation_org_mismatch.html:11
+msgid "If you believe this is a mistake, contact"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:4
+#, fuzzy
+#| msgid "Intelligence"
+msgid "Intelligence billing"
+msgstr "Inteligência"
+
+#: templates/intelligence/billing_settings.html:9
+msgid "Billing"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:11
+#, python-format
+msgid "Intelligence subscription for %(org_name)s."
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:28
+msgid "Subscription"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:32
+msgid "Plan"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:52
+msgid "Active"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:52
+#, fuzzy
+#| msgid "Cancel"
+msgid "canceling"
+msgstr "Cancelar"
+
+#: templates/intelligence/billing_settings.html:72
+msgid "Access ends"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:75
+msgid ""
+"You'll keep full Intelligence access until then, after which the "
+"subscription will be canceled and tool calls will stop."
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:80
+msgid "Current period ends"
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:90
+msgid ""
+"Update your card, view past invoices, or cancel through Stripe's secure "
+"customer portal."
+msgstr ""
+
+#: templates/intelligence/billing_settings.html:95
+msgid "Manage payment + invoices in Stripe"
+msgstr ""
+
+#: templates/intelligence/deployment_not_authorized.html:3
+#, fuzzy
+#| msgid "Authorize"
+msgid "Not authorized"
+msgstr "Autorizar"
+
+#: templates/intelligence/deployment_not_authorized.html:6
+msgid "This deployment isn't authorized"
+msgstr ""
+
+#: templates/intelligence/deployment_not_authorized.html:8
+msgid ""
+"This Studio deployment is not registered for the hosted Intelligence "
+"integration. If you're a fork operator running your own Stripe and "
+"Intelligence stack, you need to register your deployment first."
+msgstr ""
+
+#: templates/intelligence/deployment_not_authorized.html:11
+msgid "Contact"
+msgstr ""
+
+#: templates/intelligence/deployment_not_authorized.html:12
+msgid "for details."
+msgstr ""
+
+#: templates/intelligence/finalizing.html:3
+msgid "Finalizing…"
+msgstr ""
+
+#: templates/intelligence/finalizing.html:9
+msgid ""
+"Stripe confirmed your payment. We're finishing the handshake with the "
+"billing service, this usually takes a few seconds."
+msgstr ""
+
+#: templates/intelligence/finalizing.html:17
+msgid "Checking…"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:13
+#, python-format
+msgid ""
+"YouTube packaging scoring, channel benchmarks, and content-gap research for "
+"%(org_name)s."
+msgstr ""
+
+#: templates/intelligence/subscribe.html:34
+msgid "Resume your checkout"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:36
+msgid "Someone in your org already started a checkout for this organization."
+msgstr ""
+
+#: templates/intelligence/subscribe.html:41
+msgid "Continue to Stripe"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:50
+msgid "Discard Checkout Session"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:60
+msgid "Setting up your checkout…"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:62
+msgid ""
+"We're talking to the billing service. This usually finishes in a few seconds."
+msgstr ""
+
+#: templates/intelligence/subscribe.html:75
+msgid "No plans are available for this deployment."
+msgstr ""
+
+#: templates/intelligence/subscribe.html:76
+msgid "Contact support if you think this is a mistake."
+msgstr ""
+
+#: templates/intelligence/subscribe.html:82
+msgid "Choose a plan"
+msgstr ""
+
+#: templates/intelligence/subscribe.html:83
+msgid "Per-org subscription, billed monthly. Cancel anytime."
+msgstr ""
+
+#: templates/members/accept_invite.html:88
+#: templates/members/accept_invite.html:124
+#, python-format
+msgid "Join %(org)s"
+msgstr ""
+
+#: templates/members/accept_invite.html:90
+#, python-format
+msgid "%(inviter)s invited you to join their team on Brightbean."
+msgstr ""
+
+#: templates/members/accept_invite.html:99
+#, fuzzy
+#| msgid "My Organization"
+msgid "Organization"
+msgstr "Minha organização"
+
+#: templates/members/accept_invite.html:107
+#: templates/organizations/cross_calendar.html:216
+#: templates/organizations/workspaces.html:6 templates/workspaces/list.html:13
+#, fuzzy
+#| msgid "No workspaces"
+msgid "Workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/members/accept_invite.html:130
+msgid "Sign Up to Join"
+msgstr ""
+
+#: templates/members/accept_invite.html:132
+msgid "or"
+msgstr ""
+
+#: templates/members/accept_invite.html:134
+msgid "Log In to Join"
+msgstr ""
+
+#: templates/members/email/invite.html:14
+#, python-format
+msgid "Join %(org)s on Brightbean"
+msgstr ""
+
+#: templates/members/email/invite.html:22
+msgid "Hi there,"
+msgstr ""
+
+#: templates/members/email/invite.html:25
+#, python-format
+msgid ""
+"%(inviter)s has invited you to join <strong>%(org)s</strong> as a team "
+"member. Click the button below to accept the invitation and get started."
+msgstr ""
+
+#: templates/members/email/invite.html:33
+msgid "Accept Invitation"
+msgstr ""
+
+#: templates/members/email/invite.html:39
+msgid ""
+"This invitation expires in 7 days. If it expires, ask your team admin for a "
+"new one."
+msgstr ""
+
+#: templates/members/email/invite.html:47
+#, python-format
+msgid ""
+"You're receiving this because someone invited you to %(org)s on Brightbean."
+msgstr ""
+
+#: templates/members/invite_expired.html:50
+msgid "Invitation Expired"
+msgstr ""
+
+#: templates/members/invite_expired.html:52
+msgid ""
+"This invitation link is no longer valid. It may have expired or already been "
+"used. Please contact your organization admin to request a new invitation."
+msgstr ""
+
+#: templates/members/invite_expired.html:54
+msgid "Go to Brightbean"
+msgstr ""
+
+#: templates/members/list.html:8
+msgid "Team Members"
+msgstr ""
+
+#: templates/members/list.html:13
+#: templates/members/partials/invite_modal.html:15
+msgid "Invite Team Member"
+msgstr ""
+
+#: templates/members/list.html:21
+#: templates/organizations/partials/workspace_card.html:25
+#, python-format
+msgid "%(counter)s member"
+msgid_plural "Members (%(counter)s)"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/members/list.html:28
+msgid "No team members yet."
+msgstr ""
+
+#: templates/members/list.html:38
+msgid "Pending Invitations"
+msgstr ""
+
+#: templates/members/list.html:45
+msgid "No pending invitations."
+msgstr ""
+
+#: templates/members/partials/invitation_row.html:46
+msgid "Resend"
+msgstr ""
+
+#: templates/members/partials/invitation_row.html:57
+msgid "Revoke"
+msgstr ""
+
+#: templates/members/partials/invite_modal.html:32
+msgid "Email Address"
+msgstr ""
+
+#: templates/members/partials/invite_modal.html:40
+#: templates/members/partials/member_row.html:63
+#, fuzzy
+#| msgid "My Organization"
+msgid "Organization Role"
+msgstr "Minha organização"
+
+#: templates/members/partials/invite_modal.html:58
+#, fuzzy
+#| msgid "No workspaces"
+msgid "Assign to Workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/members/partials/invite_modal.html:59
+msgid "Select workspaces and roles for this team member."
+msgstr ""
+
+#: templates/members/partials/invite_modal.html:81
+msgid ""
+"Tip: For external clients who only need portal access, use the Client Portal "
+"invite from workspace settings instead."
+msgstr ""
+
+#: templates/members/partials/invite_modal.html:98
+msgid "Send Invitation"
+msgstr ""
+
+#: templates/members/partials/member_row.html:20
+msgid "you"
+msgstr ""
+
+#: templates/members/partials/member_row.html:86
+#, fuzzy
+#| msgid "No workspaces"
+msgid "Manage Workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/members/partials/member_row.html:98
+#, fuzzy
+#| msgid "My Organization"
+msgid "Remove from Organization"
+msgstr "Minha organização"
+
+#: templates/members/partials/member_row.html:142
+msgid "Loading..."
+msgstr ""
+
+#: templates/members/partials/workspace_assignments.html:27
+#, fuzzy
+#| msgid "No workspaces"
+msgid "No workspaces available."
+msgstr "Nenhum workspace"
+
+#: templates/members/partials/workspace_assignments.html:35
+msgid "Save Assignments"
+msgstr ""
+
+#: templates/notifications/email/digest.html:66
+#, fuzzy
+#| msgid "Notifications"
+msgid "View All Notifications"
+msgstr "Notificações"
+
+#: templates/notifications/email/digest.html:78
+#: templates/notifications/email/notification.html:69
+msgid "You received this because of your notification settings."
+msgstr ""
+
+#: templates/notifications/email/digest.html:79
+#: templates/notifications/email/notification.html:70
+msgid "Manage preferences"
+msgstr ""
+
+#: templates/notifications/email/notification.html:56
+msgid "View Details"
+msgstr ""
+
+#: templates/notifications/history.html:13
+#, python-format
+msgid "%(counter)s notification total"
+msgid_plural "%(counter)s notifications total"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/notifications/history.html:21
+msgid "Preferences"
+msgstr ""
+
+#: templates/notifications/history.html:27
+msgid "Mark all notifications as read?"
+msgstr ""
+
+#: templates/notifications/history.html:31
+#: templates/notifications/partials/drawer.html:13
+msgid "Mark all read"
+msgstr ""
+
+#: templates/notifications/history.html:46
+msgid "Type"
+msgstr ""
+
+#: templates/notifications/history.html:79
+msgid "Read"
+msgstr ""
+
+#: templates/notifications/history.html:87
+msgid "Clear filters"
+msgstr ""
+
+#: templates/notifications/partials/drawer.html:91
+msgid "All caught up"
+msgstr ""
+
+#: templates/notifications/partials/drawer.html:92
+#, fuzzy
+#| msgid "Notifications"
+msgid "No notifications yet"
+msgstr "Notificações"
+
+#: templates/notifications/partials/drawer.html:103
+#, fuzzy
+#| msgid "Notifications"
+msgid "View all notifications"
+msgstr "Notificações"
+
+#: templates/notifications/partials/history_list.html:74
+msgid "Mark read"
+msgstr ""
+
+#: templates/notifications/partials/history_list.html:86
+#, python-format
+msgid "%(counter)s notification"
+msgid_plural "%(counter)s notifications"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/notifications/partials/history_list.html:97
+msgid "Prev"
+msgstr ""
+
+#: templates/notifications/partials/history_list.html:100
+#, python-format
+msgid "Page %(page)s"
+msgstr ""
+
+#: templates/notifications/partials/history_list.html:122
+#, fuzzy
+#| msgid "Notifications"
+msgid "No notifications"
+msgstr "Notificações"
+
+#: templates/notifications/partials/history_list.html:125
+msgid "No notifications match your filters. Try adjusting them."
+msgstr ""
+
+#: templates/notifications/partials/history_list.html:127
+msgid "When things happen in your workspaces, you'll see them here."
+msgstr ""
+
+#: templates/notifications/preferences.html:4
+#: templates/notifications/preferences.html:16
+#, fuzzy
+#| msgid "Notifications"
+msgid "Notification Preferences"
+msgstr "Notificações"
+
+#: templates/notifications/preferences.html:18
+msgid "Choose which notifications you receive and how."
+msgstr ""
+
+#: templates/notifications/preferences.html:28
+#, fuzzy
+#| msgid "Channels"
+msgid "Event Channels"
+msgstr "Canais"
+
+#: templates/notifications/preferences.html:29
+msgid "Toggle delivery channels for each event type."
+msgstr ""
+
+#: templates/notifications/preferences.html:34
+msgid "Event"
+msgstr ""
+
+#: templates/notifications/preferences.html:64
+msgid "Quiet Hours & Digest"
+msgstr ""
+
+#: templates/notifications/preferences.html:65
+msgid "Suppress non-critical notifications during specific hours."
+msgstr ""
+
+#: templates/notifications/preferences.html:72
+msgid "Enable quiet hours"
+msgstr ""
+
+#: templates/notifications/preferences.html:73
+msgid "Non-critical notifications are held until quiet hours end."
+msgstr ""
+
+#: templates/notifications/preferences.html:91
+msgid "Start time"
+msgstr ""
+
+#: templates/notifications/preferences.html:101
+msgid "End time"
+msgstr ""
+
+#: templates/notifications/preferences.html:112
+msgid "Timezone"
+msgstr ""
+
+#: templates/notifications/preferences.html:121
+msgid "IANA timezone identifier. Leave as UTC if unsure."
+msgstr ""
+
+#: templates/notifications/preferences.html:131
+msgid "Daily digest"
+msgstr ""
+
+#: templates/notifications/preferences.html:132
+msgid ""
+"Batch email notifications into a single daily summary instead of individual "
+"emails."
+msgstr ""
+
+#: templates/notifications/preferences.html:153
+msgid "Save Preferences"
+msgstr ""
+
+#: templates/notifications/unsubscribe.html:10
+#: templates/notifications/unsubscribe.html:23
+msgid "Unsubscribe"
+msgstr ""
+
+#: templates/notifications/unsubscribe.html:15
+msgid "Stop these emails?"
+msgstr ""
+
+#: templates/notifications/unsubscribe.html:17
+#, python-format
+msgid ""
+"You'll no longer receive <strong>%(label)s</strong> emails. You'll still see "
+"them in the\n"
+"        app, and you can turn them back on any time under Notification "
+"preferences."
+msgstr ""
+
+#: templates/notifications/unsubscribed.html:7
+msgid "Unsubscribed"
+msgstr ""
+
+#: templates/notifications/unsubscribed.html:12
+msgid "Done"
+msgstr ""
+
+#: templates/notifications/unsubscribed.html:14
+#, python-format
+msgid ""
+"You'll no longer receive <strong>%(label)s</strong> emails. They'll still "
+"appear in the\n"
+"        app, and you can turn them back on under Notification preferences."
+msgstr ""
 
 #: templates/oauth2_provider/authorize.html:14
 #, python-format
@@ -167,10 +3502,6 @@ msgid ""
 "following permissions:"
 msgstr ""
 
-#: templates/oauth2_provider/authorize.html:40
-msgid "Cancel"
-msgstr "Cancelar"
-
 #: templates/oauth2_provider/authorize.html:42
 msgid "Authorize"
 msgstr "Autorizar"
@@ -182,3 +3513,962 @@ msgstr "Você pode revogar este acesso a qualquer momento no BrightBean Studio."
 #: templates/oauth2_provider/authorize.html:48
 msgid "Something went wrong"
 msgstr "Algo deu errado"
+
+#: templates/onboarding/connection_expired.html:4
+msgid "Link Expired"
+msgstr ""
+
+#: templates/onboarding/connection_expired.html:30
+msgid "This link has been revoked"
+msgstr ""
+
+#: templates/onboarding/connection_expired.html:30
+msgid "This link has expired"
+msgstr ""
+
+#: templates/onboarding/connection_expired.html:41
+#, python-format
+msgid ""
+"Please contact <strong style=\"color: var(--text-primary);\">%(org)s</"
+"strong> to request a new connection link."
+msgstr ""
+
+#: templates/onboarding/connection_expired.html:43
+msgid "Please contact your agency to request a new connection link."
+msgstr ""
+
+#: templates/onboarding/connection_expired.html:58
+msgid ""
+"Connection links are time-limited for security. Your agency can generate a "
+"new one at any time."
+msgstr ""
+
+#: templates/onboarding/connection_page.html:4
+msgid "Connect your accounts"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:30
+#: templates/onboarding/email/connection_link.html:16
+msgid "Connect your social accounts"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:35
+#, python-format
+msgid ""
+"to <strong style=\"color: var(--text-primary); font-weight: "
+"600;\">%(workspace)s</strong> on %(org.name)s"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:102
+msgid "Pages & Groups"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:103
+msgid "Business & Creator"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:104
+#: templates/social_accounts/connect.html:54
+msgid "Personal profile"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:105
+#: templates/social_accounts/connect.html:55
+msgid "Company pages"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:106
+#: templates/social_accounts/connect.html:56
+msgid "Video content"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:107
+#: templates/social_accounts/connect.html:57
+msgid "Videos & Shorts"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:108
+#: templates/social_accounts/connect.html:58
+msgid "Pins & Boards"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:109
+#: templates/social_accounts/connect.html:59
+msgid "Text & Media"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:110
+#: templates/social_accounts/connect.html:60
+msgid "AT Protocol"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:111
+#: templates/social_accounts/connect.html:61
+msgid "Local posts"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:112
+#: templates/social_accounts/connect.html:62
+msgid "Federated social"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:121
+#: templates/social_accounts/partials/_status_badge.html:9
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connected"
+msgstr "Conectar canais"
+
+#: templates/onboarding/connection_page.html:150
+#: templates/onboarding/connection_page.html:204
+#: templates/onboarding/connection_page.html:224
+#: templates/onboarding/connection_page.html:265
+#: templates/onboarding/connection_page.html:287
+#: templates/social_accounts/connect.html:74
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect"
+msgstr "Conectar canais"
+
+#: templates/onboarding/connection_page.html:166
+#: templates/social_accounts/bluesky_connect.html:3
+#: templates/social_accounts/bluesky_connect.html:16
+#: templates/social_accounts/bluesky_connect.html:47
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect Bluesky"
+msgstr "Conectar canais"
+
+#: templates/onboarding/connection_page.html:168
+#: templates/social_accounts/bluesky_connect.html:25
+msgid "Handle"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:180
+#: templates/social_accounts/bluesky_connect.html:32
+msgid "App Password"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:190
+msgid "Generate at Settings → App Passwords on Bluesky"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:240
+#: templates/social_accounts/mastodon_connect.html:3
+#: templates/social_accounts/mastodon_connect.html:16
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect Mastodon"
+msgstr "Conectar canais"
+
+#: templates/onboarding/connection_page.html:242
+msgid "Instance URL"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:310
+#, python-format
+msgid "%(counter)s account connected"
+msgid_plural "%(counter)s accounts connected"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/onboarding/connection_page.html:329
+#, python-format
+msgid "Done — Notify %(org.name)s"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:337
+#, python-format
+msgid ""
+"Need help? Contact <strong style=\"color: var(--text-tertiary);\">%(org)s</"
+"strong>"
+msgstr ""
+
+#: templates/onboarding/connection_page.html:340
+#, python-format
+msgid "This link expires %(expires)s"
+msgstr ""
+
+#: templates/onboarding/connection_success.html:4
+msgid "Accounts Connected"
+msgstr ""
+
+#: templates/onboarding/connection_success.html:30
+msgid "All done!"
+msgstr ""
+
+#: templates/onboarding/connection_success.html:39
+#, python-format
+msgid ""
+"%(counter)s account connected to <strong style=\"color: var(--text-primary);"
+"\">%(workspace)s</strong>."
+msgid_plural ""
+"%(counter)s accounts connected to <strong style=\"color: var(--text-primary);"
+"\">%(workspace)s</strong>."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/onboarding/connection_success.html:41
+#, python-format
+msgid ""
+"Your accounts have been connected to <strong style=\"color: var(--text-"
+"primary);\">%(workspace)s</strong>."
+msgstr ""
+
+#: templates/onboarding/connection_success.html:51
+#, python-format
+msgid ""
+"<strong style=\"color: var(--text-secondary);\">%(org)s</strong> has been "
+"notified and will take it from here."
+msgstr ""
+
+#: templates/onboarding/connection_success.html:63
+msgid "You can close this page. Your agency team will be in touch soon."
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:19
+#, python-format
+msgid ""
+"%(org)s has invited you to connect your accounts to <strong style=\"color: "
+"#1C1917;\">%(workspace)s</strong>."
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:42
+msgid "What to expect:"
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:43
+msgid "1. You'll see a list of platforms to connect."
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:44
+msgid "2. Click 'Connect' on each one you'd like to link."
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:45
+msgid "3. Click 'Done' when finished to notify your team."
+msgstr ""
+
+#: templates/onboarding/email/connection_link.html:54
+#, python-format
+msgid "This link expires %(expires)s."
+msgstr ""
+
+#: templates/onboarding/partials/_checklist.html:23
+#: templates/onboarding/partials/_checklist.html:57
+msgid "Get started"
+msgstr ""
+
+#: templates/onboarding/partials/_checklist.html:24
+#: templates/onboarding/partials/_checklist.html:58
+#, python-format
+msgid "%(checklist_completed_count)s of %(checklist_total_count)s complete"
+msgstr ""
+
+#: templates/onboarding/partials/_checklist.html:69
+msgid "Minimize"
+msgstr ""
+
+#: templates/onboarding/partials/_checklist.html:79
+msgid "Dismiss checklist"
+msgstr ""
+
+#: templates/onboarding/partials/_connection_link_created.html:11
+msgid "Connection link created"
+msgstr ""
+
+#: templates/onboarding/partials/_connection_link_created.html:43
+msgid "Copy"
+msgstr ""
+
+#: templates/onboarding/partials/_connection_link_created.html:44
+msgid "Copied!"
+msgstr ""
+
+#: templates/onboarding/partials/_connection_link_created.html:49
+#, python-format
+msgid ""
+"Expires %(expires)s. Share this link with your client so they can connect "
+"their social accounts."
+msgstr ""
+
+#: templates/organizations/cross_calendar.html:7
+#, fuzzy
+#| msgid "My Organization"
+msgid "Organization Calendar"
+msgstr "Minha organização"
+
+#: templates/organizations/cross_calendar.html:176
+#, fuzzy
+#| msgid "Post"
+msgid "All Posts"
+msgstr "Publicação"
+
+#: templates/organizations/cross_calendar.html:216
+#, fuzzy, python-format
+#| msgid "Workspace settings"
+msgid "Workspaces (%(counter)s)"
+msgstr "Configurações do workspace"
+
+#: templates/organizations/cross_calendar.html:228
+#, fuzzy
+#| msgid "No workspaces"
+msgid "All Workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/organizations/cross_calendar.html:248
+#, fuzzy
+#| msgid "No workspaces"
+msgid "Workspaces:"
+msgstr "Nenhum workspace"
+
+#: templates/organizations/partials/workspace_card.html:56
+msgid "No members assigned"
+msgstr ""
+
+#: templates/organizations/settings.html:6 templates/workspaces/settings.html:6
+msgid "General"
+msgstr ""
+
+#: templates/organizations/settings.html:14
+#, fuzzy
+#| msgid "My Organization"
+msgid "Organization Name"
+msgstr "Minha organização"
+
+#: templates/organizations/settings.html:33
+msgid "Default Timezone"
+msgstr ""
+
+#: templates/organizations/settings.html:34
+msgid "Used as the fallback for workspaces that don't set their own."
+msgstr ""
+
+#: templates/organizations/settings.html:38
+msgid "Common"
+msgstr ""
+
+#: templates/organizations/settings.html:43
+msgid "All Timezones"
+msgstr ""
+
+#: templates/organizations/settings.html:69
+msgid "Deletion scheduled"
+msgstr ""
+
+#: templates/organizations/settings.html:71
+#, python-format
+msgid ""
+"This organization is scheduled for deletion on <strong>%(date)s</strong>.\n"
+"                    All workspaces, posts, social accounts, media, and team "
+"data will be permanently removed after this date.\n"
+"                    YouTube connections and API data have already been "
+"deleted. Cancelling will require reconnecting YouTube."
+msgstr ""
+
+#: templates/organizations/settings.html:83
+msgid "Cancel Deletion"
+msgstr ""
+
+#: templates/organizations/settings.html:89
+msgid "Delete Now"
+msgstr ""
+
+#: templates/organizations/settings.html:108
+msgid "Delete immediately?"
+msgstr ""
+
+#: templates/organizations/settings.html:117
+#, python-format
+msgid ""
+"This will permanently delete <strong>%(org)s</strong> right now, bypassing "
+"the 14-day grace period. This action cannot be undone."
+msgstr ""
+
+#: templates/organizations/settings.html:120
+#: templates/organizations/settings.html:196
+#: templates/workspaces/settings.html:202
+msgid "All of the following will be permanently removed:"
+msgstr ""
+
+#: templates/organizations/settings.html:123
+#: templates/organizations/settings.html:199
+#, fuzzy
+#| msgid "Workspace settings"
+msgid "All workspaces and their settings"
+msgstr "Configurações do workspace"
+
+#: templates/organizations/settings.html:124
+#: templates/organizations/settings.html:200
+#: templates/workspaces/settings.html:205
+msgid "All scheduled and published posts"
+msgstr ""
+
+#: templates/organizations/settings.html:125
+#: templates/organizations/settings.html:201
+msgid "Connected social accounts and credentials"
+msgstr ""
+
+#: templates/organizations/settings.html:126
+#: templates/organizations/settings.html:202
+#: templates/workspaces/settings.html:207
+msgid "Media assets and files"
+msgstr ""
+
+#: templates/organizations/settings.html:127
+#: templates/organizations/settings.html:203
+msgid "Team memberships and invitations"
+msgstr ""
+
+#: templates/organizations/settings.html:144
+msgid "Yes, delete permanently"
+msgstr ""
+
+#: templates/organizations/settings.html:157
+#: templates/organizations/settings.html:184
+#, fuzzy
+#| msgid "My Organization"
+msgid "Delete this organization"
+msgstr "Minha organização"
+
+#: templates/organizations/settings.html:159
+msgid ""
+"Request deletion of this organization and its workspaces, posts, media and "
+"team memberships. YouTube connections and API data are removed immediately. "
+"Other data has a 14-day grace period. Cancelling requires reconnecting "
+"YouTube."
+msgstr ""
+
+#: templates/organizations/settings.html:166
+#, fuzzy
+#| msgid "My Organization"
+msgid "Delete Organization"
+msgstr "Minha organização"
+
+#: templates/organizations/settings.html:193
+#, python-format
+msgid ""
+"Are you sure you want to delete <strong>%(org)s</strong>? This will schedule "
+"the organization for permanent deletion in 14 days. YouTube connections, API "
+"data and notification copies are deleted immediately. Cancelling deletion "
+"will require reconnecting YouTube."
+msgstr ""
+
+#: templates/organizations/settings.html:220
+msgid "Yes, delete this organization"
+msgstr ""
+
+#: templates/organizations/workspaces.html:18
+#, fuzzy
+#| msgid "No workspaces"
+msgid "No workspaces yet."
+msgstr "Nenhum workspace"
+
+#: templates/settings_manager/index.html:7
+msgid "Settings management coming soon."
+msgstr ""
+
+#: templates/social_accounts/account_select.html:6
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Select Accounts"
+msgstr "Conectar canais"
+
+#: templates/social_accounts/account_select.html:18
+msgid "Select Account"
+msgid_plural "Select Accounts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/social_accounts/account_select.html:19
+#, python-format
+msgid ""
+"Your %(platform_name)s login has access to multiple accounts. Select which "
+"one to connect."
+msgstr ""
+
+#: templates/social_accounts/account_select.html:26
+msgid "selected"
+msgstr ""
+
+#: templates/social_accounts/account_select.html:28
+msgid "Select all publishable"
+msgstr ""
+
+#: templates/social_accounts/account_select.html:64
+msgid "Missing Facebook content publishing access"
+msgstr ""
+
+#: templates/social_accounts/account_select.html:66
+msgid "Already connected"
+msgstr ""
+
+#: templates/social_accounts/account_select.html:66
+msgid "select to refresh"
+msgstr ""
+
+#: templates/social_accounts/account_select.html:69
+msgid ""
+"DMs unavailable: grant messaging access on the linked Facebook Page, then "
+"reconnect."
+msgstr ""
+
+#: templates/social_accounts/account_select.html:82
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect Selected"
+msgstr "Conectar canais"
+
+#: templates/social_accounts/bluesky_connect.html:18
+msgid ""
+"Bluesky uses app passwords for authentication. You can create one in your "
+"Bluesky account settings."
+msgstr ""
+
+#: templates/social_accounts/bluesky_connect.html:28
+msgid "Your full Bluesky handle including domain"
+msgstr ""
+
+#: templates/social_accounts/bluesky_connect.html:35
+msgid ""
+"Generate one in Bluesky at Settings → Privacy and Security → App Passwords"
+msgstr ""
+
+#: templates/social_accounts/bluesky_connect.html:41
+msgid ""
+"App passwords are separate from your main password. They can be revoked at "
+"any time without affecting your Bluesky account."
+msgstr ""
+
+#: templates/social_accounts/connect.html:3
+msgid "Connect Social Account"
+msgstr ""
+
+#: templates/social_accounts/connect.html:10
+msgid "Back to Social Accounts"
+msgstr ""
+
+#: templates/social_accounts/connect.html:12
+msgid "Connect a Platform"
+msgstr ""
+
+#: templates/social_accounts/connect.html:13
+msgid "Select a platform to connect your social media account."
+msgstr ""
+
+#: templates/social_accounts/connect.html:51
+msgid "Your Pages & Groups"
+msgstr ""
+
+#: templates/social_accounts/connect.html:52
+msgid "For accounts linked to a Facebook Page"
+msgstr ""
+
+#: templates/social_accounts/connect.html:53
+msgid "Sign in with Instagram · no Facebook needed"
+msgstr ""
+
+#: templates/social_accounts/connect.html:63
+msgid "Articles & posts"
+msgstr ""
+
+#: templates/social_accounts/connect.html:81
+msgid "Not Configured"
+msgstr ""
+
+#: templates/social_accounts/devto_connect.html:3
+#: templates/social_accounts/devto_connect.html:16
+#: templates/social_accounts/devto_connect.html:40
+msgid "Connect DEV.to"
+msgstr ""
+
+#: templates/social_accounts/devto_connect.html:18
+msgid ""
+"DEV.to authenticates with a personal API key. Generate one under Settings → "
+"Extensions → DEV Community API Keys."
+msgstr ""
+
+#: templates/social_accounts/devto_connect.html:25
+msgid "API Key"
+msgstr ""
+
+#: templates/social_accounts/devto_connect.html:28
+msgid "Create one at DEV.to → Settings → Extensions → DEV Community API Keys."
+msgstr ""
+
+#: templates/social_accounts/devto_connect.html:34
+msgid ""
+"Posts publish as DEV.to articles (title + Markdown body). The API key can be "
+"revoked at any time from your DEV.to settings."
+msgstr ""
+
+#: templates/social_accounts/list.html:3 templates/social_accounts/list.html:9
+msgid "Social Accounts"
+msgstr ""
+
+#: templates/social_accounts/list.html:10
+msgid "Manage connected social media accounts for this workspace."
+msgstr ""
+
+#: templates/social_accounts/list.html:15
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Connect Account"
+msgstr "Conectar canais"
+
+#: templates/social_accounts/list.html:30
+#, python-format
+msgid ""
+"%(counter)s account connected. Health checks run automatically every 6 hours."
+msgid_plural ""
+"%(counter)s accounts connected. Health checks run automatically every 6 "
+"hours."
+msgstr[0] ""
+msgstr[1] ""
+
+#: templates/social_accounts/list.html:40
+msgid "No accounts connected yet"
+msgstr ""
+
+#: templates/social_accounts/list.html:41
+msgid ""
+"Connect your social media accounts to start publishing content, tracking "
+"engagement, and managing your inbox."
+msgstr ""
+
+#: templates/social_accounts/list.html:45
+msgid "Connect Your First Account"
+msgstr ""
+
+#: templates/social_accounts/mastodon_connect.html:18
+msgid ""
+"Mastodon is federated, enter your profile URL to begin the connection "
+"process."
+msgstr ""
+
+#: templates/social_accounts/mastodon_connect.html:25
+msgid "Profile URL"
+msgstr ""
+
+#: templates/social_accounts/mastodon_connect.html:33
+msgid "The Mastodon instance where your account lives"
+msgstr ""
+
+#: templates/social_accounts/mastodon_connect.html:39
+msgid ""
+"After entering your instance URL, you'll be redirected to your Mastodon "
+"instance to authorize access. We request <strong>read</strong>, "
+"<strong>write</strong>, and <strong>follow</strong> permissions."
+msgstr ""
+
+#: templates/social_accounts/mastodon_connect.html:45
+msgid "Continue to Mastodon"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:50
+#: templates/social_accounts/partials/_account_card.html:96
+msgid "Disconnect"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:57
+#, python-format
+msgid "Disconnect <strong>%(name)s</strong>?"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:69
+msgid "This revokes BrightBean's access to the account."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:71
+msgid ""
+"This removes the account from BrightBean only. To revoke our access "
+"entirely, remove BrightBean in Facebook › Settings › Apps and Websites."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:73
+#, python-format
+msgid ""
+"This removes the account from BrightBean only. To revoke our access "
+"entirely, remove BrightBean in your %(platform)s settings."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:78
+msgid ""
+"YouTube data, analytics and copied comments are deleted immediately, "
+"including notification copies. Your original uploads and posts shared with "
+"other channels stay."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:80
+msgid ""
+"Its analytics, inbox messages and posts made only for it are deleted from "
+"BrightBean. Posts shared with other channels stay."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:96
+msgid "Disconnecting…"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:115
+msgid "Some features are unavailable."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:116
+#, python-format
+msgid ""
+"This account was connected without %(scopes)s. Anything relying on them will "
+"fail until the permission is granted — reconnect to try again."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:122
+msgid ""
+"Instagram DM access is unavailable for this connection. Contact your "
+"administrator to enable it."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:124
+msgid ""
+"DMs unavailable: grant messaging access on the linked Facebook Page, then "
+"reconnect this account."
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:183
+msgid "Trying…"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:183
+msgid "Try again"
+msgstr ""
+
+#: templates/social_accounts/partials/_account_card.html:197
+msgid ""
+"Set recurring time slots for when queued posts are automatically published."
+msgstr ""
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:30
+#, fuzzy, python-format
+#| msgid "Authorize %(name)s?"
+msgid "Disable %(name)s"
+msgstr "Autorizar %(name)s?"
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:30
+#, python-format
+msgid "Enable %(name)s"
+msgstr ""
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:54
+msgid "Click to edit"
+msgstr ""
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:64
+msgid "Remove slot"
+msgstr ""
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:99
+msgid "Add time slot"
+msgstr ""
+
+#: templates/social_accounts/partials/_posting_slots_grid.html:116
+msgid "Add"
+msgstr ""
+
+#: templates/social_accounts/partials/_status_badge.html:14
+msgid "Token Expiring"
+msgstr ""
+
+#: templates/social_accounts/partials/_status_badge.html:19
+msgid "Disconnected"
+msgstr ""
+
+#: templates/social_accounts/partials/_status_badge.html:24
+msgid "Error"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:8
+msgid ""
+"Control whether posts need to be reviewed before they can be scheduled or "
+"published."
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:30
+msgid "No approvals"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:31
+msgid "Optional approvals"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:32
+msgid "Internal review required"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:33
+msgid "Internal review + client approval"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:39
+msgid "Anyone with publishing rights can schedule or publish directly."
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:41
+msgid "Creators can choose to submit a post for review, but it's not required."
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:43
+msgid ""
+"Every post must be approved by a team member with review rights before it "
+"can go out."
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:45
+msgid ""
+"Posts go through internal review, then are sent to the client portal for "
+"final sign-off."
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:63
+msgid ""
+" Reviewers are workspace members with the \"Approve posts\" permission.\n"
+"        Manage them on the "
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:64
+msgid "Members"
+msgstr ""
+
+#: templates/workspaces/approvals_settings.html:64
+msgid " page."
+msgstr ""
+
+#: templates/workspaces/list.html:46
+msgid "No workspaces yet. Create your first workspace to get started."
+msgstr ""
+
+#: templates/workspaces/list.html:58
+#, fuzzy
+#| msgid "No workspaces"
+msgid "New workspace"
+msgstr "Nenhum workspace"
+
+#: templates/workspaces/settings.html:13
+#, fuzzy
+#| msgid "Workspace settings"
+msgid "Workspace Name"
+msgstr "Configurações do workspace"
+
+#: templates/workspaces/settings.html:58
+msgid "Logo"
+msgstr ""
+
+#: templates/workspaces/settings.html:59
+msgid "JPEG, PNG, WebP, or GIF. Max 2 MB."
+msgstr ""
+
+#: templates/workspaces/settings.html:66
+msgid "Upload Logo"
+msgstr ""
+
+#: templates/workspaces/settings.html:81
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Restore this workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:81 templates/workspaces/settings.html:123
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Archive this workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:85
+msgid ""
+"This workspace is currently archived. Restoring it will make it visible in "
+"the sidebar and accessible to all members again."
+msgstr ""
+
+#: templates/workspaces/settings.html:87
+msgid ""
+"Archiving hides this workspace from the sidebar and prevents new posts. All "
+"existing data is preserved and the workspace can be restored at any time."
+msgstr ""
+
+#: templates/workspaces/settings.html:89
+msgid ""
+"You cannot archive the last active workspace in the organization. Create "
+"another workspace first."
+msgstr ""
+
+#: templates/workspaces/settings.html:101
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Restore Workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:108
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Archive Workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:130
+#, python-format
+msgid ""
+"Are you sure you want to archive <strong>%(ws)s</strong>? The workspace will "
+"be hidden from the sidebar and no new posts can be created. All existing "
+"data will be preserved."
+msgstr ""
+
+#: templates/workspaces/settings.html:145
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Yes, archive this workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:160
+#: templates/workspaces/settings.html:192
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Delete this workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:163
+msgid ""
+"Permanently delete this workspace and all of its data. This includes all "
+"posts, connected social accounts, media assets, and workspace memberships. "
+"This action cannot be undone."
+msgstr ""
+
+#: templates/workspaces/settings.html:165
+msgid ""
+"You cannot delete the last active workspace in the organization. Create "
+"another workspace first."
+msgstr ""
+
+#: templates/workspaces/settings.html:174
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Delete Workspace"
+msgstr "Criar workspace"
+
+#: templates/workspaces/settings.html:199
+#, python-format
+msgid ""
+"Are you sure you want to permanently delete <strong>%(ws)s</strong>? This "
+"action cannot be undone."
+msgstr ""
+
+#: templates/workspaces/settings.html:206
+msgid "Connected social accounts"
+msgstr ""
+
+#: templates/workspaces/settings.html:208
+#, fuzzy
+#| msgid "Workspace settings"
+msgid "Workspace memberships"
+msgstr "Configurações do workspace"
+
+#: templates/workspaces/settings.html:223
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Yes, delete this workspace"
+msgstr "Criar workspace"

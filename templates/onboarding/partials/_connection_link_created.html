@@ -1,4 +1,4 @@
-<!-- HTMX partial returned after creating a connection link -->
+{% load i18n %}<!-- HTMX partial returned after creating a connection link -->
 <div style="
     background: var(--success-50);
     border: 1px solid rgba(34,197,94,0.15);
@@ -8,7 +8,7 @@
 ">
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
         <svg width="16" height="16" fill="none" stroke="var(--success-500)" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        <span style="font-size: 0.875rem; font-weight: 600; color: var(--success-700);">Connection link created</span>
+        <span style="font-size: 0.875rem; font-weight: 600; color: var(--success-700);">{% translate "Connection link created" %}</span>
     </div>
 
     <!-- Copyable link -->
@@ -40,12 +40,12 @@
                 transition: all 150ms ease;
             "
         >
-            <span x-show="!copied">Copy</span>
-            <span x-show="copied" x-cloak style="color: var(--success-700);">Copied!</span>
+            <span x-show="!copied">{% translate "Copy" %}</span>
+            <span x-show="copied" x-cloak style="color: var(--success-700);">{% translate "Copied!" %}</span>
         </button>
     </div>
 
     <p style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 8px;">
-        Expires {{ link.expires_at|date:"M j, Y" }}. Share this link with your client so they can connect their social accounts.
+        {% blocktranslate with expires=link.expires_at|date:"M j, Y" %}Expires {{ expires }}. Share this link with your client so they can connect their social accounts.{% endblocktranslate %}
     </p>
 </div>

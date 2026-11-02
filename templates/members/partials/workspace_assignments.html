@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Workspace Assignment Form (loaded via HTMX into modal) -->
 <form hx-post="{% url 'members:manage_workspaces' membership_id=membership.id %}"
       hx-target="#member-{{ membership.id }}"
@@ -23,7 +24,7 @@
             </select>
         </div>
         {% empty %}
-        <p class="text-sm" style="color: var(--text-tertiary);">No workspaces available.</p>
+        <p class="text-sm" style="color: var(--text-tertiary);">{% translate "No workspaces available." %}</p>
         {% endfor %}
     </div>
 
@@ -31,7 +32,7 @@
         <button type="submit"
                 class="btn-opacity px-5 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors"
                 style="background: var(--primary); color: white;">
-            Save Assignments
+            {% translate "Save Assignments" %}
         </button>
     </div>
 </form>

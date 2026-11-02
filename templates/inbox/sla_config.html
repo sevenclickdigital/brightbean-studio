@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}SLA Settings - {{ workspace.name }} - Brightbean{% endblock %}
+{% block title %}{% translate "SLA Settings" %} - {{ workspace.name }} - Brightbean{% endblock %}
 
 {% block content %}
 <div class="max-w-lg">
@@ -11,8 +12,8 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <div>
-            <h2 class="text-xl font-semibold text-stone-900 tracking-tight">SLA Settings</h2>
-            <p class="text-sm text-stone-500 mt-0.5">Set response time targets for your inbox.</p>
+            <h2 class="text-xl font-semibold text-stone-900 tracking-tight">{% translate "SLA Settings" %}</h2>
+            <p class="text-sm text-stone-500 mt-0.5">{% translate "Set response time targets for your inbox." %}</p>
         </div>
     </div>
 
@@ -24,8 +25,8 @@
                 <!-- Enable toggle -->
                 <div class="flex items-center justify-between">
                     <div>
-                        <label class="text-[14px] font-semibold text-stone-800">Enable SLA Timer</label>
-                        <p class="text-[12px] text-stone-500 mt-0.5">Show countdown timers and overdue badges on unresolved messages.</p>
+                        <label class="text-[14px] font-semibold text-stone-800">{% translate "Enable SLA Timer" %}</label>
+                        <p class="text-[12px] text-stone-500 mt-0.5">{% translate "Show countdown timers and overdue badges on unresolved messages." %}</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="is_active" {% if config.is_active %}checked{% endif %} class="sr-only peer">
@@ -35,16 +36,16 @@
 
                 <!-- Target time -->
                 <div>
-                    <label for="id_target_response_minutes" class="block text-[13px] font-semibold text-stone-700 mb-1.5">Target Response Time (minutes)</label>
+                    <label for="id_target_response_minutes" class="block text-[13px] font-semibold text-stone-700 mb-1.5">{% translate "Target Response Time (minutes)" %}</label>
                     {{ form.target_response_minutes }}
-                    <p class="text-[11px] text-stone-400 mt-1">Messages exceeding this time will show an "Overdue" badge.</p>
+                    <p class="text-[11px] text-stone-400 mt-1">{% translate "Messages exceeding this time will show an \"Overdue\" badge." %}</p>
                 </div>
 
                 <!-- Auto-resolve -->
                 <div class="flex items-center justify-between pt-2 border-t border-stone-100">
                     <div>
-                        <label class="text-[14px] font-semibold text-stone-800">Auto-resolve on Reply</label>
-                        <p class="text-[12px] text-stone-500 mt-0.5">Automatically mark messages as resolved when a reply is sent.</p>
+                        <label class="text-[14px] font-semibold text-stone-800">{% translate "Auto-resolve on Reply" %}</label>
+                        <p class="text-[12px] text-stone-500 mt-0.5">{% translate "Automatically mark messages as resolved when a reply is sent." %}</p>
                     </div>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" name="auto_resolve_on_reply" {% if config.auto_resolve_on_reply %}checked{% endif %} class="sr-only peer">
@@ -57,10 +58,10 @@
                 <button type="submit"
                         class="inline-flex items-center gap-1.5 px-5 py-2 text-[13px] font-semibold text-white rounded-full transition-all duration-150 cursor-pointer"
                         style="background: var(--primary); box-shadow: var(--shadow-primary);">
-                    Save Settings
+                    {% translate "Save Settings" %}
                 </button>
                 <a href="{% url 'inbox:feed' workspace_id=workspace.id %}"
-                   class="text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors">Cancel</a>
+                   class="text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors">{% translate "Cancel" %}</a>
             </div>
         </form>
     </div>

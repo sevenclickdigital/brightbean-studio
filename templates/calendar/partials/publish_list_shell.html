@@ -1,4 +1,5 @@
-{% load common_extras %}{% comment %}
+{% load common_extras i18n %}
+{% comment %}
 List mode shell for the Publish page.
 Contains tabs (Queue, Drafts, Approvals, Sent), filter dropdowns, and tab content area.
 Tab switching is HTMX partial swaps only - no full page reload.
@@ -11,19 +12,19 @@ Tab switching is HTMX partial swaps only - no full page reload.
         <div class="flex items-center gap-1 -mb-px overflow-x-auto flex-nowrap">
             <button class="publish-tab" :class="activeTab === 'queue' && 'active'"
                     @click="switchTab('queue')">
-                Queue <span id="tabcount-queue">{% include "calendar/partials/_tab_count_badge.html" with count=queue_count %}</span>
+                {% translate "Queue" %} <span id="tabcount-queue">{% include "calendar/partials/_tab_count_badge.html" with count=queue_count %}</span>
             </button>
             <button class="publish-tab" :class="activeTab === 'drafts' && 'active'"
                     @click="switchTab('drafts')">
-                Drafts <span id="tabcount-drafts">{% include "calendar/partials/_tab_count_badge.html" with count=drafts_count %}</span>
+                {% translate "Drafts" %} <span id="tabcount-drafts">{% include "calendar/partials/_tab_count_badge.html" with count=drafts_count %}</span>
             </button>
             <button class="publish-tab" :class="activeTab === 'approvals' && 'active'"
                     @click="switchTab('approvals')">
-                Approvals <span id="tabcount-approvals">{% include "calendar/partials/_tab_count_badge.html" with count=approvals_count %}</span>
+                {% translate "Approvals" %} <span id="tabcount-approvals">{% include "calendar/partials/_tab_count_badge.html" with count=approvals_count %}</span>
             </button>
             <button class="publish-tab" :class="activeTab === 'sent' && 'active'"
                     @click="switchTab('sent')">
-                Sent <span id="tabcount-sent">{% include "calendar/partials/_tab_count_badge.html" with count=sent_count %}</span>
+                {% translate "Sent" %} <span id="tabcount-sent">{% include "calendar/partials/_tab_count_badge.html" with count=sent_count %}</span>
             </button>
         </div>
 

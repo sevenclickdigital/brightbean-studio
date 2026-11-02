@@ -1,6 +1,10 @@
 {% load static i18n %}
 <!DOCTYPE html>
-<html lang="en" style="{% block html_style %}{% endblock %}">
+{% get_current_language as LANGUAGE_CODE %}
+{# Follows the active language: a hardcoded "en" tells screen readers to use an #}
+{# English voice for Portuguese text, and invites the browser to offer a #}
+{# translation of a page already in the reader's language. #}
+<html lang="{{ LANGUAGE_CODE }}" style="{% block html_style %}{% endblock %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

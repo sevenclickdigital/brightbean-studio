@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Connect your accounts - {{ org.name }}{% endblock %}
+{% block title %}{% translate "Connect your accounts" %} - {{ org.name }}{% endblock %}
 
 {% block auth_content %}
 <div style="width: 100%; max-width: 640px; padding: 0 16px;">
@@ -27,12 +27,12 @@
             letter-spacing: -0.02em;
             line-height: 1.2;
             margin-bottom: 8px;
-        ">Connect your social accounts</h1>
+        ">{% translate "Connect your social accounts" %}</h1>
         <p style="
             font-size: 0.9375rem;
             color: var(--text-secondary);
             line-height: 1.6;
-        ">to <strong style="color: var(--text-primary); font-weight: 600;">{{ workspace.name }}</strong> on {{ org.name }}</p>
+        ">{% blocktranslate with workspace=workspace.name %}to <strong style="color: var(--text-primary); font-weight: 600;">{{ workspace }}</strong> on {{ org.name }}{% endblocktranslate %}</p>
     </div>
 
     <!-- Error message -->
@@ -99,17 +99,17 @@
             <div style="flex: 1; min-width: 0;">
                 <div style="font-size: 0.875rem; font-weight: 600; color: var(--text-primary);">{{ label }}</div>
                 <div style="font-size: 0.75rem; color: var(--text-tertiary); margin-top: 1px;">
-                    {% if value == 'facebook' %}Pages &amp; Groups
-                    {% elif value == 'instagram' %}Business &amp; Creator
-                    {% elif value == 'linkedin_personal' %}Personal profile
-                    {% elif value == 'linkedin_company' %}Company pages
-                    {% elif value == 'tiktok' %}Video content
-                    {% elif value == 'youtube' %}Videos &amp; Shorts
-                    {% elif value == 'pinterest' %}Pins &amp; Boards
-                    {% elif value == 'threads' %}Text &amp; Media
-                    {% elif value == 'bluesky' %}AT Protocol
-                    {% elif value == 'google_business' %}Local posts
-                    {% elif value == 'mastodon' %}Federated social
+                    {% if value == 'facebook' %}{% translate "Pages & Groups" %}
+                    {% elif value == 'instagram' %}{% translate "Business & Creator" %}
+                    {% elif value == 'linkedin_personal' %}{% translate "Personal profile" %}
+                    {% elif value == 'linkedin_company' %}{% translate "Company pages" %}
+                    {% elif value == 'tiktok' %}{% translate "Video content" %}
+                    {% elif value == 'youtube' %}{% translate "Videos & Shorts" %}
+                    {% elif value == 'pinterest' %}{% translate "Pins & Boards" %}
+                    {% elif value == 'threads' %}{% translate "Text & Media" %}
+                    {% elif value == 'bluesky' %}{% translate "AT Protocol" %}
+                    {% elif value == 'google_business' %}{% translate "Local posts" %}
+                    {% elif value == 'mastodon' %}{% translate "Federated social" %}
                     {% endif %}
                 </div>
             </div>
@@ -118,7 +118,7 @@
             {% if value in connected_accounts %}
             <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="font-size: 0.8125rem; font-weight: 500; color: var(--success-700);">
-                    Connected
+                    {% translate "Connected" %}
                 </span>
                 <div style="
                     width: 28px; height: 28px;
@@ -147,7 +147,7 @@
                     box-shadow: var(--shadow-primary);
                     transition: all 200ms ease;
                 ">
-                    Connect
+                    {% translate "Connect" %}
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
                 <div x-show="showForm" x-cloak style="
@@ -163,9 +163,9 @@
                         box-shadow: var(--shadow-xl);
                     ">
                         {% csrf_token %}
-                        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Connect Bluesky</h3>
+                        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">{% translate "Connect Bluesky" %}</h3>
                         <div style="margin-bottom: 12px;">
-                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">Handle</label>
+                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">{% translate "Handle" %}</label>
                             <input type="text" name="handle" placeholder="you.bsky.social" required style="
                                 width: 100%; padding: 9px 12px;
                                 font-size: 0.875rem; font-family: var(--font-body);
@@ -177,7 +177,7 @@
                             ">
                         </div>
                         <div style="margin-bottom: 16px;">
-                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">App Password</label>
+                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">{% translate "App Password" %}</label>
                             <input type="password" name="app_password" required style="
                                 width: 100%; padding: 9px 12px;
                                 font-size: 0.875rem; font-family: var(--font-body);
@@ -187,7 +187,7 @@
                                 color: var(--text-primary);
                                 outline: none;
                             ">
-                            <p style="font-size: 0.6875rem; color: var(--text-tertiary); margin-top: 4px;">Generate at Settings &rarr; App Passwords on Bluesky</p>
+                            <p style="font-size: 0.6875rem; color: var(--text-tertiary); margin-top: 4px;">{% translate "Generate at Settings → App Passwords on Bluesky" %}</p>
                         </div>
                         <div style="display: flex; gap: 8px; justify-content: flex-end;">
                             <button type="button" @click="showForm = false" style="
@@ -195,13 +195,13 @@
                                 background: var(--surface-0); color: var(--text-primary);
                                 border: 1px solid var(--border); border-radius: var(--radius-full);
                                 cursor: pointer;
-                            ">Cancel</button>
+                            ">{% translate "Cancel" %}</button>
                             <button type="submit" style="
                                 padding: 8px 16px; font-size: 0.8125rem; font-weight: 600;
                                 background: var(--primary); color: white;
                                 border: none; border-radius: var(--radius-full);
                                 cursor: pointer; box-shadow: var(--shadow-primary);
-                            ">Connect</button>
+                            ">{% translate "Connect" %}</button>
                         </div>
                     </form>
                 </div>
@@ -221,7 +221,7 @@
                     box-shadow: var(--shadow-primary);
                     transition: all 200ms ease;
                 ">
-                    Connect
+                    {% translate "Connect" %}
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
                 <div x-show="showForm" x-cloak style="
@@ -237,9 +237,9 @@
                         box-shadow: var(--shadow-xl);
                     ">
                         {% csrf_token %}
-                        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">Connect Mastodon</h3>
+                        <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 16px;">{% translate "Connect Mastodon" %}</h3>
                         <div style="margin-bottom: 16px;">
-                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">Instance URL</label>
+                            <label style="font-size: 0.8125rem; font-weight: 600; color: var(--text-primary); display: block; margin-bottom: 4px;">{% translate "Instance URL" %}</label>
                             <input type="text" name="instance_url" placeholder="mastodon.social" required style="
                                 width: 100%; padding: 9px 12px;
                                 font-size: 0.875rem; font-family: var(--font-body);
@@ -256,13 +256,13 @@
                                 background: var(--surface-0); color: var(--text-primary);
                                 border: 1px solid var(--border); border-radius: var(--radius-full);
                                 cursor: pointer;
-                            ">Cancel</button>
+                            ">{% translate "Cancel" %}</button>
                             <button type="submit" style="
                                 padding: 8px 16px; font-size: 0.8125rem; font-weight: 600;
                                 background: var(--primary); color: white;
                                 border: none; border-radius: var(--radius-full);
                                 cursor: pointer; box-shadow: var(--shadow-primary);
-                            ">Connect</button>
+                            ">{% translate "Connect" %}</button>
                         </div>
                     </form>
                 </div>
@@ -284,7 +284,7 @@
                     box-shadow: var(--shadow-primary);
                     transition: all 200ms ease;
                 ">
-                    Connect
+                    {% translate "Connect" %}
                     <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
                 </button>
             </form>
@@ -307,7 +307,7 @@
         font-size: 0.8125rem; color: var(--success-700); font-weight: 500;
     ">
         <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        {{ connected_accounts|length }} account{{ connected_accounts|length|pluralize }} connected
+        {% blocktranslate count counter=connected_accounts|length %}{{ counter }} account connected{% plural %}{{ counter }} accounts connected{% endblocktranslate %}
     </div>
     {% endif %}
 
@@ -326,7 +326,7 @@
             box-shadow: var(--shadow-primary);
             transition: all 200ms ease;
         ">
-            Done &mdash; Notify {{ org.name }}
+            {% blocktranslate %}Done — Notify {{ org.name }}{% endblocktranslate %}
             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
     </form>
@@ -334,10 +334,10 @@
     <!-- Footer help -->
     <div style="text-align: center; margin-top: 28px;">
         <p style="font-size: 0.75rem; color: var(--text-ghost); line-height: 1.6;">
-            Need help? Contact <strong style="color: var(--text-tertiary);">{{ org.name }}</strong>
+            {% blocktranslate with org=org.name %}Need help? Contact <strong style="color: var(--text-tertiary);">{{ org }}</strong>{% endblocktranslate %}
         </p>
         <p style="font-size: 0.6875rem; color: var(--text-ghost); margin-top: 4px;">
-            This link expires {{ link.expires_at|date:"M j, Y" }}
+            {% blocktranslate with expires=link.expires_at|date:"M j, Y" %}This link expires {{ expires }}{% endblocktranslate %}
         </p>
     </div>
 </div>

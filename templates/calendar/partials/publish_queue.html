@@ -1,9 +1,9 @@
 {% if render_tab_counts_oob %}{% include "calendar/partials/_tab_counts_oob.html" %}{% endif %}
+{% load tz i18n %}
 {% comment %}
 Queue tab partial for the Publish page.
 Shows all scheduled platform posts grouped by date. Loaded via HTMX into #tab-content.
 {% endcomment %}
-{% load tz %}
 
 <div{% if is_htmx %} class="tab-slide-in"{% endif %}>
     {% if platform_posts %}
@@ -29,7 +29,7 @@ Shows all scheduled platform posts grouped by date. Loaded via HTMX into #tab-co
                     </div>
                     <div class="text-[11px] text-stone-400 mt-0.5 flex items-center justify-end gap-1">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        {% if pp.post.queue_entries.exists %}Queue{% else %}Custom{% endif %}
+                        {% if pp.post.queue_entries.exists %}{% translate "Queue" %}{% else %}{% translate "Custom" %}{% endif %}
                     </div>
                 </div>
 
@@ -48,7 +48,8 @@ Shows all scheduled platform posts grouped by date. Loaded via HTMX into #tab-co
 
                         <!-- Title / caption -->
                         <p class="text-sm text-stone-600 leading-relaxed">
-                            {{ pp.post.title|default:pp.post.caption_snippet|default:"(no caption)" }}
+                            {% translate "(no caption)" as no_caption %}
+                            {{ pp.post.title|default:pp.post.caption_snippet|default:no_caption }}
                         </p>
 
                         <!-- Media thumbnails -->

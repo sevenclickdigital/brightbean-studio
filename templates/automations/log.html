@@ -1,6 +1,7 @@
 {% extends "base.html" %}
+{% load i18n %}
 
-{% block title %}Automation activity - {{ workspace.name }} - Brightbean{% endblock %}
+{% block title %}{% translate "Automation activity" %} - {{ workspace.name }} - Brightbean{% endblock %}
 
 {% block content %}
 {% comment %}
@@ -21,26 +22,26 @@ than hidden, because hiding it would make the trail look shorter than it is.
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
         <div>
-            <h2 class="text-xl font-semibold text-stone-900 tracking-tight">Automation activity</h2>
-            <p class="text-sm text-stone-500 mt-0.5">Every comment your rules acted on, and what happened. Kept even after a rule is deleted.</p>
+            <h2 class="text-xl font-semibold text-stone-900 tracking-tight">{% translate "Automation activity" %}</h2>
+            <p class="text-sm text-stone-500 mt-0.5">{% translate "Every comment your rules acted on, and what happened. Kept even after a rule is deleted." %}</p>
         </div>
     </div>
 
     <!-- Filters -->
     <form method="get" class="flex items-end gap-3 mb-5">
         <div class="flex-1">
-            <label for="filter-rule" class="block text-[12px] font-semibold text-stone-600 mb-1.5">Rule</label>
+            <label for="filter-rule" class="block text-[12px] font-semibold text-stone-600 mb-1.5">{% translate "Rule" %}</label>
             <select name="rule" id="filter-rule" class="form-input w-full">
-                <option value="">All rules</option>
+                <option value="">{% translate "All rules" %}</option>
                 {% for r in rules %}
                 <option value="{{ r.id }}" {% if rule_filter == r.id|stringformat:"s" %}selected{% endif %}>{{ r.name }}</option>
                 {% endfor %}
             </select>
         </div>
         <div class="flex-1">
-            <label for="filter-outcome" class="block text-[12px] font-semibold text-stone-600 mb-1.5">Outcome</label>
+            <label for="filter-outcome" class="block text-[12px] font-semibold text-stone-600 mb-1.5">{% translate "Outcome" %}</label>
             <select name="outcome" id="filter-outcome" class="form-input w-full">
-                <option value="">All outcomes</option>
+                <option value="">{% translate "All outcomes" %}</option>
                 {% for value, label in outcome_choices %}
                 <option value="{{ value }}" {% if outcome_filter == value %}selected{% endif %}>{{ label }}</option>
                 {% endfor %}
@@ -48,11 +49,11 @@ than hidden, because hiding it would make the trail look shorter than it is.
         </div>
         <button type="submit"
                 class="px-4 py-2 text-[13px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all cursor-pointer">
-            Filter
+            {% translate "Filter" %}
         </button>
         {% if rule_filter or outcome_filter %}
         <a href="{% url 'automations:log' workspace_id=workspace.id %}"
-           class="text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors pb-2">Clear</a>
+           class="text-[13px] font-medium text-stone-500 hover:text-stone-700 transition-colors pb-2">{% translate "Clear" %}</a>
         {% endif %}
     </form>
 
@@ -67,13 +68,13 @@ than hidden, because hiding it would make the trail look shorter than it is.
                     {% elif log.outcome == 'failed' %}bg-red-50 text-red-700
                     {% elif log.outcome %}bg-stone-100 text-stone-600
                     {% else %}bg-amber-50 text-amber-700{% endif %}">
-                    {{ log.get_outcome_display|default:"Pending" }}
+                    {{ log.get_outcome_display|default:_("Pending") }}
                 </span>
 
                 <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                         <span class="text-[13px] font-semibold text-stone-800">
-                            {% if log.rule %}{{ log.rule.name }}{% else %}<span class="text-stone-400 italic font-medium">Deleted rule</span>{% endif %}
+                            {% if log.rule %}{{ log.rule.name }}{% else %}<span class="text-stone-400 italic font-medium">{% translate "Deleted rule" %}</span>{% endif %}
                         </span>
                         <span class="text-[11px] text-stone-400">{{ log.social_account.account_name }}</span>
                         <span class="text-[11px] text-stone-400">&middot; {{ log.created_at|date:"j M Y, H:i" }}</span>
@@ -88,10 +89,10 @@ than hidden, because hiding it would make the trail look shorter than it is.
                     {% endif %}
 
                     <p class="text-[11px] text-stone-400 mt-1">
-                        {% if log.public_reply_sent_at %}<span class="text-stone-500">Public reply sent {{ log.public_reply_sent_at|date:"H:i" }}</span>{% endif %}
+                        {% if log.public_reply_sent_at %}<span class="text-stone-500">{% blocktranslate with time=log.public_reply_sent_at|date:"H:i" %}Public reply sent {{ time }}{% endblocktranslate %}</span>{% endif %}
                         {% if log.public_reply_sent_at and log.private_reply_sent_at %} &middot; {% endif %}
-                        {% if log.private_reply_sent_at %}<span class="text-stone-500">DM sent {{ log.private_reply_sent_at|date:"H:i" }}</span>{% endif %}
-                        {% if not log.public_reply_sent_at and not log.private_reply_sent_at %}Nothing sent{% endif %}
+                        {% if log.private_reply_sent_at %}<span class="text-stone-500">{% blocktranslate with time=log.private_reply_sent_at|date:"H:i" %}DM sent {{ time }}{% endblocktranslate %}</span>{% endif %}
+                        {% if not log.public_reply_sent_at and not log.private_reply_sent_at %}{% translate "Nothing sent" %}{% endif %}
                     </p>
 
                     {% if log.detail %}
@@ -106,15 +107,15 @@ than hidden, because hiding it would make the trail look shorter than it is.
     <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="flex items-center justify-between mt-4">
-        <p class="text-[12px] text-stone-400">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} &middot; {{ page_obj.paginator.count }} entr{{ page_obj.paginator.count|pluralize:"y,ies" }}</p>
+        <p class="text-[12px] text-stone-400">{% blocktranslate with page=page_obj.number total=page_obj.paginator.num_pages count=page_obj.paginator.count %}Page {{ page }} of {{ total }} &middot; {{ count }} entr{{ count|pluralize:"y,ies" }}{% endblocktranslate %}</p>
         <div class="flex items-center gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}{% if rule_filter %}&rule={{ rule_filter }}{% endif %}{% if outcome_filter %}&outcome={{ outcome_filter }}{% endif %}"
-               class="px-3 py-1.5 text-[12px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all">Previous</a>
+               class="px-3 py-1.5 text-[12px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all">{% translate "Previous" %}</a>
             {% endif %}
             {% if page_obj.has_next %}
             <a href="?page={{ page_obj.next_page_number }}{% if rule_filter %}&rule={{ rule_filter }}{% endif %}{% if outcome_filter %}&outcome={{ outcome_filter }}{% endif %}"
-               class="px-3 py-1.5 text-[12px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all">Next</a>
+               class="px-3 py-1.5 text-[12px] font-semibold text-stone-700 bg-white border border-stone-300 rounded-full hover:bg-stone-50 transition-all">{% translate "Next" %}</a>
             {% endif %}
         </div>
     </div>
@@ -125,10 +126,10 @@ than hidden, because hiding it would make the trail look shorter than it is.
             <svg class="w-6 h-6" style="color: var(--text-ghost);" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <h3 class="text-sm font-semibold text-stone-800 mb-1">
-            {% if rule_filter or outcome_filter %}Nothing matches these filters{% else %}No automation activity yet{% endif %}
+            {% if rule_filter or outcome_filter %}{% translate "Nothing matches these filters" %}{% else %}{% translate "No automation activity yet" %}{% endif %}
         </h3>
         <p class="text-[13px] text-stone-500">
-            {% if rule_filter or outcome_filter %}Try clearing the filters.{% else %}Once a rule replies to a comment, it shows up here.{% endif %}
+            {% if rule_filter or outcome_filter %}{% translate "Try clearing the filters." %}{% else %}{% translate "Once a rule replies to a comment, it shows up here." %}{% endif %}
         </p>
     </div>
     {% endif %}
