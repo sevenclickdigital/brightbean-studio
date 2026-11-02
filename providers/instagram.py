@@ -28,6 +28,7 @@ from .meta_messaging import (
     merge_page_message_subscription,
     meta_subscription_needs_reconnect,
     require_message_id,
+    resolve_private_reply_comment_id,
     resolve_recipient_id,
     validate_instagram_text,
 )
@@ -617,13 +618,21 @@ class InstagramProvider(SocialProvider):
     def reply_to_message(
         self, access_token: str, message_id: str, text: str, extra: dict | None = None, *, human_agent: bool = False
     ) -> ReplyResult:
+        """Send an Instagram DM through the linked Page's Send API.
+
+        ``extra["private_reply_to_comment_id"]`` sends it as a private reply to
+        that comment, which needs no IGSID — the commenter may never have
+        messaged the account, so no scoped ID exists yet. The linked Page is
+        still required: this login path always sends with the Page token.
+        """
         page_id = self.credentials.get("page_id")
+        private_reply_comment_id = resolve_private_reply_comment_id(extra)
         recipient_id = resolve_recipient_id(extra)
         if not page_id:
             raise MessagingError(
                 "Reconnect Instagram to obtain its linked Page and Page token.", platform=self.platform_name
             )
-        if not recipient_id:
+        if not recipient_id and not private_reply_comment_id:
             raise MessagingError(
                 "The original message is missing its Instagram-scoped sender ID.", platform=self.platform_name
             )
@@ -632,7 +641,7 @@ class InstagramProvider(SocialProvider):
             "POST",
             f"{BASE_URL}/{page_id}/messages",
             access_token=access_token,
-            json=build_send_payload(recipient_id, text, human_agent=human_agent),
+            json=build_send_payload(recipient_id, text, human_agent=human_agent, comment_id=private_reply_comment_id),
         ).json()
         return ReplyResult(platform_message_id=require_message_id(data, platform=self.platform_name), extra=data)
 

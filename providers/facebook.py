@@ -16,6 +16,7 @@ from .meta_messaging import (
     dm_extra,
     merge_page_message_subscription,
     require_message_id,
+    resolve_private_reply_comment_id,
     resolve_recipient_id,
 )
 from .meta_oauth import facebook_login_params
@@ -1076,9 +1077,14 @@ class FacebookProvider(SocialProvider):
 
         Messages go to ``/{page-id}/messages`` addressed to the person's PSID —
         not to the message or conversation ID, which is not a Send API target.
+
+        ``extra["private_reply_to_comment_id"]`` sends it as a private reply to
+        that comment instead, which needs no PSID: the commenter may never have
+        messaged the Page, so there is nothing else to address.
         """
+        private_reply_comment_id = resolve_private_reply_comment_id(extra)
         psid = resolve_recipient_id(extra)
-        if not psid:
+        if not psid and not private_reply_comment_id:
             raise APIError(
                 "Cannot send the reply: no page-scoped ID for the recipient. "
                 "The original message is missing its sender details.",
@@ -1086,7 +1092,7 @@ class FacebookProvider(SocialProvider):
             )
 
         page_id = self.credentials.get("page_id", "me")
-        payload = build_send_payload(psid, text, human_agent=human_agent)
+        payload = build_send_payload(psid, text, human_agent=human_agent, comment_id=private_reply_comment_id)
 
         resp = self._request(
             "POST",

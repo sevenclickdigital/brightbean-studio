@@ -271,14 +271,47 @@ def resolve_recipient_id(extra: dict | None) -> str:
     return ""
 
 
-def build_send_payload(recipient_id: str, text: str, *, human_agent: bool = False) -> dict:
+def resolve_private_reply_comment_id(extra: dict | None) -> str:
+    """Return the comment a private reply should be addressed to, if any.
+
+    The key is deliberately ``private_reply_to_comment_id`` and not a bare
+    ``comment_id``: ``extra`` is Meta's raw payload merged with our own fields,
+    and Meta already puts ``comment_id`` in Instagram mention payloads (see
+    ``apps/inbox/webhooks.py::_upsert_instagram_mention``). Reading that key
+    here would silently turn an ordinary DM reply into a private reply — which
+    Meta allows only once per comment and only inside a short window, so the
+    real reply would fail with no obvious cause.
+    """
+    value = (extra or {}).get("private_reply_to_comment_id")
+    return str(value or "")
+
+
+def build_send_payload(
+    recipient_id: str = "", text: str = "", *, human_agent: bool = False, comment_id: str = ""
+) -> dict:
     """Build a Send API request body.
 
     Past 24 hours Meta only accepts a tagged message, and HUMAN_AGENT is the tag
     for a person (never a bot) answering within 7 days.
+
+    ``comment_id`` switches the body to a **private reply**: it addresses a
+    *comment* instead of a person — ``{"recipient": {"comment_id": ...}}`` — and
+    Meta opens the DM thread itself. That is the only way to DM someone who has
+    never messaged the account, because until the thread exists there is no
+    PSID/IGSID to address. It wins over ``recipient_id`` when both are given.
+
+    A private reply is never sent as HUMAN_AGENT, so ``human_agent`` is ignored
+    whenever ``comment_id`` is set. HUMAN_AGENT asserts that a *person* is
+    answering outside the 24-hour window; an automated private reply is the
+    opposite claim, and Meta may reject or penalize the Page for making it.
     """
+    # Padrão de brightbean-chat apps/channels/providers/instagram.py (AGPL-3.0).
+    recipient = {"comment_id": comment_id} if comment_id else {"id": recipient_id}
+    # Forced rather than merely unset so no caller can smuggle the tag in with a
+    # comment_id — the guard has to hold at the single place the body is built.
+    human_agent = human_agent and not comment_id
     payload: dict = {
-        "recipient": {"id": recipient_id},
+        "recipient": recipient,
         "message": {"text": text},
         "messaging_type": "MESSAGE_TAG" if human_agent else "RESPONSE",
     }

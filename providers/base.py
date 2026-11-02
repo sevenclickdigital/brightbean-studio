@@ -284,6 +284,15 @@ class SocialProvider(ABC):
         person rather than a bot. Meta requires this for replies sent more than
         24 hours after the incoming message; providers without the concept
         ignore it.
+
+        ``extra["private_reply_to_comment_id"]`` asks the Meta providers to send
+        the reply as a *private reply* to that comment: the DM is addressed to
+        the comment rather than to a person, so it reaches a commenter who has
+        never messaged the account and therefore has no scoped ID to address.
+        It makes ``extra``'s sender fields optional, and it suppresses
+        ``human_agent`` — an automated private reply must never claim to be a
+        person answering outside the 24-hour window. Providers that do not
+        support private replies ignore the key and reply normally.
         """
         raise NotImplementedError(f"{self.platform_name} does not support message replies")
 

@@ -30,6 +30,7 @@ from .meta_messaging import (
     build_send_payload,
     dm_extra,
     require_message_id,
+    resolve_private_reply_comment_id,
     resolve_recipient_id,
     validate_instagram_text,
 )
@@ -630,9 +631,17 @@ class InstagramLoginProvider(SocialProvider):
         *,
         human_agent: bool = False,
     ) -> ReplyResult:
-        """Send a DM reply addressed to the sender's IGSID."""
+        """Send a DM reply addressed to the sender's IGSID.
+
+        ``extra["private_reply_to_comment_id"]`` addresses the *comment*
+        instead, which needs no IGSID: a commenter who never messaged the
+        account has no scoped ID until the private reply opens the thread.
+        There is no Page in this login path, so this always posts to ``me``
+        with the Instagram account's own token.
+        """
+        private_reply_comment_id = resolve_private_reply_comment_id(extra)
         igsid = resolve_recipient_id(extra)
-        if not igsid:
+        if not igsid and not private_reply_comment_id:
             raise APIError(
                 "Cannot send the reply: no Instagram-scoped ID for the recipient. "
                 "The original message is missing its sender details.",
@@ -640,7 +649,7 @@ class InstagramLoginProvider(SocialProvider):
             )
 
         validate_instagram_text(text, platform=self.platform_name)
-        payload = build_send_payload(igsid, text, human_agent=human_agent)
+        payload = build_send_payload(igsid, text, human_agent=human_agent, comment_id=private_reply_comment_id)
 
         resp = self._request(
             "POST",
