@@ -867,7 +867,10 @@
                             {% csrf_token %}
                             <input type="hidden" name="next" value="{{ request.get_full_path }}">
                             <svg class="w-4 h-4 text-stone-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>
-                            <select name="language" onchange="this.form.submit()"
+                            {# Alpine, not an inline onchange: CSP_SCRIPT_SRC carries no #}
+                            {# 'unsafe-inline', so the browser blocks an on* attribute and #}
+                            {# the select would change while the form never submitted. #}
+                            <select name="language" @change="$el.form.requestSubmit()"
                                     aria-label="{% translate 'Language' %}"
                                     class="flex-1 min-w-0 text-sm text-stone-700 bg-transparent border-0 p-0 pr-6 cursor-pointer focus:ring-0">
                                 {% for code, name in LANGUAGES %}
