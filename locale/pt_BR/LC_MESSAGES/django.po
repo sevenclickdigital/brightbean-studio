@@ -1,0 +1,184 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-02 20:22+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+#: config/settings/base.py:217
+msgid "Português (Brasil)"
+msgstr "Português (Brasil)"
+
+#: config/settings/base.py:218
+msgid "English (US)"
+msgstr "Inglês (EUA)"
+
+#: templates/account/signup_closed.html:16
+msgid "Sign-up is closed"
+msgstr "Os cadastros estão encerrados"
+
+#: templates/account/signup_closed.html:22
+msgid ""
+"Your invitation has expired or was already used. Ask the person who invited "
+"you to send a new one."
+msgstr ""
+
+#: templates/account/signup_closed.html:24
+msgid ""
+"New accounts need an invitation. If you have one, open the invitation link "
+"in this browser, then sign up."
+msgstr ""
+
+#: templates/account/signup_closed.html:26
+msgid ""
+"This installation does not accept new accounts. Ask an administrator to "
+"create one for you."
+msgstr ""
+
+#: templates/account/signup_closed.html:33
+msgid "Back to sign in"
+msgstr "Voltar para o login"
+
+#: templates/base.html:353
+msgid "No workspaces"
+msgstr "Nenhum workspace"
+
+#: templates/base.html:362 templates/base.html:1422
+msgid "Create workspace"
+msgstr "Criar workspace"
+
+#: templates/base.html:373
+msgid "Workspace settings"
+msgstr "Configurações do workspace"
+
+#: templates/base.html:390
+msgid "New"
+msgstr "Novo"
+
+#: templates/base.html:408
+msgid "Post"
+msgstr "Publicação"
+
+#: templates/base.html:409
+msgid "Publish content to a channel"
+msgstr "Publicar conteúdo em um canal"
+
+#: templates/base.html:418
+msgid "Idea"
+msgstr "Ideia"
+
+#: templates/base.html:419
+msgid "Capture a content idea"
+msgstr "Registrar uma ideia de conteúdo"
+
+#: templates/base.html:447 templates/base.html:651
+msgid "Create Idea"
+msgstr "Criar ideia"
+
+#: templates/base.html:472
+msgid "Tags"
+msgstr "Tags"
+
+#: templates/base.html:559
+msgid "Add another file"
+msgstr "Adicionar outro arquivo"
+
+#: templates/base.html:617
+msgid "Create new tag"
+msgstr "Criar nova tag"
+
+#: templates/base.html:647
+msgid "Publish"
+msgstr "Publicar"
+
+#: templates/base.html:655
+msgid "Social Inbox"
+msgstr "Caixa de entrada"
+
+#: templates/base.html:660
+msgid "Automations"
+msgstr "Automações"
+
+#: templates/base.html:666
+msgid "Notifications"
+msgstr "Notificações"
+
+#: templates/base.html:673
+msgid "Analytics"
+msgstr "Análises"
+
+#: templates/base.html:691
+msgid "Intelligence"
+msgstr "Inteligência"
+
+#: templates/base.html:699
+msgid "Channels"
+msgstr "Canais"
+
+#: templates/base.html:752
+msgid "Connect channels"
+msgstr "Conectar canais"
+
+#: templates/base.html:775
+msgid "More channels"
+msgstr "Mais canais"
+
+#: templates/base.html:842
+msgid "My Organization"
+msgstr "Minha organização"
+
+#: templates/base.html:850
+msgid "Manage Team"
+msgstr "Gerenciar equipe"
+
+#: templates/base.html:859
+msgid "Settings"
+msgstr "Configurações"
+
+#: templates/base.html:873
+msgid "Language"
+msgstr "Idioma"
+
+#: templates/base.html:887
+msgid "Log out"
+msgstr "Sair"
+
+#: templates/oauth2_provider/authorize.html:14
+#, python-format
+msgid "Authorize %(name)s?"
+msgstr "Autorizar %(name)s?"
+
+#: templates/oauth2_provider/authorize.html:15
+#, python-format
+msgid ""
+"%(name)s wants to connect to your BrightBean Studio workspace with the "
+"following permissions:"
+msgstr ""
+
+#: templates/oauth2_provider/authorize.html:40
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/oauth2_provider/authorize.html:42
+msgid "Authorize"
+msgstr "Autorizar"
+
+#: templates/oauth2_provider/authorize.html:46
+msgid "You can revoke this access at any time from BrightBean Studio."
+msgstr "Você pode revogar este acesso a qualquer momento no BrightBean Studio."
+
+#: templates/oauth2_provider/authorize.html:48
+msgid "Something went wrong"
+msgstr "Algo deu errado"

@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("health/", health_check, name="health_check"),
+    # Django's own view: POSTs a language code, stores it on the session and
+    # redirects back. The language picker in the sidebar posts here.
+    path("i18n/", include("django.conf.urls.i18n")),
     # Public legal pages. Required by Meta App Review, which fetches both
     # anonymously, so they must stay outside any auth-gated include.
     path("privacy/", legal_views.privacy_policy, name="privacy_policy"),

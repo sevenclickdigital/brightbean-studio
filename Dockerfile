@@ -6,8 +6,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# gettext supplies msgfmt, which compilemessages shells out to below. The
+# slim image does not carry it, and without it every string falls back to the
+# msgid — an English interface, with no error to say why.
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev gcc curl ffmpeg \
+    libpq-dev gcc curl ffmpeg gettext \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js for Tailwind build
@@ -22,6 +25,14 @@ COPY . .
 
 # Build Tailwind CSS
 RUN cd theme/static_src && npm ci && npm run build
+
+# Compile translations. The .mo files are build output and gitignored, so they
+# exist only if this runs; a missing one is silent, serving every string in
+# English.
+RUN DJANGO_SETTINGS_MODULE=config.settings.production \
+    SECRET_KEY=build-placeholder \
+    DATABASE_URL=sqlite:///tmp/build.db \
+    python manage.py compilemessages
 
 # Collect static files
 RUN DJANGO_SETTINGS_MODULE=config.settings.production \

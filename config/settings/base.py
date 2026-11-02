@@ -2,6 +2,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import environ
+from django.utils.translation import gettext_noop
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -86,6 +87,9 @@ MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # After the session (it reads the stored language from there) and before
+    # CommonMiddleware, whose redirects must already carry the active locale.
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -112,6 +116,9 @@ TEMPLATES = [
                 "django.template.context_processors.debug",
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
+                # Supplies LANGUAGES and LANGUAGE_CODE, which the sidebar's
+                # language picker iterates over.
+                "django.template.context_processors.i18n",
                 "django.contrib.messages.context_processors.messages",
                 "apps.notifications.context_processors.unread_notification_count",
                 "apps.common.context_processors.sidebar_context",
@@ -194,10 +201,27 @@ PASSWORD_HASHERS = [
 ]
 
 # Internationalization
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = env("LANGUAGE_CODE", default="pt-br")
 TIME_ZONE = "UTC"
 USE_I18N = True
 USE_TZ = True
+
+# The languages the interface is offered in. Ordered as the language picker
+# shows them, with the default first.
+#
+# ``gettext_noop`` and not ``gettext``: this runs at import time, before any
+# request has set a language, so translating here would freeze whatever locale
+# the process started in. The names are marked for extraction and translated at
+# the point they are displayed.
+LANGUAGES = [
+    ("pt-br", gettext_noop("Português (Brasil)")),
+    ("en-us", gettext_noop("English (US)")),
+]
+
+# Where ``makemessages`` writes and ``compilemessages`` reads. Project-level,
+# because the strings live in ``templates/`` and across every app rather than
+# in one reusable component.
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 # Static files
 STATIC_URL = "/static/"
