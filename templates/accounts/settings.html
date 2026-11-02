@@ -178,7 +178,7 @@
                     <!-- Body -->
                     <div class="px-6 py-5">
                         <p class="text-sm" style="color: var(--text-secondary);">
-                            Are you sure you want to delete your account? This action is permanent and cannot be undone. You will lose access to all Brightbean Studio services, and your personal data will be permanently deleted.
+                            {% translate "Are you sure you want to delete your account? This action is permanent and cannot be undone. You will lose access to all Brightbean Studio services, and your personal data will be permanently deleted." %}
                         </p>
                     </div>
 
@@ -187,7 +187,7 @@
                         <button type="button" @click="showDeleteModal = false"
                                 class="btn-neutral px-5 py-2 text-sm font-medium rounded-full cursor-pointer transition-colors"
                                 style="background: var(--neutral-100); color: var(--text-primary);">
-                            Cancel
+                            {% translate "Cancel" %}
                         </button>
                         <form method="POST">
                             {% csrf_token %}
@@ -195,7 +195,7 @@
                             <button type="submit"
                                     class="btn-opacity px-5 py-2 text-sm font-semibold rounded-full cursor-pointer transition-colors whitespace-nowrap"
                                     style="background: var(--error-500, #EF4444); color: white;">
-                                Yes, delete my account
+                                {% translate "Yes, delete my account" %}
                             </button>
                         </form>
                     </div>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 20:47+0000\n"
+"POT-Creation-Date: 2026-11-02 20:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -507,7 +507,7 @@ msgstr ""
 msgid "Member"
 msgstr ""
 
-#: templates/accounts/settings.html:145
+#: templates/accounts/settings.html:145 templates/accounts/settings.html:172
 #, fuzzy
 #| msgid "Create workspace"
 msgid "Delete your account"
@@ -524,6 +524,46 @@ msgstr ""
 #| msgid "Connect channels"
 msgid "Delete Account"
 msgstr "Conectar canais"
+
+#: templates/accounts/settings.html:181
+msgid ""
+"Are you sure you want to delete your account? This action is permanent and "
+"cannot be undone. You will lose access to all Brightbean Studio services, "
+"and your personal data will be permanently deleted."
+msgstr ""
+
+#: templates/accounts/settings.html:190 templates/automations/form.html:392
+#: templates/calendar/calendar.html:393
+#: templates/calendar/partials/_delete_post_modal.html:42
+#: templates/calendar/partials/event_form.html:77
+#: templates/calendar/partials/publish_approvals.html:87
+#: templates/calendar/queues.html:64 templates/composer/categories.html:45
+#: templates/composer/categories.html:91
+#: templates/inbox/partials/_saved_reply_form.html:24
+#: templates/inbox/sla_config.html:64 templates/intelligence/subscribe.html:19
+#: templates/members/partials/invite_modal.html:93
+#: templates/oauth2_provider/authorize.html:40
+#: templates/onboarding/connection_page.html:198
+#: templates/onboarding/connection_page.html:259
+#: templates/organizations/settings.html:136
+#: templates/organizations/settings.html:212
+#: templates/social_accounts/account_select.html:87
+#: templates/social_accounts/bluesky_connect.html:50
+#: templates/social_accounts/devto_connect.html:43
+#: templates/social_accounts/mastodon_connect.html:48
+#: templates/social_accounts/partials/_account_card.html:84
+#: templates/social_accounts/partials/_posting_slots_grid.html:87
+#: templates/social_accounts/partials/_posting_slots_grid.html:121
+#: templates/workspaces/settings.html:137
+#: templates/workspaces/settings.html:215
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: templates/accounts/settings.html:198
+#, fuzzy
+#| msgid "Create workspace"
+msgid "Yes, delete my account"
+msgstr "Criar workspace"
 
 #: templates/analytics/_delta_chip.html:1
 #, python-format
@@ -1055,32 +1095,6 @@ msgstr "Mais canais"
 #| msgid "Create Idea"
 msgid "Create rule"
 msgstr "Criar ideia"
-
-#: templates/automations/form.html:392 templates/calendar/calendar.html:393
-#: templates/calendar/partials/_delete_post_modal.html:42
-#: templates/calendar/partials/event_form.html:77
-#: templates/calendar/partials/publish_approvals.html:87
-#: templates/calendar/queues.html:64 templates/composer/categories.html:45
-#: templates/composer/categories.html:91
-#: templates/inbox/partials/_saved_reply_form.html:24
-#: templates/inbox/sla_config.html:64 templates/intelligence/subscribe.html:19
-#: templates/members/partials/invite_modal.html:93
-#: templates/oauth2_provider/authorize.html:40
-#: templates/onboarding/connection_page.html:198
-#: templates/onboarding/connection_page.html:259
-#: templates/organizations/settings.html:136
-#: templates/organizations/settings.html:212
-#: templates/social_accounts/account_select.html:87
-#: templates/social_accounts/bluesky_connect.html:50
-#: templates/social_accounts/devto_connect.html:43
-#: templates/social_accounts/mastodon_connect.html:48
-#: templates/social_accounts/partials/_account_card.html:84
-#: templates/social_accounts/partials/_posting_slots_grid.html:87
-#: templates/social_accounts/partials/_posting_slots_grid.html:121
-#: templates/workspaces/settings.html:137
-#: templates/workspaces/settings.html:215
-msgid "Cancel"
-msgstr "Cancelar"
 
 #: templates/automations/list.html:4 templates/automations/list.html:11
 #: templates/base.html:664
@@ -2838,11 +2852,48 @@ msgid "Benchmark channel"
 msgstr "Conectar canais"
 
 #: templates/intelligence/_panel_benchmark_channel.html:5
+#: templates/intelligence/_panel_benchmark_video.html:5
+#: templates/intelligence/_panel_research_content_gaps.html:5
+#: templates/intelligence/_panel_score_video_hook.html:5
 msgid "credits"
 msgstr ""
 
+#: templates/intelligence/_panel_benchmark_video.html:4
+#, fuzzy
+#| msgid "Connect channels"
+msgid "Benchmark video"
+msgstr "Conectar canais"
+
 #: templates/intelligence/_panel_empty_state.html:5
 msgid "Submit the form to see results."
+msgstr ""
+
+#: templates/intelligence/_panel_list_niches.html:4
+msgid "List niches"
+msgstr ""
+
+#: templates/intelligence/_panel_list_niches.html:5
+#: templates/intelligence/_panel_score_packaging.html:23
+msgid "credit"
+msgstr ""
+
+#: templates/intelligence/_panel_research_content_gaps.html:4
+msgid "Research content gaps"
+msgstr ""
+
+#: templates/intelligence/_panel_score_packaging.html:22
+msgid "Score packaging"
+msgstr ""
+
+#: templates/intelligence/_panel_score_packaging.html:27
+msgid ""
+"Score a YouTube packaging (title + thumbnail) for click-through potential. "
+"Provide one or both, combined is most accurate. Title-only is 1 credit, "
+"thumbnail-only is 2, combined is 3"
+msgstr ""
+
+#: templates/intelligence/_panel_score_video_hook.html:4
+msgid "Score video hook"
 msgstr ""
 
 #: templates/intelligence/_preview_badge.html:12

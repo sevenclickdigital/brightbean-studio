@@ -1,4 +1,4 @@
-<div id="intel-panel-packaging" class="intel-panel intel-panel-active mt-6 grid-cols-1 gap-6 lg:grid-cols-2">
+{% load i18n %}<div id="intel-panel-packaging" class="intel-panel intel-panel-active mt-6 grid-cols-1 gap-6 lg:grid-cols-2">
     {% comment %}
       Request card. The thumbnail input was changed from a URL field to
       a multipart file upload because:
@@ -18,12 +18,12 @@
     {% endcomment %}
     <div class="rounded-xl border border-stone-200 bg-white shadow-sm">
         <div class="flex items-center justify-between border-b border-stone-100 px-5 py-3.5">
-            <h2 class="text-sm font-semibold text-stone-900">Score packaging</h2>
-            <span class="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-[11px] font-mono text-stone-600">1-3 credit</span>
+            <h2 class="text-sm font-semibold text-stone-900">{% translate "Score packaging" %}</h2>
+            <span class="inline-flex items-center rounded-md bg-stone-100 px-2 py-0.5 text-[11px] font-mono text-stone-600">1-3 {% translate "credit" %}</span>
         </div>
         <div class="p-5">
             <p class="text-xs text-stone-500 mb-5 leading-relaxed">
-                Score a YouTube packaging (title + thumbnail) for click-through potential. Provide one or both, combined is most accurate. Title-only is 1 credit, thumbnail-only is 2, combined is 3
+                {% translate "Score a YouTube packaging (title + thumbnail) for click-through potential. Provide one or both, combined is most accurate. Title-only is 1 credit, thumbnail-only is 2, combined is 3" %}
             </p>
 
             <form class="intel-form space-y-5"
