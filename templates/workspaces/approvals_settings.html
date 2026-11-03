@@ -60,8 +60,14 @@
     </form>
 
     <p class="text-xs mt-6" style="color: var(--text-tertiary);">
-        {% blocktranslate %} Reviewers are workspace members with the "Approve posts" permission.
-        Manage them on the {% endblocktranslate %}<a href="{% url 'members:list' %}" class="underline" style="color: var(--text-secondary);">{% translate "Members" %}</a>{% blocktranslate %} page.{% endblocktranslate %}
+        {# One sentence with the link interpolated, not three fragments around an #}
+        {# anchor: Portuguese does not put "on the Members page" in that order, and #}
+        {# the middle fragment ended mid-clause. #}
+        {% translate "Members" as members_label %}
+        {% url 'members:list' as members_url %}
+        {% with link='<a href="'|add:members_url|add:'" class="underline" style="color: var(--text-secondary);">'|add:members_label|add:'</a>' %}
+        {% blocktranslate %}Reviewers are workspace members with the "Approve posts" permission. Manage them on the {{ link }} page.{% endblocktranslate %}
+        {% endwith %}
     </p>
 </div>
 {% endblock %}
