@@ -1048,6 +1048,69 @@ def _capture_proposed_publish_at(post, post_id, workspace, form, *, clear_when_b
     post.proposed_publish_at = proposed
 
 
+def _ordered_pending_ids(request, session_ids):
+    """``session_ids`` in the order the composer is showing them.
+
+    The session records uploads in arrival order, but the thumbnails are
+    drag-sortable, so the page posts the order it is displaying in
+    ``media_order``. Anything the page didn't name keeps its session order at
+    the end: a stale field can reorder the carousel but never drop a file
+    from it.
+    """
+    wanted = [value for value in request.POST.get("media_order", "").split(",") if value]
+    if not wanted:
+        return session_ids
+    by_id = {str(asset_id): asset_id for asset_id in session_ids}
+    ordered = [by_id.pop(value) for value in wanted if value in by_id]
+    return ordered + list(by_id.values())
+
+
+def _reorder_saved_media(request, post):
+    """Apply the composer's ``media_order`` to an existing post's attachments.
+
+    The field names ``PostMedia`` ids. Attachments it doesn't name keep their
+    relative order after the named ones, so a reorder posted against a stale
+    page can't strand an attachment the user added in another tab.
+    """
+    wanted = [value for value in request.POST.get("media_order", "").split(",") if value]
+    if not wanted:
+        return
+    attachments = {str(att.id): att for att in post.media_attachments.all()}
+    ordered = [attachments.pop(value) for value in wanted if value in attachments]
+    ordered += list(attachments.values())
+    changed = []
+    for idx, attachment in enumerate(ordered):
+        if attachment.position != idx:
+            attachment.position = idx
+            changed.append(attachment)
+    if changed:
+        PostMedia.objects.bulk_update(changed, ["position"])
+
+
+def _attach_pending_media(request, post, workspace, session_key):
+    """Move the session's pending uploads onto a freshly created ``post``.
+
+    Positions follow ``_ordered_pending_ids``, so the carousel publishes in
+    the order the user arranged rather than the order they uploaded.
+    """
+    from apps.media_library.models import MediaAsset
+
+    pending_ids = request.session.get(session_key, [])
+    if not pending_ids:
+        return
+    for idx, asset_id in enumerate(_ordered_pending_ids(request, pending_ids)):
+        try:
+            asset = MediaAsset.objects.get(id=asset_id, workspace=workspace)
+        except MediaAsset.DoesNotExist:
+            continue
+        PostMedia.objects.get_or_create(
+            post=post,
+            media_asset=asset,
+            defaults={"position": idx},
+        )
+    del request.session[session_key]
+
+
 @login_required
 @require_permission("create_posts")
 @require_POST
@@ -1251,22 +1314,9 @@ def save_post(request, workspace_id, post_id=None):
 
     # Attach pending session media for new posts
     if not post_id:
-        from apps.media_library.models import MediaAsset as _MediaAsset
-
-        session_key = f"pending_media_{workspace.id}"
-        pending_ids = request.session.get(session_key, [])
-        if pending_ids:
-            for idx, asset_id in enumerate(pending_ids):
-                try:
-                    asset = _MediaAsset.objects.get(id=asset_id, workspace=workspace)
-                    PostMedia.objects.get_or_create(
-                        post=post,
-                        media_asset=asset,
-                        defaults={"position": idx},
-                    )
-                except _MediaAsset.DoesNotExist:
-                    continue
-            del request.session[session_key]
+        _attach_pending_media(request, post, workspace, f"pending_media_{workspace.id}")
+    else:
+        _reorder_saved_media(request, post)
 
     # Sync any new tags to the Tag model
     _sync_tags_to_model(workspace, post.tags)
@@ -1471,22 +1521,9 @@ def autosave(request, workspace_id, post_id=None):
 
     # Attach pending session media when creating a new post
     if is_new:
-        from apps.media_library.models import MediaAsset
-
-        session_key = f"pending_media_{workspace.id}"
-        pending_ids = request.session.get(session_key, [])
-        if pending_ids:
-            for idx, asset_id in enumerate(pending_ids):
-                try:
-                    asset = MediaAsset.objects.get(id=asset_id, workspace=workspace)
-                    PostMedia.objects.get_or_create(
-                        post=post,
-                        media_asset=asset,
-                        defaults={"position": idx},
-                    )
-                except MediaAsset.DoesNotExist:
-                    continue
-            del request.session[session_key]
+        _attach_pending_media(request, post, workspace, f"pending_media_{workspace.id}")
+    else:
+        _reorder_saved_media(request, post)
 
     # Sync platform selections
     selected_ids = _parse_selected_account_ids(request.POST.get("selected_accounts", ""))

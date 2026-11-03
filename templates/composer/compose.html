@@ -222,6 +222,25 @@
     }
     .media-thumb .retry-btn:hover { background: rgba(0,0,0,0.65); }
 
+    /* Drag to reorder the carousel */
+    .media-thumb[draggable="true"] { cursor: grab; }
+    .media-thumb.dragging { opacity: 0.4; cursor: grabbing; }
+    /* The gap the dragged thumb would land in. */
+    .media-thumb.drop-before { box-shadow: -3px 0 0 0 #F97316; }
+    .media-thumb.drop-after { box-shadow: 3px 0 0 0 #F97316; }
+    /* Position badge — which slot this image takes in the published carousel. */
+    .media-thumb .order-badge {
+        position: absolute; bottom: 4px; left: 4px;
+        min-width: 16px; height: 16px; padding: 0 4px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.55); color: white;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 10px; font-weight: 600; line-height: 1;
+        pointer-events: none; z-index: 2;
+    }
+    /* One attachment is not a carousel, so the badge would say nothing. */
+    #media-list .media-thumb:only-of-type .order-badge { display: none; }
+
     /* Preview panel cards */
     .preview-card {
         background: #FFFFFF;
@@ -538,8 +557,16 @@
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7.5 6.75V0h9v6.75h-9zm9 3.75H24V24H0V10.5h7.5v6.75h9V10.5z"/></svg>
                             </button>
                             {% endif %}
-                            <!-- display:contents keeps appended thumbs flowing in this row -->
-                            <div id="media-list" class="contents">
+                            {% comment %}
+                            display:contents keeps appended thumbs flowing in this row.
+                            The drag handlers reorder children here; mediaOrder below
+                            carries the result into the save.
+                            {% endcomment %}
+                            <div id="media-list" class="contents"
+                                 @dragstart="onMediaDragStart($event)"
+                                 @dragover.prevent="onMediaDragOver($event)"
+                                 @drop.prevent="onMediaDrop($event)"
+                                 @dragend="onMediaDragEnd($event)">
                                 {% if post %}
                                     {% include "composer/partials/media_list.html" %}
                                 {% elif pending_assets %}
@@ -547,6 +574,12 @@
                                 {% endif %}
                             </div>
                         </div>
+                        {% comment %}
+                        The carousel order, as the thumbnails are currently arranged.
+                        Written on drop and read by the save; outside #media-list so
+                        an htmx swap of the thumbnails can't discard it.
+                        {% endcomment %}
+                        <input type="hidden" name="media_order" x-ref="mediaOrder">
 
                         <!-- Bottom bar: media library + char counter -->
                         <div class="flex items-center justify-between px-4 py-2 border-t border-stone-100">
@@ -2372,9 +2405,18 @@ function composerApp() {
                 this.hasSingleVideoAttached = thumbs.length === 1 && videoCount === 1;
             };
             this.$nextTick(syncVideoAttached);
+            // Seed media_order from the thumbnails as rendered, so a save that
+            // never touched the carousel still posts the order it is showing.
+            this.$nextTick(() => this.syncMediaOrder());
             document.body.addEventListener('previewUpdate', syncVideoAttached);
             document.body.addEventListener('htmx:afterSwap', (e) => {
-                if (e.target && e.target.id === 'media-list') syncVideoAttached();
+                if (e.target && e.target.id === 'media-list') {
+                    syncVideoAttached();
+                    // An upload or a removal re-rendered the thumbnails, so the
+                    // dragged order the field was holding no longer describes
+                    // them. Re-read the list as it now stands.
+                    this.syncMediaOrder();
+                }
             });
         },
 
@@ -2567,6 +2609,7 @@ function composerApp() {
                     const list = document.getElementById('media-list');
                     list.insertAdjacentHTML('beforeend', data.html);
                     if (window.htmx) window.htmx.process(list);
+                    this.syncMediaOrder();
                     // Mirror uploadFile: latest imported image becomes the
                     // YouTube thumbnail for selected YouTube accounts.
                     const assets = data.assets || [];
@@ -2860,7 +2903,99 @@ function composerApp() {
 
         uploadUrl: '{% if post %}{% url "composer:upload_media_post" workspace_id=workspace.id post_id=post.id %}{% else %}{% url "composer:upload_media" workspace_id=workspace.id %}{% endif %}',
 
+        // --- Carousel reordering -------------------------------------
+        // The thumbnails are dragged into the order the platforms should
+        // publish them in. Dropping rewrites the DOM and the media_order
+        // field; the order reaches the database when the post is saved.
+        draggedThumb: null,
+
+        onMediaDragStart(event) {
+            const thumb = event.target.closest('.media-thumb');
+            // A file dragged in from the desktop is not a reorder.
+            if (!thumb || !thumb.dataset.mediaId) return;
+            this.draggedThumb = thumb;
+            thumb.classList.add('dragging');
+            // Firefox ignores a drag that carries no data.
+            event.dataTransfer.effectAllowed = 'move';
+            event.dataTransfer.setData('text/plain', thumb.dataset.mediaId);
+        },
+
+        onMediaDragOver(event) {
+            if (!this.draggedThumb) return;
+            event.dataTransfer.dropEffect = 'move';
+            const over = event.target.closest('.media-thumb');
+            this.clearDropHints();
+            if (!over || over === this.draggedThumb) return;
+            // Highlight the side the thumb would land on, so the drop is
+            // predictable before releasing.
+            const box = over.getBoundingClientRect();
+            const after = event.clientX > box.left + box.width / 2;
+            over.classList.add(after ? 'drop-after' : 'drop-before');
+        },
+
+        onMediaDrop(event) {
+            if (!this.draggedThumb) return;
+            const over = event.target.closest('.media-thumb');
+            this.clearDropHints();
+            if (over && over !== this.draggedThumb) {
+                const box = over.getBoundingClientRect();
+                const after = event.clientX > box.left + box.width / 2;
+                over.parentNode.insertBefore(
+                    this.draggedThumb,
+                    after ? over.nextSibling : over,
+                );
+            }
+            this.syncMediaOrder();
+        },
+
+        onMediaDragEnd() {
+            if (this.draggedThumb) this.draggedThumb.classList.remove('dragging');
+            this.draggedThumb = null;
+            this.clearDropHints();
+        },
+
+        clearDropHints() {
+            document.querySelectorAll('.media-thumb.drop-before, .media-thumb.drop-after')
+                .forEach(el => el.classList.remove('drop-before', 'drop-after'));
+        },
+
+        syncMediaOrder() {
+            const thumbs = Array.from(
+                document.querySelectorAll('#media-list .media-thumb[data-media-id]'),
+            );
+            if (this.$refs.mediaOrder) {
+                this.$refs.mediaOrder.value = thumbs.map(t => t.dataset.mediaId).join(',');
+            }
+            // Renumber the badges and the preview so the new order is visible
+            // without waiting for a save.
+            thumbs.forEach((thumb, idx) => {
+                const badge = thumb.querySelector('.order-badge');
+                if (badge) badge.textContent = String(idx + 1);
+            });
+            this.reorderPreview(thumbs);
+        },
+
+        reorderPreview(thumbs) {
+            // mediaItems drives the platform previews. It has no ids, so match
+            // on the thumbnail's own source; anything unmatched keeps its place
+            // at the end rather than vanishing from the preview.
+            if (!Array.isArray(this.mediaItems) || this.mediaItems.length < 2) return;
+            const remaining = [...this.mediaItems];
+            const ordered = [];
+            for (const thumb of thumbs) {
+                const el = thumb.querySelector('img, video');
+                if (!el) continue;
+                const src = (el.getAttribute('src') || '').split('#')[0];
+                const idx = remaining.findIndex(m => m.url && src.endsWith(m.url));
+                if (idx !== -1) ordered.push(remaining.splice(idx, 1)[0]);
+            }
+            this.mediaItems = ordered.concat(remaining);
+        },
+
         handleFileDrop(event) {
+            // A thumbnail dragged onto the dropzone is a reorder that missed,
+            // not an upload — it carries no files.
+            if (this.draggedThumb) return;
             const files = event.dataTransfer.files;
             if (files.length > 0) {
                 this.processFiles(Array.from(files));
@@ -2974,6 +3109,9 @@ function composerApp() {
                     if (inserted && window.htmx) {
                         window.htmx.process(inserted.parentElement);
                     }
+                    // The new thumbnail joins the end of the carousel; record
+                    // it so a save after an upload keeps the arranged order.
+                    self.syncMediaOrder();
                     if (self.autosavedPostId && !self.uploadUrl.includes(self.autosavedPostId)) {
                         self.uploadUrl = `/workspace/{{ workspace.id }}/compose/${self.autosavedPostId}/upload-media/`;
                     }
