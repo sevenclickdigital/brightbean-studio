@@ -441,19 +441,29 @@ def _start_graph_run(message: InboxMessage, rule: AutomationRule, details: list[
 
 
 def _first_step_id(graph: dict) -> str:
-    """The node a run starts at: whatever the trigger points to.
+    """The node a run starts at: the trigger itself.
 
-    The trigger itself is not executed — it is the condition that got us here,
-    not a step — so the walk begins at its first outgoing edge. A graph with no
-    trigger falls back to the first message node, which is the forgiving reading
-    of a flow drawn by an older editor or edited by hand.
+    The trigger is not a step and sends nothing — ``engine._advance`` passes
+    straight through it — so starting there costs nothing and gains the thing
+    that matters: the walk then follows *every* edge leaving it. Naming one
+    successor instead would silently drop the other branch of a flow that fans
+    out to a public reply and a DM.
+
+    A graph with no trigger falls back to the first message node, which is the
+    forgiving reading of a flow drawn by an older editor or edited by hand.
     """
-    from apps.automations.engine import _next_node_id, _nodes_by_id
+    from apps.automations.engine import _nodes_by_id
 
     nodes = _nodes_by_id(graph)
     for node_id, node in nodes.items():
         if node.get("type") == "trigger_comment":
-            return _next_node_id(graph, node_id)
+            # The trigger itself, not its successor. The walk passes straight
+            # through a trigger without executing it, and starting *there*
+            # lets it follow every outgoing edge — a trigger that fans out to
+            # a public reply and a DM would otherwise deliver only whichever
+            # edge happened to be named here, with the other branch never
+            # running at all.
+            return node_id
     for node_id, node in nodes.items():
         if node.get("type") in {"send_dm", "reply_comment", "send_card"}:
             return node_id
