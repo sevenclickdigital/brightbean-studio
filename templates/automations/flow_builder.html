@@ -15,6 +15,18 @@
     change to that page's layout, which is not this feature's to make.
     {% endcomment %}
     .flow-shell { margin: -0.75rem; display: flex; flex-direction: column; height: calc(100% + 1.5rem); overflow: hidden; }
+
+    {% comment %}
+    While a gesture is in flight, nothing on the canvas is selectable. The
+    per-handler ``preventDefault`` calls stop a selection from *starting*;
+    this stops one from growing if any path was missed, and it is a single
+    rule rather than an audit of every way a press can reach the canvas.
+
+    Inputs opt back in: a drag that began on the node body must not stop
+    someone selecting the text they are editing once the gesture ends.
+    {% endcomment %}
+    .flow-shell.is-gesturing, .flow-shell.is-gesturing * { user-select: none; -webkit-user-select: none; }
+    .flow-shell.is-gesturing input, .flow-shell.is-gesturing textarea { user-select: text; -webkit-user-select: text; }
     :has(> .flow-shell) { overflow: visible !important; }
     @media (min-width: 640px) {
         .flow-shell { margin: -1rem; height: calc(100% + 2rem); }
@@ -45,7 +57,8 @@ Edges are drawn in a single SVG sitting *under* the node layer and sharing its
 transform, so a line's endpoints and the boxes they join cannot drift apart at
 any zoom level.
 {% endcomment %}
-<div class="flow-shell" x-data="flowBuilder()" x-init="init()">
+<div class="flow-shell" x-data="flowBuilder()" x-init="init()"
+     :class="{ 'is-gesturing': dragging || panning || linking }">
 
     <!-- Toolbar ------------------------------------------------------------ -->
     <div class="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-200 shrink-0">
@@ -548,10 +561,10 @@ any zoom level.
                     <template x-if="node.type === 'condition'">
                         <div>
                             <div class="absolute -right-2 top-1/3 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-green-400 hover:border-green-600 cursor-crosshair transition-colors"
-                                 @mousedown.stop="startLink(node, $event, 'true')"></div>
+                                 @mousedown.stop.prevent="startLink(node, $event, 'true')"></div>
                             <span class="absolute -right-9 top-1/3 -translate-y-1/2 text-[9px] font-semibold text-green-600">{% translate "YES" %}</span>
                             <div class="absolute -right-2 top-2/3 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-stone-500 cursor-crosshair transition-colors"
-                                 @mousedown.stop="startLink(node, $event, 'false')"></div>
+                                 @mousedown.stop.prevent="startLink(node, $event, 'false')"></div>
                             <span class="absolute -right-8 top-2/3 -translate-y-1/2 text-[9px] font-semibold text-stone-400">{% translate "NO" %}</span>
                         </div>
                     </template>
@@ -566,14 +579,14 @@ any zoom level.
                             <template x-for="(btn, bi) in replyButtons(node)" :key="'port-' + bi">
                                 <div class="absolute -right-2 w-4 h-4 rounded-full bg-white border-2 border-orange-300 hover:border-orange-500 cursor-crosshair transition-colors"
                                      :style="`top: ${(bi + 1) * 100 / (replyButtonCount(node) + 1)}%; transform: translateY(-50%);`"
-                                     @mousedown.stop="startLink(node, $event, String(btn.index))"></div>
+                                     @mousedown.stop.prevent="startLink(node, $event, String(btn.index))"></div>
                             </template>
                         </div>
                     </template>
 
                     <template x-if="node.type !== 'condition' && replyButtonCount(node) === 0">
                         <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-orange-500 cursor-crosshair transition-colors"
-                             @mousedown.stop="startLink(node, $event)"></div>
+                             @mousedown.stop.prevent="startLink(node, $event)"></div>
                     </template>
                     {% comment %}
                     No ``.stop`` on this one. Stopping propagation here keeps
@@ -954,6 +967,22 @@ function flowBuilder() {
 
         // --- Dragging and panning --------------------------------------
         startDrag(node, event) {
+            // Cancel the browser's own text selection. A press-and-move with
+            // the button held is a drag to us and a text selection to the
+            // browser, so without this the whole card highlights blue as the
+            // node moves — and on release the selection stays, swallowing the
+            // next keystroke.
+            //
+            // Not prevented when the press landed on something the user is
+            // meant to type in or operate: preventDefault there would stop the
+            // field taking focus, and the node body is full of them.
+            const t = event.target;
+            const tag = t && t.tagName;
+            const interactive =
+                tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' ||
+                tag === 'BUTTON' || tag === 'OPTION' || (t && t.isContentEditable);
+            if (!interactive) event.preventDefault();
+
             this.dragging = node.id;
             const point = this.toCanvas(event);
             this.origin = { x: point.x - node.x, y: point.y - node.y };
@@ -974,6 +1003,10 @@ function flowBuilder() {
             if (!(event.target && event.target.hasAttribute && event.target.hasAttribute('data-edge'))) {
                 this.selectedEdge = null;
             }
+            // Same text-selection guard as ``startDrag``: dragging the canvas
+            // to pan would otherwise sweep a selection across everything the
+            // pointer passed over.
+            if (this.canPan(event)) event.preventDefault();
             // Panning is deliberately *not* the default gesture. A canvas that
             // pans on any press makes every near-miss on a line or a port move
             // the view instead, which is what made hovering an edge feel
@@ -1030,11 +1063,27 @@ function flowBuilder() {
         },
 
         onUp() {
+            const wasGesturing = this.dragging || this.panning || this.linking;
             this.dragging = null;
             this.panning = false;
             // A link released over empty canvas is abandoned rather than left
             // dangling, so the dashed line cannot outlive the gesture.
             this.linking = null;
+
+            // Clear anything the browser managed to select before the guards
+            // took effect — a highlight left behind outlives the gesture and
+            // swallows the next keystroke. Only after a gesture, so it never
+            // interferes with someone deliberately selecting text to copy.
+            if (wasGesturing) {
+                const sel = window.getSelection && window.getSelection();
+                if (sel && !sel.isCollapsed) {
+                    const a = document.activeElement;
+                    const tag = a && a.tagName;
+                    // Not inside a field they are editing: that selection is
+                    // theirs, not a side effect of the drag.
+                    if (tag !== 'INPUT' && tag !== 'TEXTAREA') sel.removeAllRanges();
+                }
+            }
         },
 
         // A gesture can end without a ``mouseup`` the component ever sees: the
