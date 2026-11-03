@@ -242,14 +242,23 @@ def _readonly_rejection(request, post):
 
 
 def _apply_facebook_feed_extras(request, extra, acc_id):
-    """Record the Facebook panel's place and feeling choices on ``extra``.
+    """Record the Facebook customize card's place and feeling on ``extra``.
 
-    Both are optional decorations, so an empty field clears the stored value
-    rather than leaving a stale one behind. The feeling is validated against
-    the ids we offer; the place is a Page id we only ever got from our own
-    search endpoint.
+    Gated on its own marker rather than the panel's: these live in the
+    per-platform customize card, which the user opens on demand, so their
+    fields are absent from a save where it was never opened. Clearing on
+    absence would make every ordinary save wipe a place set earlier.
+
+    Once the card *is* open, an empty field does clear the stored value —
+    that is how a place is removed.
+
+    The feeling is validated against the ids we offer; the place is a Page id
+    we only ever got from our own search endpoint.
     """
     from providers.meta_feed_extras import FEELING_IDS
+
+    if f"facebook_custom_{acc_id}" not in request.POST:
+        return
 
     place_id = request.POST.get(f"facebook_place_id_{acc_id}", "").strip()
     place_name = request.POST.get(f"facebook_place_name_{acc_id}", "").strip()
@@ -300,31 +309,38 @@ def _sync_platform_posts(request, post, workspace, initial_status=None):
         pp.platform_specific_first_comment = override_comment if override_comment else None
 
         # Per-platform extras
-        if account.platform == "facebook" and f"facebook_panel_{acc_id}" in request.POST:
-            # Gated on the panel's hidden marker, which the composer renders for
-            # every selected Facebook account regardless of media: that keeps a
-            # non-composer save from wiping extras it never rendered, while
-            # still letting a composer save clear a hint whose video is gone.
+        if account.platform == "facebook":
+            # Two independent markers, because the two halves are rendered in
+            # different places and either can be absent from a given save:
             #
-            # The Reel selector itself is omitted when the attachment set is not
-            # exactly one video. Clearing an earlier choice in that case is what
-            # stops removing or replacing media from leaving a stale Reel hint
-            # that sends a text or image post to Facebook's Reel endpoint.
+            #   facebook_panel_*  the Reel selector, rendered for every
+            #                     selected Facebook account
+            #   facebook_custom_* place and feeling, in the customize card the
+            #                     user opens on demand
+            #
+            # Each half only touches its own keys when its marker arrives, so a
+            # save that renders one cannot wipe what the other stored.
             extra = {**(pp.platform_extra or {})}
-            facebook_post_type = request.POST.get(f"facebook_post_type_{acc_id}", "").strip()
-            media_types = list(post.media_attachments.values_list("media_asset__media_type", flat=True)[:2])
-            has_exactly_one_video = media_types == ["video"]
-            if facebook_post_type == "reel" and has_exactly_one_video:
-                extra["post_type"] = "reel"
-            else:
-                # Only the deviation from the default is worth storing. A lone
-                # video already infers PostType.VIDEO at publish time, so a
-                # "video" hint restates what the media says and can only go
-                # wrong: if the attachment is later swapped for an image
-                # through the media endpoints, the hint would still route it to
-                # Facebook's video endpoint. Choosing regular video therefore
-                # clears the hint rather than recording it.
-                extra.pop("post_type", None)
+            if f"facebook_panel_{acc_id}" in request.POST:
+                # The Reel selector itself is omitted when the attachment set is
+                # not exactly one video. Clearing an earlier choice in that case
+                # is what stops removing or replacing media from leaving a stale
+                # Reel hint that sends a text or image post to Facebook's Reel
+                # endpoint.
+                facebook_post_type = request.POST.get(f"facebook_post_type_{acc_id}", "").strip()
+                media_types = list(post.media_attachments.values_list("media_asset__media_type", flat=True)[:2])
+                has_exactly_one_video = media_types == ["video"]
+                if facebook_post_type == "reel" and has_exactly_one_video:
+                    extra["post_type"] = "reel"
+                else:
+                    # Only the deviation from the default is worth storing. A
+                    # lone video already infers PostType.VIDEO at publish time,
+                    # so a "video" hint restates what the media says and can
+                    # only go wrong: if the attachment is later swapped for an
+                    # image through the media endpoints, the hint would still
+                    # route it to Facebook's video endpoint. Choosing regular
+                    # video therefore clears the hint rather than recording it.
+                    extra.pop("post_type", None)
             _apply_facebook_feed_extras(request, extra, acc_id)
             pp.platform_extra = extra
 

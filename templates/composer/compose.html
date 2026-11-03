@@ -697,28 +697,20 @@
                 </div>
 
                 {% comment %}
-                Facebook Page settings. Shown for every selected Facebook
-                account, not only when a video is attached: place and feeling
-                apply to any post. The Reel selector inside stays gated on the
-                attachment being exactly one video.
+                Facebook video destination. Separate from the customize card
+                below (which carries place and feeling) because this one is
+                about the attachment, not about styling the post: it has to
+                appear whenever a lone video is attached, so that removing the
+                video can clear a stale Reel hint.
                 {% endcomment %}
-                <template x-for="accId in selectedAccounts" :key="'facebook-settings-' + accId">
-                    <div x-show="charLimits[accId]?.platform === 'facebook'"
-                         x-data="{
-                             facebookPostType: platformExtras[accId]?.post_type || 'video',
-                             placeId: platformExtras[accId]?.place_id || '',
-                             placeName: platformExtras[accId]?.place_name || '',
-                             placeQuery: '',
-                             placeResults: [],
-                             placeSearching: false,
-                             placeTimer: null,
-                             feeling: platformExtras[accId]?.feeling_object_id || '',
-                         }"
+                <template x-for="accId in selectedAccounts" :key="'facebook-video-settings-' + accId">
+                    <div x-show="charLimits[accId]?.platform === 'facebook' && hasSingleVideoAttached"
+                         x-data="{ facebookPostType: platformExtras[accId]?.post_type || 'video' }"
                          class="border border-stone-200 rounded-xl bg-white p-4 space-y-3">
                         {% comment %}
-                        Marks the panel as present in the submit, so a save can clear a
-                        stale Reel hint (or a removed place) but a non-composer save can
-                        never wipe extras it never rendered.
+                        Marks the panel as present in the submit even when no video is
+                        attached, so a save can clear a stale Reel hint but a non-composer
+                        save can never wipe extras it never rendered.
                         {% endcomment %}
                         <input type="hidden" :name="'facebook_panel_' + accId" value="1"
                                :disabled="charLimits[accId]?.platform !== 'facebook'">
@@ -727,11 +719,10 @@
                                   :class="'pi-' + (charLimits[accId]?.platform || '')"
                                   x-html="platformIconSvg(charLimits[accId]?.platform || '')"></span>
                             <span class="text-xs font-semibold text-stone-600">
-                                <span x-text="charLimits[accId]?.name"></span> — {% translate "Facebook settings" %}
+                                <span x-text="charLimits[accId]?.name"></span> — {% translate "Video settings" %}
                             </span>
                         </div>
-
-                        <div x-show="hasSingleVideoAttached">
+                        <div>
                             <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Publish as" %}</label>
                             <select :name="'facebook_post_type_' + accId"
                                     x-model="facebookPostType"
@@ -741,72 +732,6 @@
                                 <option value="reel">{% translate "Facebook Reel" %}</option>
                             </select>
                             <p class="text-[11px] text-stone-400 mt-1">{% translate "Reels use Facebook's dedicated vertical-video flow and must be 3-90 seconds. Regular Page video suits long-form and landscape uploads." %}</p>
-                        </div>
-
-                        {% comment %}
-                        Location. Keyword search only — Meta retired the endpoint that
-                        searched by coordinates in 2020 and never replaced it, so there
-                        is no "near me" to offer.
-                        {% endcomment %}
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Location" %}</label>
-                            <input type="hidden" :name="'facebook_place_id_' + accId" :value="placeId"
-                                   :disabled="charLimits[accId]?.platform !== 'facebook'">
-                            <input type="hidden" :name="'facebook_place_name_' + accId" :value="placeName"
-                                   :disabled="charLimits[accId]?.platform !== 'facebook'">
-
-                            <div x-show="placeId" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-stone-50 border border-stone-200">
-                                <span class="text-sm text-stone-700 truncate" x-text="placeName"></span>
-                                <button type="button"
-                                        @click="placeId = ''; placeName = ''; placeQuery = ''; placeResults = []"
-                                        class="text-xs text-stone-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0">
-                                    {% translate "Remove" %}
-                                </button>
-                            </div>
-
-                            <div x-show="!placeId" class="relative">
-                                <input type="text"
-                                       x-model="placeQuery"
-                                       @input="
-                                           clearTimeout(placeTimer);
-                                           const q = placeQuery.trim();
-                                           if (q.length < 2) { placeResults = []; return; }
-                                           placeTimer = setTimeout(() => {
-                                               placeSearching = true;
-                                               fetch(`/workspace/{{ workspace.id }}/compose/facebook-places/${accId}/?q=` + encodeURIComponent(q))
-                                                   .then(r => r.json())
-                                                   .then(d => { placeResults = d.places || []; })
-                                                   .catch(() => { placeResults = []; })
-                                                   .finally(() => { placeSearching = false; });
-                                           }, 350);
-                                       "
-                                       placeholder="{% translate 'Search for a place' %}"
-                                       class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
-                                <div x-show="placeResults.length"
-                                     class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-lg shadow-lg p-1 z-20 max-h-48 overflow-y-auto">
-                                    <template x-for="place in placeResults" :key="place.id">
-                                        <button type="button" class="place-result"
-                                                @click="placeId = place.id; placeName = place.name; placeResults = []">
-                                            <span class="block text-sm text-stone-700" x-text="place.name"></span>
-                                            <span class="block text-[11px] text-stone-400" x-text="place.where"></span>
-                                        </button>
-                                    </template>
-                                </div>
-                                <p x-show="placeSearching" class="text-[11px] text-stone-400 mt-1">{% translate "Searching…" %}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Feeling / activity" %}</label>
-                            <select :name="'facebook_feeling_' + accId"
-                                    x-model="feeling"
-                                    :disabled="charLimits[accId]?.platform !== 'facebook'"
-                                    class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
-                                <option value="">{% translate "None" %}</option>
-                                {% for item in facebook_feelings %}
-                                <option value="{{ item.id }}">{{ item.label }}</option>
-                                {% endfor %}
-                            </select>
                         </div>
                     </div>
                 </template>
@@ -1374,39 +1299,138 @@
                                 @click="overrides[accId] = !overrides[accId]"
                                 x-show="!overrides[accId]">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                            <span x-text="'Customize ' + (charLimits[accId]?.platform === 'youtube' ? 'YouTube' : (charLimits[accId]?.platform || ''))"></span>
+                            {% comment %}
+                            The account name rather than the platform slug: with
+                            two Facebook Pages selected, "Customize facebook"
+                            twice says nothing about which chip is which.
+                            {% endcomment %}
+                            <span x-text="cLabel('customize') + ' ' + (charLimits[accId]?.name || '')"></span>
                         </button>
                     </template>
                 </div>
 
-                <!-- Platform-specific overrides -->
+                {% comment %}
+                Per-platform customization: a caption (and title, where the
+                platform has one) that replaces the shared one for this channel
+                only, plus whatever else that platform alone can carry —
+                Facebook's place and feeling.
+
+                Opened on demand from the "Customize" chips above, so its fields
+                are absent from a save where it was never opened. Each group
+                carries its own hidden marker so the save can tell "left blank"
+                (clear it) from "not rendered" (leave it alone).
+                {% endcomment %}
                 <template x-for="accId in selectedAccounts" :key="'override-' + accId">
                     <div class="border border-stone-200 rounded-xl bg-white p-4"
-                         x-show="overrides[accId]" x-transition>
+                         x-show="overrides[accId]" x-transition
+                         x-data="{
+                             placeId: platformExtras[accId]?.place_id || '',
+                             placeName: platformExtras[accId]?.place_name || '',
+                             placeQuery: '',
+                             placeResults: [],
+                             placeSearching: false,
+                             placeTimer: null,
+                             feeling: platformExtras[accId]?.feeling_object_id || '',
+                         }">
                         <div class="flex items-center gap-2 mb-3">
                             <span class="platform-icon w-5 h-5 rounded-[5px] flex items-center justify-center"
                                   :class="'pi-' + (charLimits[accId]?.platform || '')"
                                   x-html="platformIconSvg(charLimits[accId]?.platform || '')"></span>
-                            <span class="text-xs font-semibold text-stone-600" x-text="charLimits[accId]?.name + ' - Custom Override'"></span>
+                            <span class="text-xs font-semibold text-stone-600">
+                                <span x-text="charLimits[accId]?.name"></span> — {% translate "Customization" %}
+                            </span>
                             <button type="button" class="ml-auto text-xs text-red-400 hover:text-red-500 cursor-pointer" @click="overrides[accId] = false">{% translate "Remove override" %}</button>
                         </div>
                         <!-- Title override (only for platforms that need it) -->
                         <template x-if="charLimits[accId]?.needs_title">
                             <div class="mb-3">
                                 <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1"
-                                       x-text="(charLimits[accId]?.title_label || 'Title') + ' Override'"></label>
+                                       x-text="(charLimits[accId]?.title_label || cLabel('title')) + ' — ' + cLabel('override-suffix')"></label>
                                 <input type="text" :name="'override_title_' + accId"
                                        class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all"
-                                       :placeholder="'Custom ' + (charLimits[accId]?.title_label || 'title') + '…'"
+                                       :placeholder="cLabel('own-title')"
                                        :maxlength="charLimits[accId]?.title_max_length || 255">
                             </div>
                         </template>
+                        <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Caption for this channel" %}</label>
                         <textarea :name="'override_caption_' + accId"
                                   class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all resize-none"
                                   style="font-family: system-ui, -apple-system, sans-serif;"
-                                  :placeholder="'Custom ' + (charLimits[accId]?.caption_label || 'caption') + ' for this platform...'"
+                                  :placeholder="cLabel('own-caption')"
                                   rows="3"></textarea>
 
+                        {% comment %}
+                        Facebook-only extras. The marker is what tells the save
+                        these fields were on screen, so an empty place field
+                        means "remove it" rather than "never asked".
+                        {% endcomment %}
+                        <template x-if="charLimits[accId]?.platform === 'facebook'">
+                            <div class="mt-3 pt-3 border-t border-stone-100 space-y-3">
+                                <input type="hidden" :name="'facebook_custom_' + accId" value="1">
+
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Location" %}</label>
+                                    <input type="hidden" :name="'facebook_place_id_' + accId" :value="placeId">
+                                    <input type="hidden" :name="'facebook_place_name_' + accId" :value="placeName">
+
+                                    <div x-show="placeId" class="flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-stone-50 border border-stone-200">
+                                        <span class="text-sm text-stone-700 truncate" x-text="placeName"></span>
+                                        <button type="button"
+                                                @click="placeId = ''; placeName = ''; placeQuery = ''; placeResults = []"
+                                                class="text-xs text-stone-400 hover:text-red-500 transition-colors cursor-pointer flex-shrink-0">
+                                            {% translate "Remove" %}
+                                        </button>
+                                    </div>
+
+                                    {% comment %}
+                                    Keyword search only — Meta retired the endpoint that
+                                    searched by coordinates in 2020 and never replaced it,
+                                    so there is no "near me" to offer.
+                                    {% endcomment %}
+                                    <div x-show="!placeId" class="relative">
+                                        <input type="text"
+                                               x-model="placeQuery"
+                                               @input="
+                                                   clearTimeout(placeTimer);
+                                                   const q = placeQuery.trim();
+                                                   if (q.length < 2) { placeResults = []; return; }
+                                                   placeTimer = setTimeout(() => {
+                                                       placeSearching = true;
+                                                       fetch(`/workspace/{{ workspace.id }}/compose/facebook-places/${accId}/?q=` + encodeURIComponent(q))
+                                                           .then(r => r.json())
+                                                           .then(d => { placeResults = d.places || []; })
+                                                           .catch(() => { placeResults = []; })
+                                                           .finally(() => { placeSearching = false; });
+                                                   }, 350);
+                                               "
+                                               placeholder="{% translate 'Search for a place' %}"
+                                               class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                        <div x-show="placeResults.length"
+                                             class="absolute left-0 right-0 top-full mt-1 bg-white border border-stone-200 rounded-lg shadow-lg p-1 z-20 max-h-48 overflow-y-auto">
+                                            <template x-for="place in placeResults" :key="place.id">
+                                                <button type="button" class="place-result"
+                                                        @click="placeId = place.id; placeName = place.name; placeResults = []">
+                                                    <span class="block text-sm text-stone-700" x-text="place.name"></span>
+                                                    <span class="block text-[11px] text-stone-400" x-text="place.where"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                        <p x-show="placeSearching" class="text-[11px] text-stone-400 mt-1">{% translate "Searching…" %}</p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1">{% translate "Feeling / activity" %}</label>
+                                    <select :name="'facebook_feeling_' + accId" x-model="feeling"
+                                            class="w-full text-sm px-3 py-2 rounded-lg border border-stone-200 bg-white outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                        <option value="">{% translate "None" %}</option>
+                                        {% for item in facebook_feelings %}
+                                        <option value="{{ item.id }}">{{ item.label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </template>
                     </div>
                 </template>
 
@@ -2326,6 +2350,10 @@
 {% translate "Schedule" as lbl_c_schedule %}
 {% translate "Publish now" as lbl_c_publish_now %}
 {% translate "Publish" as lbl_c_publish %}
+{% translate "override" as lbl_c_override_suffix %}
+{% translate "Own title for this channel…" as lbl_c_own_title %}
+{% translate "Own caption for this channel…" as lbl_c_own_caption %}
+{% translate "Customize" as lbl_c_customize %}
 {{ lbl_c_saved|json_script:"c-saved" }}
 {{ lbl_c_not_saved|json_script:"c-not-saved" }}
 {{ lbl_c_caption|json_script:"c-caption" }}
@@ -2336,6 +2364,10 @@
 {{ lbl_c_schedule|json_script:"c-schedule" }}
 {{ lbl_c_publish_now|json_script:"c-publish-now" }}
 {{ lbl_c_publish|json_script:"c-publish" }}
+{{ lbl_c_override_suffix|json_script:"c-override-suffix" }}
+{{ lbl_c_own_title|json_script:"c-own-title" }}
+{{ lbl_c_own_caption|json_script:"c-own-caption" }}
+{{ lbl_c_customize|json_script:"c-customize" }}
 {{ selected_account_ids|json_script:"composer-selected-accounts" }}
 <script nonce="{{ request.csp_nonce }}">
 // Reads a label the template translated and left in a json_script tag. Same

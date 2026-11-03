@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 23:38+0000\n"
+"POT-Creation-Date: 2026-11-03 23:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -1933,8 +1933,8 @@ msgstr "Inserir emoji"
 msgid "Emoji"
 msgstr "Emoji"
 
-msgid "Facebook settings"
-msgstr "Configurações do Facebook"
+msgid "Video settings"
+msgstr "Configurações de vídeo"
 
 msgid "Publish as"
 msgstr "Publicar como"
@@ -1947,24 +1947,6 @@ msgstr "Reel do Facebook"
 
 msgid "Reels use Facebook's dedicated vertical-video flow and must be 3-90 seconds. Regular Page video suits long-form and landscape uploads."
 msgstr "Os Reels usam o fluxo de vídeo vertical do Facebook e precisam ter de 3 a 90 segundos. O vídeo comum da página serve para conteúdo longo e no formato horizontal."
-
-msgid "Location"
-msgstr "Localização"
-
-msgid "Remove"
-msgstr "Remover"
-
-msgid "Search for a place"
-msgstr "Buscar um local"
-
-msgid "Searching…"
-msgstr "Buscando…"
-
-msgid "Feeling / activity"
-msgstr "Sentimento / atividade"
-
-msgid "None"
-msgstr "Nenhum"
 
 msgid "Pinterest needs an image or a video."
 msgstr "O Pinterest precisa de uma imagem ou um vídeo."
@@ -2019,6 +2001,9 @@ msgstr "Descreva este pin para acessibilidade…"
 
 msgid "Video Cover Image"
 msgstr "Imagem de capa do vídeo"
+
+msgid "Remove"
+msgstr "Remover"
 
 msgid "Required for video pins. PNG or JPG, same dimensions as video."
 msgstr "Obrigatória para pins de vídeo. PNG ou JPG, nas mesmas dimensões do vídeo."
@@ -2134,8 +2119,29 @@ msgstr "Confirmação de Uso de Música"
 msgid "After you publish, it may take a few minutes for your video to process and appear on your TikTok profile."
 msgstr "Depois de publicar, pode levar alguns minutos até o vídeo ser processado e aparecer no seu perfil do TikTok."
 
+msgid "Customization"
+msgstr "Personalização"
+
 msgid "Remove override"
 msgstr "Remover personalização"
+
+msgid "Caption for this channel"
+msgstr "Legenda para este canal"
+
+msgid "Location"
+msgstr "Localização"
+
+msgid "Search for a place"
+msgstr "Buscar um local"
+
+msgid "Searching…"
+msgstr "Buscando…"
+
+msgid "Feeling / activity"
+msgstr "Sentimento / atividade"
+
+msgid "None"
+msgstr "Nenhum"
 
 msgid "Comment automation"
 msgstr "Automação de comentários"
@@ -2320,6 +2326,18 @@ msgstr "Definir data e hora"
 
 msgid "Publish now"
 msgstr "Publicar agora"
+
+msgid "override"
+msgstr "personalizado"
+
+msgid "Own title for this channel…"
+msgstr "Título próprio para este canal…"
+
+msgid "Own caption for this channel…"
+msgstr "Legenda própria para este canal…"
+
+msgid "Customize"
+msgstr "Personalizar"
 
 msgid "New Idea"
 msgstr "Nova ideia"
@@ -4241,9 +4259,6 @@ msgstr "Participações no workspace"
 
 msgid "Yes, delete this workspace"
 msgstr "Sim, excluir este workspace"
-
-#~ msgid "Connect channels"
-#~ msgstr "Conectar canais"
 
 #~ msgid "emoji.n"
 #~ msgstr "emoji.n"
