@@ -3,7 +3,7 @@
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
 from apps.publisher.engine import MAX_RETRIES, RETRY_BACKOFF, PublishEngine, _resolve_publish_credentials
@@ -354,6 +354,9 @@ class ResolvePublishCredentialsTest(SimpleTestCase):
         self.assertNotIn("pds_url", credentials)
 
 
+# The pre-flight blocker message is translated; pin English so these assert
+# on the refusal rather than on the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class NonRetryableFailureTest(TestCase):
     """_publish_platform_post must honor the exception's ``retryable`` flag."""
 

@@ -26,6 +26,15 @@ from apps.social_accounts.models import SocialAccount
 MCP_URL = "/api/v1/mcp/"
 
 
+@pytest.fixture(autouse=True)
+def _english(settings):
+    """The blocker messages are translated and the project defaults to pt-br.
+
+    These tests assert on the rule, not on the catalogue, so pin English.
+    """
+    settings.LANGUAGE_CODE = "en-us"
+
+
 class _SecureClient(Client):
     def generic(self, method, path, *args, **kwargs):
         kwargs["secure"] = True

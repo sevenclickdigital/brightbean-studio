@@ -8,7 +8,7 @@ ones, cascading away their PublishLog history.
 
 from datetime import timedelta
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -22,6 +22,9 @@ from apps.social_accounts.models import SocialAccount
 from apps.workspaces.models import Workspace
 
 
+# Several of these assert on blocker messages, which are translated while the
+# project defaults to pt-br. Pin English so they test the rule, not the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class AccountScopeTestsBase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

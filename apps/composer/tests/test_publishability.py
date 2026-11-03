@@ -8,7 +8,7 @@ fail at publish time, usually after the post's other platforms went out.
 
 from datetime import timedelta
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 
 from apps.composer.models import PlatformPost, Post, PostMedia
@@ -22,6 +22,9 @@ IMAGE = {MediaAsset.MediaType.IMAGE}
 VIDEO = {MediaAsset.MediaType.VIDEO}
 
 
+# The blocker messages are translated, and the project's default language
+# is pt-br. Pin English so these assert on the rule, not the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class PublishBlockerTest(TestCase):
     def _account(self, platform):
         return SocialAccount(platform=platform)
@@ -52,6 +55,7 @@ class PublishBlockerTest(TestCase):
                 assert publish_blocker(self._account(platform), media_types=set()) == ""
 
 
+@override_settings(LANGUAGE_CODE="en-us")
 class ServiceSchedulingTest(TestCase):
     def setUp(self):
         self.org = Organization.objects.create(name="Org")

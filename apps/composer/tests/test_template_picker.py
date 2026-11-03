@@ -4,7 +4,7 @@ Guards the workspace scoping of saved post templates surfaced through the
 "Use Template" picker on the composer page (issue #46).
 """
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -15,6 +15,9 @@ from apps.organizations.models import Organization
 from apps.workspaces.models import Workspace
 
 
+# This asserts on rendered copy, which is translated while the project
+# defaults to pt-br. Pin English so it tests the markup, not the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class TemplatePickerTests(TestCase):
     """GET /workspace/<id>/composer/templates/picker/"""
 

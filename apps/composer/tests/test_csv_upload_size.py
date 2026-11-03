@@ -1,7 +1,7 @@
 """Tests for the CSV upload size cap (DoS guard)."""
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -12,6 +12,8 @@ from apps.organizations.models import Organization
 from apps.workspaces.models import Workspace
 
 
+# The size-cap message is translated; pin English so this asserts on the cap.
+@override_settings(LANGUAGE_CODE="en-us")
 class CSVUploadSizeCapTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

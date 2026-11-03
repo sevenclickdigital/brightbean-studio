@@ -13,7 +13,7 @@ partially-published post stays fully workable.
 
 import re
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -88,6 +88,9 @@ class ReadonlyComposerTestsBase(TestCase):
         return reverse("composer:autosave_edit", kwargs={"workspace_id": self.ws.id, "post_id": post.id})
 
 
+# This asserts on rendered copy, which is translated while the project
+# defaults to pt-br. Pin English so it tests the markup, not the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class ActionBarGatingTests(ReadonlyComposerTestsBase):
     """What the composer offers, per derived post status."""
 

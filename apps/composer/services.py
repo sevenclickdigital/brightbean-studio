@@ -18,6 +18,8 @@ import uuid
 from collections.abc import Iterable
 from typing import Any
 
+from django.utils.translation import gettext as _
+
 
 def sync_post_scheduled_at(post):
     """Keep ``Post.scheduled_at`` in sync with the earliest child time.
@@ -166,7 +168,7 @@ def create_post(
                 return None
 
         resolved = [(mid, _to_uuid(mid)) for mid in media_ids]
-        found = list(MediaAsset.objects.filter(id__in=[u for _, u in resolved if u is not None], workspace=workspace))
+        found = list(MediaAsset.objects.filter(id__in=[u for _key, u in resolved if u is not None], workspace=workspace))
         asset_map = {a.id: a for a in found}
         missing = [mid for mid, u in resolved if u is None or u not in asset_map]
         if missing:
@@ -437,9 +439,13 @@ def media_blocker(social_account, *, media_types) -> str:
 
     platform = social_account.get_platform_display()
     if is_video_only(social_account.platform) and MediaAsset.MediaType.VIDEO not in media_types:
-        return f"{platform} can only publish videos. Add a video to this post before scheduling it."
+        return _("%(platform)s can only publish videos. Add a video to this post before scheduling it.") % {
+            "platform": platform
+        }
     if requires_media(social_account.platform) and not media_types:
-        return f"{platform} needs an image or a video. Add one to this post before scheduling it."
+        return _("%(platform)s needs an image or a video. Add one to this post before scheduling it.") % {
+            "platform": platform
+        }
     return ""
 
 
@@ -457,7 +463,9 @@ def publish_blocker(social_account, *, media_types, platform_extra: dict | None 
     if reason:
         return reason
     if social_account.platform == "pinterest" and not (platform_extra or {}).get("board_id"):
-        return "Pinterest needs a board for every pin. Choose one for this post in the composer before scheduling it."
+        return _(
+            "Pinterest needs a board for every pin. Choose one for this post in the composer before scheduling it."
+        )
     return ""
 
 
@@ -494,9 +502,17 @@ def media_change_blocker(post, *, media_types_after) -> str:
     for child in children:
         if media_blocker(child.social_account, media_types=media_types_after):
             platform = child.social_account.get_platform_display()
-            need = "a video" if is_video_only(child.social_account.platform) else "an image or a video"
-            return (
-                f"This post is scheduled to {platform}, which needs {need} on it. "
-                f"Keep one on the post, or unschedule it for {platform} first."
-            )
+            # Two whole sentences rather than one with a slot for the media
+            # kind: a translation may need to reshape the clause around it.
+            if is_video_only(child.social_account.platform):
+                template = _(
+                    "This post is scheduled to %(platform)s, which needs a video on it. "
+                    "Keep one on the post, or unschedule it for %(platform)s first."
+                )
+            else:
+                template = _(
+                    "This post is scheduled to %(platform)s, which needs an image or a video on it. "
+                    "Keep one on the post, or unschedule it for %(platform)s first."
+                )
+            return template % {"platform": platform}
     return ""

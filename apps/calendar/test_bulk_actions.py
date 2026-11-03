@@ -11,7 +11,7 @@ import zoneinfo
 from datetime import UTC, date, datetime, timedelta
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -601,6 +601,9 @@ class ReschedulePermissionTests(BulkActionBase):
         self.assertEqual(pp.status, "published")
 
 
+# The blocker messages are translated; pin English so these assert on the
+# refusal rather than on the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class PublishabilityTests(BulkActionBase):
     """Both endpoints hand rows to the publisher, so neither may hand over one
     that can only fail there: an image-only TikTok post, a pin with no board."""

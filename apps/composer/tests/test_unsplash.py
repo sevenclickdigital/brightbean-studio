@@ -76,6 +76,9 @@ class ComposerTestCase(TestCase):
         self.client.force_login(self.user)
 
 
+# This asserts on rendered copy, which is translated while the project
+# defaults to pt-br. Pin English so it tests the markup, not the catalogue.
+@override_settings(LANGUAGE_CODE="en-us")
 class UnsplashButtonVisibilityTests(ComposerTestCase):
     """The composer only renders the Unsplash tile when an API key is set."""
 

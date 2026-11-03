@@ -5,7 +5,7 @@ from datetime import date, datetime, time, timedelta
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.test import RequestFactory, TestCase
+from django.test import RequestFactory, TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -31,6 +31,9 @@ from apps.social_accounts.models import SocialAccount
 from apps.workspaces.models import Workspace
 
 
+# Weekday names come from Django's own catalogue and the project defaults to
+# pt-br. Pin English so these assert on the slot, not on the translation.
+@override_settings(LANGUAGE_CODE="en-us")
 class PostingSlotModelTest(TestCase):
     """Test PostingSlot model."""
 
