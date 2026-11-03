@@ -127,21 +127,32 @@ def _nodes_by_id(graph: Any) -> dict[str, dict]:
     }
 
 
-def _next_node_id(graph: Any, node_id: str, *, branch: str = "") -> str:
-    """Which node follows ``node_id``, or ``""`` at the end of the flow.
+def _next_node_ids(graph: Any, node_id: str, *, branch: str = "") -> list[str]:
+    """Every node that follows ``node_id``, in drawn order. Empty at the end.
 
-    ``branch`` selects an edge by its label, which is how a condition node picks
-    between its two outputs (``"true"`` / ``"false"``). An unlabelled edge is
-    the default and matches any branch, so a condition whose author only wired
-    one output still goes somewhere instead of silently ending the flow.
+    **A node may have more than one successor, and all of them run.** That is
+    what lets one trigger fan out to a public reply *and* a DM — the shape
+    authors reach for first, and the one the two-channel path used to express
+    by having two reply channels rather than two edges. Returning a single id
+    would make the second connection a line the canvas drew and the engine
+    silently ignored.
+
+    ``branch`` selects edges by label, which is how a condition picks between
+    its two outputs (``"true"`` / ``"false"``) and how a reply button picks the
+    edge belonging to the button that was tapped. An unlabelled edge is the
+    default: it matches when no branch was asked for, and it is also the
+    fallback when a branch *was* asked for and nothing carries that label — so
+    a condition whose author only wired one output still goes somewhere
+    instead of silently ending the flow.
     """
     if not isinstance(graph, dict):
-        return ""
+        return []
     edges = graph.get("edges")
     if not isinstance(edges, list):
-        return ""
+        return []
 
-    fallback = ""
+    labelled: list[str] = []
+    unlabelled: list[str] = []
     for edge in edges:
         if not isinstance(edge, dict) or edge.get("from") != node_id:
             continue
@@ -149,11 +160,30 @@ def _next_node_id(graph: Any, node_id: str, *, branch: str = "") -> str:
         if not isinstance(target, str) or not target:
             continue
         label = edge.get("branch") or ""
-        if branch and label == branch:
-            return target
-        if not label and not fallback:
-            fallback = target
-    return fallback
+        if label:
+            if branch and label == branch:
+                labelled.append(target)
+        else:
+            unlabelled.append(target)
+
+    if branch:
+        # The labelled edges win outright when any exist; the unlabelled ones
+        # are the fallback for an output the author never wired.
+        return labelled or unlabelled
+    # No branch asked for: only the default edges. A labelled edge belongs to a
+    # specific button or condition outcome and must not fire on its own.
+    return unlabelled
+
+
+def _next_node_id(graph: Any, node_id: str, *, branch: str = "") -> str:
+    """The first successor of ``node_id``, or ``""``.
+
+    Kept for the callers that genuinely want one node — resuming a postback
+    picks a single edge, and ``actions._first_step_id`` names where a run
+    begins. The walk itself uses :func:`_next_node_ids`.
+    """
+    nodes = _next_node_ids(graph, node_id, branch=branch)
+    return nodes[0] if nodes else ""
 
 
 # ---------------------------------------------------------------------------
@@ -328,6 +358,77 @@ def _send_node(node: dict, run: FlowRun, context: dict) -> bool:
 # ---------------------------------------------------------------------------
 
 
+def _drain(
+    run: FlowRun,
+    graph: Any,
+    nodes: dict[str, dict],
+    pending: list[str],
+    visited: list[str],
+    context: dict,
+    sent: int,
+) -> None:
+    """Deliver the branches still queued when the run parked on a button.
+
+    A flow that fans out — public reply on one branch, a DM with a button on
+    the other — parks the moment the button goes out. Without this, whichever
+    branch happened to be queued behind it would never be delivered at all:
+    the run is waiting, and the resume picks up from the *button's* successor,
+    not from a sibling that never ran.
+
+    The parked state is already saved by the caller before this runs, so a
+    crash here costs the sibling branch and not the wait. Sends are attempted
+    one at a time against the same per-wake ceiling; nothing here can park
+    again, because a second button would have nothing to resume it — the run
+    holds one ``awaiting_node_id``, and it is already spoken for.
+    """
+    while pending and sent < MAX_STEPS_PER_WAKE:
+        node_id = pending.pop(0)
+        if not node_id or node_id in visited:
+            continue
+        node = nodes.get(node_id)
+        if node is None:
+            continue
+        visited.append(node_id)
+        node_type = node.get("type")
+
+        if node_type == "condition":
+            branch = "true" if evaluate_condition(node, context) else "false"
+            pending.extend(_next_node_ids(graph, node_id, branch=branch))
+            continue
+
+        if node_type in {"send_dm", "reply_comment", "send_card"}:
+            try:
+                delivered = _send_node(node, run, context)
+            except Exception as exc:
+                logger.warning(
+                    "Flow run %s failed to send sibling node %s error_type=%s",
+                    run.pk,
+                    node_id,
+                    type(exc).__name__,
+                )
+                continue
+            if not delivered:
+                continue
+            sent += 1
+            # A second button cannot park: the run already waits on one, and
+            # two parked nodes would make the next tap ambiguous. Its branch
+            # simply ends here.
+            if any(b.get("type") == "postback" for b in _node_buttons(node, run, context)):
+                logger.info(
+                    "Flow run %s has a second waiting node %s; its branch ends here.",
+                    run.pk,
+                    node_id,
+                )
+                continue
+            pending.extend(_next_node_ids(graph, node_id))
+            continue
+
+        pending.extend(_next_node_ids(graph, node_id))
+
+    run.visited_node_ids = visited
+    run.save(update_fields=["visited_node_ids", "updated_at"])
+
+
 def _advance(run: FlowRun, graph: Any, start_node_id: str, context: dict) -> None:
     """Walk from ``start_node_id`` until the flow waits, ends, or hits a bound.
 
@@ -337,26 +438,34 @@ def _advance(run: FlowRun, graph: Any, start_node_id: str, context: dict) -> Non
     """
     nodes = _nodes_by_id(graph)
     visited = list(run.visited_node_ids or [])
-    node_id = start_node_id
+    # A queue, not a cursor: a node may have several successors and all of them
+    # run, which is what lets one trigger fan out to a public reply and a DM.
+    # Breadth-first so sibling branches interleave in drawn order rather than
+    # one branch delivering everything before the other starts — the author
+    # drew them side by side and that is the order they read in.
+    pending = [start_node_id]
     sent = 0
 
-    while node_id:
-        if node_id in visited:
-            logger.info("Flow run %s revisited node %s; stopping to break the cycle.", run.pk, node_id)
-            break
+    while pending:
+        node_id = pending.pop(0)
+        if not node_id or node_id in visited:
+            # Already run in this run. Silently skipped rather than logged: two
+            # branches converging on one node is a normal drawing, not a cycle,
+            # and it reaches here exactly the same way.
+            continue
         node = nodes.get(node_id)
         if node is None:
             # The author deleted this node after the run parked on it. Ending is
             # the honest outcome: there is no step to deliver.
-            logger.info("Flow run %s points at missing node %s; ending.", run.pk, node_id)
-            break
+            logger.info("Flow run %s points at missing node %s; skipping.", run.pk, node_id)
+            continue
 
         visited.append(node_id)
         node_type = node.get("type")
 
         if node_type == "condition":
             branch = "true" if evaluate_condition(node, context) else "false"
-            node_id = _next_node_id(graph, node_id, branch=branch)
+            pending.extend(_next_node_ids(graph, node_id, branch=branch))
             continue
 
         if node_type in {"send_dm", "reply_comment", "send_card"}:
@@ -376,26 +485,32 @@ def _advance(run: FlowRun, graph: Any, start_node_id: str, context: dict) -> Non
                 )
                 delivered = False
             if not delivered:
-                break
+                # This branch stops; the others continue. One failed send is a
+                # reason not to deliver what came *after* it, not a reason to
+                # abandon a sibling branch that has nothing to do with it.
+                continue
             sent += 1
 
-            # A node carrying reply buttons ends the wake: the next step is the
-            # person's to take, and the run parks until their tap arrives.
+            # A node carrying reply buttons parks the run: the next step is the
+            # person's to take. Its own successors wait for the tap, but any
+            # sibling branch still queued is delivered first — those are not
+            # waiting on anything.
             if any(b.get("type") == "postback" for b in _node_buttons(node, run, context)):
                 run.awaiting_node_id = node_id
                 run.is_waiting = True
                 run.visited_node_ids = visited
                 run.save(update_fields=["awaiting_node_id", "is_waiting", "visited_node_ids", "updated_at"])
+                _drain(run, graph, nodes, pending, visited, context, sent)
                 return
 
-            node_id = _next_node_id(graph, node_id)
+            pending.extend(_next_node_ids(graph, node_id))
             continue
 
         # Trigger nodes and anything unrecognised: pass straight through. An
         # unknown type is a node a newer editor drew and this deploy cannot run;
         # skipping it keeps the rest of the flow working rather than stranding
         # the person at a step that will never execute.
-        node_id = _next_node_id(graph, node_id)
+        pending.extend(_next_node_ids(graph, node_id))
 
     # Fell out of the loop: nothing left to wait for.
     run.awaiting_node_id = ""

@@ -355,7 +355,7 @@ def compile_graph(graph: Any) -> CompiledFlow:
     return compiled
 
 
-def _is_sequential(nodes: list[dict[str, Any]]) -> bool:
+def _is_sequential(nodes: list[dict[str, Any]], graph: Any = None) -> bool:
     """Whether this drawing is one the graph executor runs step by step.
 
     The editor's half of ``actions._runs_as_graph``, asked of an unsaved
@@ -376,7 +376,23 @@ def _is_sequential(nodes: list[dict[str, Any]]) -> bool:
             message_nodes += 1
             if _has_buttons(node):
                 return True
-    return message_nodes > 2
+    if message_nodes > 2:
+        return True
+    # A node wired to two successors fans out, which only the graph executor
+    # walks. Mirrors ``actions._fans_out``.
+    edges = (graph or {}).get("edges") if isinstance(graph, dict) else None
+    if isinstance(edges, list):
+        seen: set[str] = set()
+        for edge in edges:
+            if not isinstance(edge, dict) or edge.get("branch"):
+                continue
+            source = edge.get("from")
+            if not isinstance(source, str) or not source:
+                continue
+            if source in seen:
+                return True
+            seen.add(source)
+    return False
 
 
 def _warnings(
@@ -417,7 +433,7 @@ def _warnings(
     # opposite of what happens. ``actions._runs_as_graph`` owns that decision;
     # this mirrors its question rather than importing it, because that function
     # reads a saved rule and this one has only the drawing.
-    sequential = _is_sequential(nodes)
+    sequential = _is_sequential(nodes, graph)
     if public_count > 1 and not sequential:
         warnings.append(f"The {public_count} comment replies are sent one at a time, picked at random.")
     if private_count > 1 and not sequential:

@@ -369,7 +369,36 @@ def _runs_as_graph(rule: AutomationRule) -> bool:
             data = node.get("data")
             if isinstance(data, dict) and data.get("buttons"):
                 return True
-    return message_nodes > 2
+    if message_nodes > 2:
+        return True
+    # A node wired to more than one successor fans out, and only the graph
+    # executor walks every branch. The two-channel path would deliver one
+    # reply and one DM in a fixed order regardless of what was drawn, so a
+    # deliberate split would come out as something the author did not draw.
+    return _fans_out(graph)
+
+
+def _fans_out(graph: dict) -> bool:
+    """Whether any node in this graph has more than one outgoing default edge.
+
+    Labelled edges are excluded: those belong to a condition's two outcomes or
+    to a specific reply button, and each of those already forces the graph
+    executor on its own.
+    """
+    edges = graph.get("edges")
+    if not isinstance(edges, list):
+        return False
+    seen: set[str] = set()
+    for edge in edges:
+        if not isinstance(edge, dict) or edge.get("branch"):
+            continue
+        source = edge.get("from")
+        if not isinstance(source, str) or not source:
+            continue
+        if source in seen:
+            return True
+        seen.add(source)
+    return False
 
 
 def _start_graph_run(message: InboxMessage, rule: AutomationRule, details: list[str]) -> bool:
