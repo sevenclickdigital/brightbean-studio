@@ -1,0 +1,48 @@
+{% load i18n %}
+{% comment %}
+Emoji picker for the caption. Rendered inside a `relative` wrapper that also
+holds the trigger button.
+
+The catalogue is served as JSON (see the json_script in compose.html) rather
+than as markup: 619 buttons rendered on every page load is dead weight when
+the picker is usually never opened. Alpine builds the grid on first open.
+{% endcomment %}
+<div x-show="showEmoji"
+     x-cloak
+     @click.outside="showEmoji = false"
+     x-transition.opacity.duration.120ms
+     class="emoji-panel">
+    <div class="p-2 border-b border-stone-100">
+        <input type="text"
+               x-model="emojiQuery"
+               x-ref="emojiSearch"
+               placeholder="{% translate 'Search emoji' %}"
+               class="w-full text-sm px-3 py-1.5 rounded-lg border border-stone-200 bg-stone-50 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+    </div>
+
+    {% comment %} Category tabs are hidden while searching: the results cut across them. {% endcomment %}
+    <div class="flex items-center gap-0.5 px-2 pt-1.5" x-show="!emojiQuery.trim()">
+        <template x-for="cat in emojiCategories" :key="cat.key">
+            <button type="button"
+                    @click="emojiCategory = cat.key"
+                    class="emoji-tab"
+                    :class="emojiCategory === cat.key && 'is-active'"
+                    :title="cat.label"
+                    x-text="cat.items[0].c"></button>
+        </template>
+    </div>
+
+    <div class="emoji-grid">
+        <template x-for="item in visibleEmoji()" :key="item.c">
+            <button type="button"
+                    @click="insertEmoji(item.c)"
+                    class="emoji-cell"
+                    :title="item.n"
+                    x-text="item.c"></button>
+        </template>
+    </div>
+
+    <p x-show="!visibleEmoji().length" class="px-3 py-6 text-center text-xs text-stone-400">
+        {% translate "No emoji found." %}
+    </p>
+</div>

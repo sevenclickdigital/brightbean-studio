@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:54+0000\n"
+"POT-Creation-Date: 2026-11-03 23:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -130,6 +130,48 @@ msgstr "Semanal"
 
 msgid "Monthly"
 msgstr "Mensal"
+
+msgid "happy"
+msgstr "feliz"
+
+msgid "blessed"
+msgstr "abençoado"
+
+msgid "loved"
+msgstr "amado"
+
+msgid "excited"
+msgstr "animado"
+
+msgid "grateful"
+msgstr "grato"
+
+msgid "thankful"
+msgstr "agradecido"
+
+msgid "accomplished"
+msgstr "realizado"
+
+msgid "amazed"
+msgstr "maravilhado"
+
+msgid "inspired"
+msgstr "inspirado"
+
+msgid "proud"
+msgstr "orgulhoso"
+
+msgid "confident"
+msgstr "confiante"
+
+msgid "peaceful"
+msgstr "em paz"
+
+msgid "content"
+msgstr "satisfeito"
+
+msgid "joyful"
+msgstr "alegre"
 
 msgid "Write your post caption..."
 msgstr "Escreva a legenda da publicação..."
@@ -1885,6 +1927,15 @@ msgstr "Buscar no Unsplash"
 msgid "Media Library"
 msgstr "Biblioteca de mídia"
 
+msgid "Insert emoji"
+msgstr "Inserir emoji"
+
+msgid "Emoji"
+msgstr "Emoji"
+
+msgid "Facebook settings"
+msgstr "Configurações do Facebook"
+
 msgid "Publish as"
 msgstr "Publicar como"
 
@@ -1896,6 +1947,24 @@ msgstr "Reel do Facebook"
 
 msgid "Reels use Facebook's dedicated vertical-video flow and must be 3-90 seconds. Regular Page video suits long-form and landscape uploads."
 msgstr "Os Reels usam o fluxo de vídeo vertical do Facebook e precisam ter de 3 a 90 segundos. O vídeo comum da página serve para conteúdo longo e no formato horizontal."
+
+msgid "Location"
+msgstr "Localização"
+
+msgid "Remove"
+msgstr "Remover"
+
+msgid "Search for a place"
+msgstr "Buscar um local"
+
+msgid "Searching…"
+msgstr "Buscando…"
+
+msgid "Feeling / activity"
+msgstr "Sentimento / atividade"
+
+msgid "None"
+msgstr "Nenhum"
 
 msgid "Pinterest needs an image or a video."
 msgstr "O Pinterest precisa de uma imagem ou um vídeo."
@@ -1950,9 +2019,6 @@ msgstr "Descreva este pin para acessibilidade…"
 
 msgid "Video Cover Image"
 msgstr "Imagem de capa do vídeo"
-
-msgid "Remove"
-msgstr "Remover"
 
 msgid "Required for video pins. PNG or JPG, same dimensions as video."
 msgstr "Obrigatória para pins de vídeo. PNG ou JPG, nas mesmas dimensões do vídeo."
@@ -2294,9 +2360,6 @@ msgstr "ou"
 msgid "select a file"
 msgstr "selecione um arquivo"
 
-msgid "Emoji"
-msgstr "Emoji"
-
 msgid "Search emoji..."
 msgstr "Buscar emoji..."
 
@@ -2411,6 +2474,12 @@ msgstr "Nenhuma linha válida para importar."
 
 msgid "Fix the errors in your CSV and re-upload."
 msgstr "Corrija os erros no CSV e reenvie."
+
+msgid "Search emoji"
+msgstr "Pesquisar emoji"
+
+msgid "No emoji found."
+msgstr "Nenhum emoji encontrado."
 
 msgid "View Entire Post"
 msgstr "Ver publicação inteira"

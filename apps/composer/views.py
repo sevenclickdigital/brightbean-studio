@@ -40,6 +40,7 @@ from apps.workspaces.models import Workspace
 from providers import is_video_only, requires_media
 from providers.tiktok import VALID_PRIVACY_LEVELS as TIKTOK_PRIVACY_LEVELS
 
+from .emoji import EMOJI_CATEGORIES, facebook_feeling_choices
 from .forms import ContentCategoryForm, PostForm
 from .models import (
     ContentCategory,
@@ -240,6 +241,34 @@ def _readonly_rejection(request, post):
     )
 
 
+def _apply_facebook_feed_extras(request, extra, acc_id):
+    """Record the Facebook panel's place and feeling choices on ``extra``.
+
+    Both are optional decorations, so an empty field clears the stored value
+    rather than leaving a stale one behind. The feeling is validated against
+    the ids we offer; the place is a Page id we only ever got from our own
+    search endpoint.
+    """
+    from providers.meta_feed_extras import FEELING_IDS
+
+    place_id = request.POST.get(f"facebook_place_id_{acc_id}", "").strip()
+    place_name = request.POST.get(f"facebook_place_name_{acc_id}", "").strip()
+    if place_id:
+        extra["place_id"] = place_id
+        # Kept only so the composer can show what was chosen without
+        # re-querying Meta; the publish path uses the id.
+        extra["place_name"] = place_name
+    else:
+        extra.pop("place_id", None)
+        extra.pop("place_name", None)
+
+    feeling_id = request.POST.get(f"facebook_feeling_{acc_id}", "").strip()
+    if feeling_id in FEELING_IDS:
+        extra["feeling_object_id"] = feeling_id
+    else:
+        extra.pop("feeling_object_id", None)
+
+
 def _sync_platform_posts(request, post, workspace, initial_status=None):
     """Sync platform post selections from form data.
 
@@ -296,6 +325,7 @@ def _sync_platform_posts(request, post, workspace, initial_status=None):
                 # Facebook's video endpoint. Choosing regular video therefore
                 # clears the hint rather than recording it.
                 extra.pop("post_type", None)
+            _apply_facebook_feed_extras(request, extra, acc_id)
             pp.platform_extra = extra
 
         elif account.platform == "youtube":
@@ -929,6 +959,13 @@ def compose(request, workspace_id, post_id=None):
         "failed_platform_posts": failed_platform_posts,
         "failed_first_comments": failed_first_comments,
         "unsplash_enabled": bool(settings.UNSPLASH_ACCESS_KEY),
+        # Serialised into the page for the caption emoji picker and the
+        # Facebook feeling selector; both are static tables, not queries.
+        "emoji_categories": [
+            {"key": key, "label": label, "items": [{"c": char, "n": name} for char, name in items]}
+            for key, label, items in EMOJI_CATEGORIES
+        ],
+        "facebook_feelings": facebook_feeling_choices(),
     }
     return render(request, "composer/compose.html", context)
 
@@ -2246,6 +2283,32 @@ def pinterest_boards(request, workspace_id, account_id):
         return JsonResponse({"error": _("Failed to fetch boards")}, status=502)
 
     return JsonResponse({"boards": [{"id": b.get("id"), "name": b.get("name")} for b in boards]})
+
+
+@login_required
+@require_GET
+def facebook_places(request, workspace_id, account_id):
+    """Search location Pages for the composer's Facebook place picker.
+
+    Keyword search only — Meta retired the endpoint that searched by
+    coordinates in 2020 without a replacement.
+    """
+    workspace = _get_workspace(request, workspace_id)
+    account = get_object_or_404(SocialAccount, id=account_id, workspace=workspace, platform="facebook")
+
+    query = request.GET.get("q", "").strip()
+    if not query:
+        return JsonResponse({"places": []})
+
+    from apps.credentials.models import resolve_platform_credentials
+    from providers import get_provider
+
+    credentials = resolve_platform_credentials("facebook", workspace.organization_id)
+    provider = get_provider("facebook", credentials)
+
+    # search_places swallows its own failures and answers [], so a place
+    # lookup can never be what stops someone composing.
+    return JsonResponse({"places": provider.search_places(account.oauth_access_token, query)})
 
 
 @login_required

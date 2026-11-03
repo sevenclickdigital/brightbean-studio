@@ -323,6 +323,16 @@ class SocialProvider(ABC):
         """
         return {}
 
+    def search_places(self, access_token: str, query: str) -> list[dict]:
+        """Locations matching ``query`` that a post can be tagged with.
+
+        Empty by default, like ``fetch_user_profile``: most platforms have no
+        such concept, and attaching a place is optional everywhere it exists,
+        so "this platform cannot answer" and "nothing matched" lead to the
+        same behaviour — no picker results, and composing continues.
+        """
+        return []
+
     def reply_to_comment(self, access_token: str, comment_id: str, text: str, extra: dict | None = None) -> ReplyResult:
         """Reply to a comment or mention.
 

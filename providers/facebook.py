@@ -10,6 +10,12 @@ from .base import SocialProvider
 from .exceptions import APIError, OAuthError, ProviderError, PublishError
 from .meta_accounts import fetch_me_accounts, page_can_publish
 from .meta_comments import parse_graph_time
+from .meta_feed_extras import (
+    PLACE_SEARCH_FIELDS,
+    PLACE_SEARCH_LIMIT,
+    apply_feed_extras,
+    parse_place_results,
+)
 from .meta_insights import fetch_insights_safe, parse_insights_response
 from .meta_messaging import (
     build_send_payload,
@@ -327,6 +333,7 @@ class FacebookProvider(SocialProvider):
         payload: dict = {"message": content.text}
         if content.link_url:
             payload["link"] = content.link_url
+        apply_feed_extras(payload, content.extra)
         resp = self._request(
             "POST",
             f"{BASE_URL}/{page_id}/feed",
@@ -348,6 +355,7 @@ class FacebookProvider(SocialProvider):
         payload: dict = {"url": content.media_urls[0]}
         if content.text:
             payload["message"] = content.text
+        apply_feed_extras(payload, content.extra)
         resp = self._request(
             "POST",
             f"{BASE_URL}/{page_id}/photos",
@@ -404,6 +412,7 @@ class FacebookProvider(SocialProvider):
             }
             if content.text:
                 payload["message"] = content.text
+            apply_feed_extras(payload, content.extra)
 
             data = self._request(
                 "POST",
@@ -1133,6 +1142,36 @@ class FacebookProvider(SocialProvider):
             user_id=user_id,
             access_token=access_token,
         )
+
+    def search_places(self, access_token: str, query: str) -> list[dict]:
+        """Location Pages matching ``query``, for the composer's place picker.
+
+        ``/pages/search`` is keyword-only. The endpoint that searched by
+        coordinates (``/search?type=place``) was retired in 2020 with no
+        replacement, so there is no "near me" to offer — the user types the
+        name of the place.
+
+        Returns [] on any refusal: a place is optional, and a search that
+        fails must not block composing.
+        """
+        query = (query or "").strip()
+        if not query:
+            return []
+        try:
+            resp = self._request(
+                "GET",
+                f"{BASE_URL}/pages/search",
+                access_token=access_token,
+                params={
+                    "q": query,
+                    "fields": PLACE_SEARCH_FIELDS,
+                    "limit": PLACE_SEARCH_LIMIT,
+                },
+            )
+        except Exception:
+            logger.warning("Facebook place search failed for %r", query, exc_info=True)
+            return []
+        return parse_place_results(resp.json())
 
     def reply_to_comment(self, access_token: str, comment_id: str, text: str, extra: dict | None = None) -> ReplyResult:
         """Reply to a comment or mention by commenting on it.
