@@ -8,8 +8,10 @@
     {% translate "This Studio deployment is not registered for the hosted Intelligence integration. If you're a fork operator running your own Stripe and Intelligence stack, you need to register your deployment first." %}
   </p>
   <p class="text-sm text-stone-600">
-    {% translate "Contact" %} <a href="mailto:support@brightbean.xyz" class="text-orange-600 hover:text-orange-700">support@brightbean.xyz</a>
-    {% translate "for details." %}
+    {# The address is interpolated rather than written inside the string: gettext #}
+    {# warns about embedded addresses because a translator can typo one, and a #}
+    {# support address that reaches nobody is worse than an untranslated line. #}
+    {% blocktranslate with link='<a href="mailto:support@brightbean.xyz" class="text-orange-600 hover:text-orange-700">support@brightbean.xyz</a>' %}Contact {{ link }} for details.{% endblocktranslate %}
   </p>
 </div>
 {% endblock %}

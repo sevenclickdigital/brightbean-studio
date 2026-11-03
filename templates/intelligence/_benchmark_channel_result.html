@@ -10,7 +10,7 @@
             {{ channel.subscriber_count|humanize_count }} {% translate "subscribers" %}
             · {{ channel.video_count|humanize_count }} {% translate "videos" %}
             {% if channel.sample_window_days %}
-            · {{ channel.sample_window_days }}-{% translate "day sample" %}
+            · {% blocktranslate with days=channel.sample_window_days %}{{ days }}-day sample{% endblocktranslate %}
             {% endif %}
         </div>
     </div>
@@ -23,7 +23,7 @@
                 <span class="intel-tooltip-trigger" tabindex="0" aria-describedby="bc-overall-tooltip">
                     <span class="intel-tooltip-icon" aria-hidden="true">?</span>
                     <span id="bc-overall-tooltip" role="tooltip" class="intel-tooltip" data-align="left">
-                        {% translate "Composite rank vs other channels in the same niche." %} <strong>50</strong> {% translate "is the median;" %} <strong>80+</strong> {% translate "is top-tier engagement; below 30 means most niche peers outperform this channel on the engagement metrics below." %}
+                        {% blocktranslate %}Composite rank vs other channels in the same niche. <strong>50</strong> is the median; <strong>80+</strong> is top-tier engagement; below 30 means most niche peers outperform this channel on the engagement metrics below.{% endblocktranslate %}
                     </span>
                 </span>
             </div>
@@ -73,9 +73,9 @@
             <span class="intel-tooltip-trigger" tabindex="0" aria-describedby="bc-engagement-tooltip">
                 <span class="intel-tooltip-icon" aria-hidden="true">?</span>
                 <span id="bc-engagement-tooltip" role="tooltip" class="intel-tooltip" data-align="left">
-                    {% translate "Each row compares one engagement ratio against the niche's distribution." %} <strong>Views / sub</strong> {% translate "is recent views divided by subscriber count;" %} <strong>Likes / view</strong> {% translate "and" %} <strong>Comments / view</strong> {% translate "are the equivalent per-video ratios." %}
+                    {% blocktranslate %}Each row compares one engagement ratio against the niche's distribution. <strong>Views / sub</strong> is recent views divided by subscriber count; <strong>Likes / view</strong> and <strong>Comments / view</strong> are the equivalent per-video ratios.{% endblocktranslate %}
                     <br><br>
-                    <strong>Niche p50</strong> {% translate "is the median niche channel on that ratio, half of the niche scores below it, half above. The" %} <strong>pNN</strong> {% translate "readout on the right is your channel's percentile rank:" %} <strong>p50</strong> {% translate "means you sit exactly at the niche median," %} <strong>p80</strong> {% translate "means you outperform 80% of niche peers," %} <strong>p20</strong> {% translate "means 80% of peers outperform you." %}
+                    {% blocktranslate %}<strong>Niche p50</strong> is the median niche channel on that ratio, half of the niche scores below it, half above. The <strong>pNN</strong> readout on the right is your channel's percentile rank: <strong>p50</strong> means you sit exactly at the niche median, <strong>p80</strong> means you outperform 80% of niche peers, <strong>p20</strong> means 80% of peers outperform you.{% endblocktranslate %}
                 </span>
             </span>
         </div>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-02 21:01+0000\n"
+"POT-Creation-Date: 2026-11-03 01:01+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1175,7 +1175,9 @@ msgstr "Nenhuma automação ainda"
 msgid ""
 "Create a rule to answer comments automatically — for example, reply with a "
 "link whenever somebody comments \"price\"."
-msgstr "Crie uma regra para responder comentários automaticamente — por exemplo, responder com um link sempre que alguém comentar \"preço\"."
+msgstr ""
+"Crie uma regra para responder comentários automaticamente — por exemplo, "
+"responder com um link sempre que alguém comentar \"preço\"."
 
 #: templates/automations/list.html:56
 msgid "Create the first rule"
@@ -1565,7 +1567,9 @@ msgstr "Excluir publicação?"
 msgid ""
 "This action cannot be undone. The post and all associated data will be "
 "permanently removed."
-msgstr "Esta ação não pode ser desfeita. A publicação e todos os dados associados serão removidos permanentemente."
+msgstr ""
+"Esta ação não pode ser desfeita. A publicação e todos os dados associados "
+"serão removidos permanentemente."
 
 #: templates/calendar/partials/_delete_post_modal.html:59
 msgid "Deleting..."
@@ -1744,7 +1748,9 @@ msgstr "Recusar todas"
 
 #: templates/calendar/partials/publish_approvals.html:83
 msgid "Tell the creator why. This comment is shared with them."
-msgstr "Explique o motivo para quem criou. Este comentário é compartilhado com a pessoa."
+msgstr ""
+"Explique o motivo para quem criou. Este comentário é compartilhado com a "
+"pessoa."
 
 #: templates/calendar/partials/publish_approvals.html:105
 msgid "Version changes"
@@ -1863,7 +1869,8 @@ msgstr "A fila está vazia"
 
 #: templates/calendar/queue_detail.html:123
 msgid "Add posts to this queue from the composer using \"Add to Queue\"."
-msgstr "Adicione publicações a esta fila pelo editor, usando \"Adicionar à fila\"."
+msgstr ""
+"Adicione publicações a esta fila pelo editor, usando \"Adicionar à fila\"."
 
 #: templates/calendar/queues.html:9
 msgid "Publishing Queues"
@@ -1930,7 +1937,9 @@ msgstr "Categorias de conteúdo"
 
 #: templates/composer/categories.html:10
 msgid "Organize posts by category for calendar filtering and queue scheduling."
-msgstr "Organize as publicações por categoria para filtrar o calendário e agendar filas."
+msgstr ""
+"Organize as publicações por categoria para filtrar o calendário e agendar "
+"filas."
 
 #: templates/composer/categories.html:26
 msgid "Add Category"
@@ -1974,20 +1983,26 @@ msgstr "Primeiro comentário não publicado"
 
 #: templates/composer/compose.html:398
 msgid "The post itself published successfully — only the comment failed."
-msgstr "A publicação em si foi publicada com sucesso — apenas o comentário falhou."
+msgstr ""
+"A publicação em si foi publicada com sucesso — apenas o comentário falhou."
 
 #: templates/composer/compose.html:406
 msgid ""
 "This post is <span class=\"font-semibold\">scheduled</span>. Saving changes "
 "will affect the scheduled post."
-msgstr "Esta publicação está <span class=\"font-semibold\">agendada</span>. Salvar as alterações afeta a publicação agendada."
+msgstr ""
+"Esta publicação está <span class=\"font-semibold\">agendada</span>. Salvar "
+"as alterações afeta a publicação agendada."
 
 #: templates/composer/compose.html:413
 #, python-format
 msgid ""
 "This post is <span class=\"font-semibold\">%(status)s</span> and read-only. "
 "Use <span class=\"font-semibold\">Clone</span> to repost an editable copy."
-msgstr "Esta publicação está <span class=\"font-semibold\">%(status)s</span> e é somente leitura. Use <span class=\"font-semibold\">Clonar</span> para republicar uma cópia editável."
+msgstr ""
+"Esta publicação está <span class=\"font-semibold\">%(status)s</span> e é "
+"somente leitura. Use <span class=\"font-semibold\">Clonar</span> para "
+"republicar uma cópia editável."
 
 #: templates/composer/compose.html:418
 msgid "Create an editable draft copy"
@@ -2005,7 +2020,9 @@ msgstr "Já publicado em"
 msgid ""
 "Shared fields like the caption are used by that post too — editing them here "
 "changes its record."
-msgstr "Campos compartilhados, como a legenda, também são usados por aquela publicação — editá-los aqui altera o registro dela."
+msgstr ""
+"Campos compartilhados, como a legenda, também são usados por aquela "
+"publicação — editá-los aqui altera o registro dela."
 
 #: templates/composer/compose.html:471
 msgid "Save as Template"
@@ -2052,7 +2069,10 @@ msgstr "Reel do Facebook"
 msgid ""
 "Reels use Facebook's dedicated vertical-video flow and must be 3-90 seconds. "
 "Regular Page video suits long-form and landscape uploads."
-msgstr "Os Reels usam o fluxo de vídeo vertical do Facebook e precisam ter de 3 a 90 segundos. O vídeo comum da página serve para conteúdo longo e no formato horizontal."
+msgstr ""
+"Os Reels usam o fluxo de vídeo vertical do Facebook e precisam ter de 3 a 90 "
+"segundos. O vídeo comum da página serve para conteúdo longo e no formato "
+"horizontal."
 
 #: templates/composer/compose.html:620
 msgid "Pinterest needs an image or a video."
@@ -2144,7 +2164,10 @@ msgid ""
 "Saving as a draft keeps this as a <span class=\"font-medium text-"
 "stone-500\">proposed</span> time. Use <span class=\"font-medium text-"
 "stone-500\">Set Schedule</span> to publish at this time."
-msgstr "Salvar como rascunho mantém este horário como <span class=\"font-medium text-stone-500\">proposto</span>. Use <span class=\"font-medium text-stone-500\">Definir agendamento</span> para publicar neste horário."
+msgstr ""
+"Salvar como rascunho mantém este horário como <span class=\"font-medium text-"
+"stone-500\">proposto</span>. Use <span class=\"font-medium text-"
+"stone-500\">Definir agendamento</span> para publicar neste horário."
 
 #: templates/composer/compose.html:1610
 msgid "Set Schedule"
@@ -2178,7 +2201,9 @@ msgstr "Aceita arquivos .csv e .tsv"
 msgid ""
 "Expected columns: date, time, platforms, caption, media_url, category, tags, "
 "first_comment"
-msgstr "Colunas esperadas: date, time, platforms, caption, media_url, category, tags, first_comment"
+msgstr ""
+"Colunas esperadas: date, time, platforms, caption, media_url, category, "
+"tags, first_comment"
 
 #: templates/composer/csv_import.html:64
 msgid "Upload & Map Columns"
@@ -2321,33 +2346,33 @@ msgstr "A última tentativa falhou: %(error)s"
 
 #: templates/inbox/partials/_draft_reply_item.html:24
 msgid "Retry send"
-msgstr ""
+msgstr "Tentar enviar de novo"
 
 #: templates/inbox/partials/_draft_reply_item.html:24
 msgid "Send"
-msgstr ""
+msgstr "Enviar"
 
 #: templates/inbox/partials/_draft_reply_item.html:29
 msgid "Discard this draft reply?"
-msgstr ""
+msgstr "Descartar este rascunho de resposta?"
 
 #: templates/inbox/partials/_draft_reply_item.html:31
 msgid "Discard"
-msgstr ""
+msgstr "Descartar"
 
 #: templates/inbox/partials/_empty_state.html:9
 msgid "Your inbox is empty"
-msgstr ""
+msgstr "Sua caixa de entrada está vazia"
 
 #: templates/inbox/partials/_empty_state.html:13
 msgid ""
 "Comments, mentions, and DMs from your connected accounts will appear here. "
 "Messages are synced every 5 minutes."
-msgstr ""
+msgstr "Comentários, menções e DMs das suas contas conectadas aparecem aqui. As mensagens são sincronizadas a cada 5 minutos."
 
 #: templates/inbox/partials/_empty_state.html:17
 msgid "Connect your social accounts to start receiving messages in your inbox."
-msgstr ""
+msgstr "Conecte suas redes sociais para começar a receber mensagens na caixa de entrada."
 
 #: templates/inbox/partials/_empty_state.html:22
 #: templates/onboarding/email/connection_link.html:34
@@ -2356,229 +2381,229 @@ msgstr "Conectar contas"
 
 #: templates/inbox/partials/_empty_state.html:28
 msgid "No messages match your current filters."
-msgstr ""
+msgstr "Nenhuma mensagem corresponde aos filtros atuais."
 
 #: templates/inbox/partials/_empty_state.html:31
 msgid "Clear all filters"
-msgstr ""
+msgstr "Limpar todos os filtros"
 
 #: templates/inbox/partials/_filter_bar.html:10
 msgid "Search messages..."
-msgstr ""
+msgstr "Buscar mensagens..."
 
 #: templates/inbox/partials/_filter_bar.html:25
 msgid "All platforms"
-msgstr ""
+msgstr "Todas as plataformas"
 
 #: templates/inbox/partials/_filter_bar.html:37
 #: templates/notifications/history.html:58
 msgid "All types"
-msgstr ""
+msgstr "Todos os tipos"
 
 #: templates/inbox/partials/_filter_bar.html:38
 msgid "Comments"
-msgstr ""
+msgstr "Comentários"
 
 #: templates/inbox/partials/_filter_bar.html:39
 msgid "Mentions"
-msgstr ""
+msgstr "Menções"
 
 #: templates/inbox/partials/_filter_bar.html:40
 msgid "DMs"
-msgstr ""
+msgstr "DMs"
 
 #: templates/inbox/partials/_filter_bar.html:41
 msgid "Reviews"
-msgstr ""
+msgstr "Avaliações"
 
 #: templates/inbox/partials/_filter_bar.html:50
 msgid "All statuses"
-msgstr ""
+msgstr "Todos os status"
 
 #: templates/inbox/partials/_filter_bar.html:51
 #: templates/notifications/history.html:78
 msgid "Unread"
-msgstr ""
+msgstr "Não lidas"
 
 #: templates/inbox/partials/_filter_bar.html:53
 msgid "Resolved"
-msgstr ""
+msgstr "Resolvidas"
 
 #: templates/inbox/partials/_filter_bar.html:54
 #: templates/organizations/partials/workspace_card.html:21
 #: templates/organizations/workspaces.html:23
 msgid "Archived"
-msgstr ""
+msgstr "Arquivadas"
 
 #: templates/inbox/partials/_filter_bar.html:63
 msgid "All sentiment"
-msgstr ""
+msgstr "Todos os sentimentos"
 
 #: templates/inbox/partials/_filter_bar.html:64
 msgid "Positive"
-msgstr ""
+msgstr "Positivo"
 
 #: templates/inbox/partials/_filter_bar.html:65
 msgid "Neutral"
-msgstr ""
+msgstr "Neutro"
 
 #: templates/inbox/partials/_filter_bar.html:66
 msgid "Negative"
-msgstr ""
+msgstr "Negativo"
 
 #: templates/inbox/partials/_message_panel.html:75
 msgid "This message was deleted by its sender."
-msgstr ""
+msgstr "Esta mensagem foi excluída por quem a enviou."
 
 #: templates/inbox/partials/_message_panel.html:77
 msgid "This message contains media Instagram cannot provide."
-msgstr ""
+msgstr "Esta mensagem contém mídia que o Instagram não consegue fornecer."
 
 #: templates/inbox/partials/_message_panel.html:82
 #, python-format
 msgid "%(type)s attachment unavailable."
-msgstr ""
+msgstr "Anexo de %(type)s indisponível."
 
 #: templates/inbox/partials/_message_panel.html:84
 msgid "Incoming image attachment"
-msgstr ""
+msgstr "Imagem recebida em anexo"
 
 #: templates/inbox/partials/_message_panel.html:86
 msgid "Video attachment unavailable."
-msgstr ""
+msgstr "Anexo de vídeo indisponível."
 
 #: templates/inbox/partials/_message_panel.html:88
 msgid "Audio attachment unavailable."
-msgstr ""
+msgstr "Anexo de áudio indisponível."
 
 #: templates/inbox/partials/_message_panel.html:90
 #, python-format
 msgid "Open %(type)s attachment"
-msgstr ""
+msgstr "Abrir anexo de %(type)s"
 
 #: templates/inbox/partials/_message_panel.html:92
 msgid "If the attachment is unavailable, open the conversation in Instagram."
-msgstr ""
+msgstr "Se o anexo estiver indisponível, abra a conversa no Instagram."
 
 #: templates/inbox/partials/_note_item.html:10
 msgid "Internal"
-msgstr ""
+msgstr "Interna"
 
 #: templates/inbox/partials/_reply_composer.html:9
 msgid "Pending replies"
-msgstr ""
+msgstr "Respostas pendentes"
 
 #: templates/inbox/partials/_reply_composer.html:21
 #: templates/inbox/partials/_reply_item.html:10
 #: templates/inbox/partials/_saved_reply_form.html:21
 msgid "Reply"
-msgstr ""
+msgstr "Resposta"
 
 #: templates/inbox/partials/_reply_composer.html:26
 msgid "Internal Note"
-msgstr ""
+msgstr "Nota interna"
 
 #: templates/inbox/partials/_reply_composer.html:54
 #, python-format
 msgid "%(reason)s You can still save a draft."
-msgstr ""
+msgstr "%(reason)s Você ainda pode salvar um rascunho."
 
 #: templates/inbox/partials/_reply_composer.html:56
 msgid ""
 "Human support reply: review the message before sending. This reply uses your "
 "app's approved seven-day Human Agent access."
-msgstr ""
+msgstr "Resposta de atendimento humano: revise a mensagem antes de enviar. Esta resposta usa o acesso Human Agent de sete dias aprovado para o seu app."
 
 #: templates/inbox/partials/_reply_composer.html:65
 msgid "Write a reply..."
-msgstr ""
+msgstr "Escreva uma resposta..."
 
 #: templates/inbox/partials/_reply_composer.html:76
 #, python-format
 msgid "Reply will be posted on %(platform_name)s"
-msgstr ""
+msgstr "A resposta será publicada em %(platform_name)s"
 
 #: templates/inbox/partials/_reply_composer.html:84
 msgid "Save as draft"
-msgstr ""
+msgstr "Salvar como rascunho"
 
 #: templates/inbox/partials/_reply_composer.html:91
 msgid "Send Reply"
-msgstr ""
+msgstr "Enviar resposta"
 
 #: templates/inbox/partials/_reply_composer.html:107
 msgid "Add an internal note (only visible to your team)..."
-msgstr ""
+msgstr "Adicione uma nota interna (visível apenas para sua equipe)..."
 
 #: templates/inbox/partials/_reply_composer.html:115
 msgid "Add Note"
-msgstr ""
+msgstr "Adicionar nota"
 
 #: templates/inbox/partials/_reply_error.html:9
 msgid "Reply not sent"
-msgstr ""
+msgstr "Resposta não enviada"
 
 #: templates/inbox/partials/_reply_error.html:10
 msgid "just now"
-msgstr ""
+msgstr "agora mesmo"
 
 #: templates/inbox/partials/_reply_error.html:13
 #, python-format
 msgid ""
 "Nothing was sent to %(platform)s — %(why)s Your text is still in the box."
-msgstr ""
+msgstr "Nada foi enviado para %(platform)s — %(why)s Seu texto continua na caixa."
 
 #: templates/inbox/partials/_saved_reply_form.html:12
 msgid "Reply Body"
-msgstr ""
+msgstr "Corpo da resposta"
 
 #: templates/inbox/partials/_saved_reply_form.html:21
 msgid "Update"
-msgstr ""
+msgstr "Atualizar"
 
 #: templates/inbox/saved_replies.html:18
 msgid "Pre-written responses for common questions. Use variables:"
-msgstr ""
+msgstr "Respostas prontas para perguntas frequentes. Use variáveis:"
 
 #: templates/inbox/saved_replies.html:24
 msgid "New Reply"
-msgstr ""
+msgstr "Nova resposta"
 
 #: templates/inbox/saved_replies.html:63
 msgid "No saved replies yet"
-msgstr ""
+msgstr "Nenhuma resposta salva ainda"
 
 #: templates/inbox/saved_replies.html:64
 msgid "Create reusable response templates for common questions."
-msgstr ""
+msgstr "Crie modelos de resposta reutilizáveis para perguntas frequentes."
 
 #: templates/inbox/sla_config.html:16
 msgid "Set response time targets for your inbox."
-msgstr ""
+msgstr "Defina metas de tempo de resposta para sua caixa de entrada."
 
 #: templates/inbox/sla_config.html:28
 msgid "Enable SLA Timer"
-msgstr ""
+msgstr "Ativar cronômetro de SLA"
 
 #: templates/inbox/sla_config.html:29
 msgid "Show countdown timers and overdue badges on unresolved messages."
-msgstr ""
+msgstr "Mostrar contagem regressiva e selo de atraso nas mensagens não resolvidas."
 
 #: templates/inbox/sla_config.html:39
 msgid "Target Response Time (minutes)"
-msgstr ""
+msgstr "Tempo de resposta desejado (minutos)"
 
 #: templates/inbox/sla_config.html:41
 msgid "Messages exceeding this time will show an \"Overdue\" badge."
-msgstr ""
+msgstr "Mensagens que passarem desse tempo recebem o selo \"Atrasada\"."
 
 #: templates/inbox/sla_config.html:47
 msgid "Auto-resolve on Reply"
-msgstr ""
+msgstr "Resolver automaticamente ao responder"
 
 #: templates/inbox/sla_config.html:48
 msgid "Automatically mark messages as resolved when a reply is sent."
-msgstr ""
+msgstr "Marcar as mensagens como resolvidas automaticamente quando uma resposta for enviada."
 
 #: templates/inbox/sla_config.html:61
 msgid "Save Settings"
@@ -2586,140 +2611,112 @@ msgstr "Salvar configurações"
 
 #: templates/intelligence/_benchmark_channel_result.html:11
 msgid "subscribers"
-msgstr ""
+msgstr "inscritos"
 
 #: templates/intelligence/_benchmark_channel_result.html:12
 msgid "videos"
-msgstr ""
+msgstr "vídeos"
 
 #: templates/intelligence/_benchmark_channel_result.html:14
-msgid "day sample"
-msgstr ""
+#, python-format
+msgid "%(days)s-day sample"
+msgstr "amostra de %(days)s dias"
 
 #: templates/intelligence/_benchmark_channel_result.html:24
 msgid "Overall percentile"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:28
-msgid "Composite rank vs other channels in the same niche."
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:28
-msgid "is the median;"
-msgstr ""
+msgstr "Percentil geral"
 
 #: templates/intelligence/_benchmark_channel_result.html:28
 msgid ""
-"is top-tier engagement; below 30 means most niche peers outperform this "
-"channel on the engagement metrics below."
-msgstr ""
+"Composite rank vs other channels in the same niche. <strong>50</strong> is "
+"the median; <strong>80+</strong> is top-tier engagement; below 30 means most "
+"niche peers outperform this channel on the engagement metrics below."
+msgstr "Posição combinada em relação a outros canais do mesmo nicho. <strong>50</strong> é a mediana; <strong>80+</strong> é engajamento de primeira linha; abaixo de 30 significa que a maioria dos pares do nicho supera este canal nas métricas de engajamento abaixo."
 
 #: templates/intelligence/_benchmark_channel_result.html:37
 #: templates/intelligence/_benchmark_channel_result.html:148
 msgid "Niche"
-msgstr ""
+msgstr "Nicho"
 
 #: templates/intelligence/_benchmark_channel_result.html:76
 msgid "Engagement vs niche distribution"
-msgstr ""
+msgstr "Engajamento em relação à distribuição do nicho"
 
 #: templates/intelligence/_benchmark_channel_result.html:80
 msgid ""
-"Each row compares one engagement ratio against the niche's distribution."
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:80
-msgid "is recent views divided by subscriber count;"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:80
-msgid "and"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:80
-msgid "are the equivalent per-video ratios."
-msgstr ""
+"Each row compares one engagement ratio against the niche's distribution. "
+"<strong>Views / sub</strong> is recent views divided by subscriber count; "
+"<strong>Likes / view</strong> and <strong>Comments / view</strong> are the "
+"equivalent per-video ratios."
+msgstr "Cada linha compara uma taxa de engajamento com a distribuição do nicho. <strong>Views / sub</strong> são as visualizações recentes divididas pelo número de inscritos; <strong>Likes / view</strong> e <strong>Comments / view</strong> são as taxas equivalentes por vídeo."
 
 #: templates/intelligence/_benchmark_channel_result.html:82
+#, python-format
 msgid ""
-"is the median niche channel on that ratio, half of the niche scores below "
-"it, half above. The"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:82
-msgid "readout on the right is your channel's percentile rank:"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:82
-msgid "means you sit exactly at the niche median,"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:82
-#, python-format
-msgid "means you outperform 80%% of niche peers,"
-msgstr ""
-
-#: templates/intelligence/_benchmark_channel_result.html:82
-#, python-format
-msgid "means 80%% of peers outperform you."
-msgstr ""
+"<strong>Niche p50</strong> is the median niche channel on that ratio, half "
+"of the niche scores below it, half above. The <strong>pNN</strong> readout "
+"on the right is your channel's percentile rank: <strong>p50</strong> means "
+"you sit exactly at the niche median, <strong>p80</strong> means you "
+"outperform 80%% of niche peers, <strong>p20</strong> means 80%% of peers "
+"outperform you."
+msgstr "<strong>Niche p50</strong> é o canal mediano do nicho naquela taxa: metade do nicho fica abaixo, metade acima. O valor <strong>pNN</strong> à direita é o percentil do seu canal: <strong>p50</strong> significa que você está exatamente na mediana do nicho, <strong>p80</strong> que você supera 80%% dos pares, e <strong>p20</strong> que 80%% dos pares superam você."
 
 #: templates/intelligence/_benchmark_channel_result.html:144
 msgid "Title patterns"
-msgstr ""
+msgstr "Padrões de título"
 
 #: templates/intelligence/_benchmark_channel_result.html:147
 msgid "You"
-msgstr ""
+msgstr "Você"
 
 #: templates/intelligence/_benchmark_channel_result.html:151
 msgid "Avg title length"
-msgstr ""
+msgstr "Tamanho médio do título"
 
 #: templates/intelligence/_benchmark_channel_result.html:152
 #: templates/intelligence/_benchmark_channel_result.html:153
 msgid "characters"
-msgstr ""
+msgstr "caracteres"
 
 #: templates/intelligence/_benchmark_channel_result.html:155
 msgid "Avg word count"
-msgstr ""
+msgstr "Média de palavras"
 
 #: templates/intelligence/_benchmark_channel_result.html:159
 msgid "Has a question mark"
-msgstr ""
+msgstr "Tem ponto de interrogação"
 
 #: templates/intelligence/_benchmark_channel_result.html:163
 msgid "Has a number"
-msgstr ""
+msgstr "Tem número"
 
 #: templates/intelligence/_benchmark_channel_result.html:167
 msgid "Median uppercase ratio"
-msgstr ""
+msgstr "Proporção mediana de maiúsculas"
 
 #: templates/intelligence/_benchmark_channel_result.html:171
 msgid "Has an emoji"
-msgstr ""
+msgstr "Tem emoji"
 
 #: templates/intelligence/_benchmark_channel_result.html:188
 msgid "Common phrases in niche"
-msgstr ""
+msgstr "Expressões comuns no nicho"
 
 #: templates/intelligence/_benchmark_channel_result.html:214
 msgid "Exemplar channels in this niche"
-msgstr ""
+msgstr "Canais de referência neste nicho"
 
 #: templates/intelligence/_billing_contact_saved.html:5
 msgid "Couldn't save, billing service was unreachable. Please try again."
-msgstr ""
+msgstr "Não foi possível salvar: o serviço de cobrança está inacessível. Tente novamente."
 
 #: templates/intelligence/_billing_contact_saved.html:10
 msgid "Saved"
-msgstr ""
+msgstr "Salvo"
 
 #: templates/intelligence/_finalizing_completed.html:2
 msgid "Activation complete!"
-msgstr ""
+msgstr "Ativação concluída!"
 
 #: templates/intelligence/_finalizing_completed.html:4
 msgid "Open Intelligence"
@@ -2727,50 +2724,50 @@ msgstr "Abrir Inteligência"
 
 #: templates/intelligence/_finalizing_failed.html:2
 msgid "Setup couldn't complete after several attempts. Please contact"
-msgstr ""
+msgstr "A configuração não foi concluída após várias tentativas. Entre em contato com"
 
 #: templates/intelligence/_finalizing_unauthorized.html:2
 msgid ""
 "We couldn't authorize you for this org. Your role may have changed since you "
 "started checkout. Please contact your org admin or"
-msgstr ""
+msgstr "Não foi possível autorizar você nesta organização. Sua função pode ter mudado desde o início do checkout. Fale com o administrador da organização ou com"
 
 #: templates/intelligence/_list_niches_result.html:9
 msgid "gaps"
-msgstr ""
+msgstr "lacunas"
 
 #: templates/intelligence/_list_niches_result.html:12
 msgid "No niches available."
-msgstr ""
+msgstr "Nenhum nicho disponível."
 
 #: templates/intelligence/_overlay_canceled.html:3
 msgid "Subscription canceled"
-msgstr ""
+msgstr "Assinatura cancelada"
 
 #: templates/intelligence/_overlay_canceled.html:5
 msgid "Resubscribe to start using Intelligence again."
-msgstr ""
+msgstr "Assine novamente para voltar a usar o Intelligence."
 
 #: templates/intelligence/_overlay_canceled.html:10
 msgid "Resubscribe"
-msgstr ""
+msgstr "Assinar novamente"
 
 #: templates/intelligence/_overlay_finalizing.html:10
 #: templates/intelligence/finalizing.html:7
 msgid "Setting up your Intelligence access…"
-msgstr ""
+msgstr "Configurando seu acesso ao Intelligence…"
 
 #: templates/intelligence/_overlay_finalizing.html:12
 msgid "Stripe confirmed your payment. We're finalizing access."
-msgstr ""
+msgstr "A Stripe confirmou seu pagamento. Estamos finalizando o acesso."
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:17
 msgid "Preview mode"
-msgstr ""
+msgstr "Modo de prévia"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:20
 msgid "Explore the playground, activate to use it"
-msgstr ""
+msgstr "Explore o playground; ative para usar de verdade"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:23
 #, python-format
@@ -2778,37 +2775,37 @@ msgid ""
 "Switch tabs, browse the inputs and try out the niche picker. When you're "
 "ready to actually score packaging, analyse hooks, or pull content gaps, "
 "activate Intelligence for %(org_name)s."
-msgstr ""
+msgstr "Alterne entre as abas, veja os campos e experimente o seletor de nichos. Quando quiser realmente avaliar embalagens, analisar ganchos ou levantar lacunas de conteúdo, ative o Intelligence para %(org_name)s."
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:29
 msgid "Activate"
-msgstr ""
+msgstr "Ativar"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:42
 msgid "Predict CTR before publishing"
-msgstr ""
+msgstr "Prever a CTR antes de publicar"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:49
 msgid "Score the first 6 s of any video"
-msgstr ""
+msgstr "Avaliar os primeiros 6 s de qualquer vídeo"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:56
 msgid "Benchmark vs niche peers"
-msgstr ""
+msgstr "Comparar com os pares do nicho"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:63
 msgid "636 niches · ranked content gaps"
-msgstr ""
+msgstr "636 nichos · lacunas de conteúdo ranqueadas"
 
 #: templates/intelligence/_overlay_not_subscribed_admin.html:68
 msgid ""
 "Starts at <strong class=\"text-stone-700\">$19/month</strong> · per-org "
 "subscription · cancel anytime."
-msgstr ""
+msgstr "A partir de <strong class=\"text-stone-700\">US$ 19/mês</strong> · assinatura por organização · cancele quando quiser."
 
 #: templates/intelligence/_overlay_not_subscribed_member.html:15
 msgid "You're previewing Intelligence"
-msgstr ""
+msgstr "Você está vendo uma prévia do Intelligence"
 
 #: templates/intelligence/_overlay_not_subscribed_member.html:17
 #, python-format
@@ -2816,31 +2813,31 @@ msgid ""
 "Switch tabs and explore. To actually score packaging, analyse hooks, or pull "
 "content gaps for %(org_name)s, ask an owner or admin of the org to activate "
 "Intelligence."
-msgstr ""
+msgstr "Alterne entre as abas e explore. Para realmente avaliar embalagens, analisar ganchos ou levantar lacunas de conteúdo para %(org_name)s, peça a um proprietário ou administrador da organização que ative o Intelligence."
 
 #: templates/intelligence/_overlay_past_due.html:3
 msgid "Your subscription is past due"
-msgstr ""
+msgstr "Sua assinatura está em atraso"
 
 #: templates/intelligence/_overlay_past_due.html:5
 msgid "Update your payment method to continue using Intelligence."
-msgstr ""
+msgstr "Atualize sua forma de pagamento para continuar usando o Intelligence."
 
 #: templates/intelligence/_overlay_past_due.html:12
 msgid "Update payment"
-msgstr ""
+msgstr "Atualizar pagamento"
 
 #: templates/intelligence/_overlay_past_due.html:16
 msgid "Ask an org admin to update payment."
-msgstr ""
+msgstr "Peça a um administrador da organização para atualizar o pagamento."
 
 #: templates/intelligence/_overlay_pending_activation.html:18
 msgid "Payment received"
-msgstr ""
+msgstr "Pagamento recebido"
 
 #: templates/intelligence/_overlay_pending_activation.html:21
 msgid "Finish setting up Intelligence"
-msgstr ""
+msgstr "Concluir a configuração do Intelligence"
 
 #: templates/intelligence/_overlay_pending_activation.html:24
 #, python-format
@@ -2848,403 +2845,400 @@ msgid ""
 "Stripe confirmed your payment for %(org_name)s. One click finishes "
 "provisioning your API access, you'll be back on the playground in a few "
 "seconds."
-msgstr ""
+msgstr "A Stripe confirmou seu pagamento para %(org_name)s. Um clique conclui a liberação do acesso à API e você volta ao playground em alguns segundos."
 
 #: templates/intelligence/_overlay_pending_activation.html:31
 msgid "Complete activation"
-msgstr ""
+msgstr "Concluir ativação"
 
 #: templates/intelligence/_overlay_provisioning_failed.html:3
 msgid "Setup couldn't complete"
-msgstr ""
+msgstr "A configuração não foi concluída"
 
 #: templates/intelligence/_overlay_provisioning_failed.html:5
 msgid ""
 "Stripe confirmed your payment but the billing service didn't finalize "
 "access. Please contact support, we have your payment record."
-msgstr ""
+msgstr "A Stripe confirmou seu pagamento, mas o serviço de cobrança não concluiu a liberação do acesso. Fale com o suporte: temos o registro do seu pagamento."
 
 #: templates/intelligence/_panel_benchmark_channel.html:4
 msgid "Benchmark channel"
-msgstr ""
+msgstr "Comparar canal"
 
 #: templates/intelligence/_panel_benchmark_channel.html:5
 #: templates/intelligence/_panel_benchmark_video.html:5
 #: templates/intelligence/_panel_research_content_gaps.html:5
 #: templates/intelligence/_panel_score_video_hook.html:5
 msgid "credits"
-msgstr ""
+msgstr "créditos"
 
 #: templates/intelligence/_panel_benchmark_video.html:4
 msgid "Benchmark video"
-msgstr ""
+msgstr "Comparar vídeo"
 
 #: templates/intelligence/_panel_empty_state.html:5
 msgid "Submit the form to see results."
-msgstr ""
+msgstr "Envie o formulário para ver os resultados."
 
 #: templates/intelligence/_panel_list_niches.html:4
 msgid "List niches"
-msgstr ""
+msgstr "Listar nichos"
 
 #: templates/intelligence/_panel_list_niches.html:5
 #: templates/intelligence/_panel_score_packaging.html:23
 msgid "credit"
-msgstr ""
+msgstr "crédito"
 
 #: templates/intelligence/_panel_research_content_gaps.html:4
 msgid "Research content gaps"
-msgstr ""
+msgstr "Pesquisar lacunas de conteúdo"
 
 #: templates/intelligence/_panel_score_packaging.html:22
 msgid "Score packaging"
-msgstr ""
+msgstr "Avaliar embalagem"
 
 #: templates/intelligence/_panel_score_packaging.html:27
 msgid ""
 "Score a YouTube packaging (title + thumbnail) for click-through potential. "
 "Provide one or both, combined is most accurate. Title-only is 1 credit, "
 "thumbnail-only is 2, combined is 3"
-msgstr ""
+msgstr "Avalie a embalagem de um vídeo do YouTube (título + miniatura) quanto ao potencial de cliques. Informe um ou os dois; combinados, o resultado é mais preciso. Só o título custa 1 crédito, só a miniatura custa 2, os dois juntos custam 3"
 
 #: templates/intelligence/_panel_score_video_hook.html:4
 msgid "Score video hook"
-msgstr ""
+msgstr "Avaliar gancho do vídeo"
 
 #: templates/intelligence/_preview_badge.html:12
 msgid "Example"
-msgstr ""
+msgstr "Exemplo"
 
 #: templates/intelligence/_preview_badge.html:14
 msgid "Sample output. Activate to run with your own inputs."
-msgstr ""
+msgstr "Resultado de exemplo. Ative para rodar com seus próprios dados."
 
 #: templates/intelligence/_provisioning_in_progress.html:2
 msgid "Setup is still finalizing, refresh the page in a moment."
-msgstr ""
+msgstr "A configuração ainda está sendo concluída; atualize a página em instantes."
 
 #: templates/intelligence/_subscribe_required.html:13
 msgid "Activate Intelligence to use this"
-msgstr ""
+msgstr "Ative o Intelligence para usar este recurso"
 
 #: templates/intelligence/_subscribe_required.html:15
 msgid ""
 "You're previewing the playground. Subscribe to score, benchmark, and pull "
 "content gaps for real."
-msgstr ""
+msgstr "Você está vendo uma prévia do playground. Assine para avaliar, comparar e levantar lacunas de conteúdo de verdade."
 
 #: templates/intelligence/_subscribe_required.html:19
 #: templates/intelligence/subscribe.html:4
 #: templates/intelligence/subscribe.html:10
 msgid "Activate Intelligence"
-msgstr ""
+msgstr "Ativar o Intelligence"
 
 #: templates/intelligence/_tool_error.html:2
 msgid "Couldn't complete the request"
-msgstr ""
+msgstr "Não foi possível concluir a solicitação"
 
 #: templates/intelligence/_tool_error.html:3
 msgid "Please try again."
-msgstr ""
+msgstr "Tente novamente."
 
 #: templates/intelligence/_tool_error_no_credits.html:2
 msgid "Out of credits"
-msgstr ""
+msgstr "Créditos esgotados"
 
 #: templates/intelligence/_tool_error_no_credits.html:3
 msgid "Upgrade your plan or top up to keep using Intelligence."
-msgstr ""
+msgstr "Faça upgrade do plano ou recarregue para continuar usando o Intelligence."
 
 #: templates/intelligence/_tool_error_no_credits.html:8
 msgid "Manage billing"
-msgstr ""
+msgstr "Gerenciar cobrança"
 
 #: templates/intelligence/_tool_error_rate_limited.html:2
 msgid "Slow down a sec"
-msgstr ""
+msgstr "Calma um instante"
 
 #: templates/intelligence/_tool_error_rate_limited.html:3
 msgid "You're calling Intelligence faster than your plan allows."
-msgstr ""
+msgstr "Você está chamando o Intelligence mais rápido do que seu plano permite."
 
 #: templates/intelligence/_tool_error_rate_limited.html:4
 #, python-format
 msgid "Retry in <span class=\"font-semibold\">%(retry_after)ss</span>."
-msgstr ""
+msgstr "Tente de novo em <span class=\"font-semibold\">%(retry_after)ss</span>."
 
 #: templates/intelligence/_tool_error_unavailable.html:2
 msgid "Service unavailable"
-msgstr ""
+msgstr "Serviço indisponível"
 
 #: templates/intelligence/_tool_error_unavailable.html:3
 msgid "We couldn't reach the Intelligence service. Try again in a moment."
-msgstr ""
+msgstr "Não conseguimos acessar o serviço do Intelligence. Tente novamente em instantes."
 
 #: templates/intelligence/activation_failed.html:3
 msgid "Activation failed"
-msgstr ""
+msgstr "Falha na ativação"
 
 #: templates/intelligence/activation_failed.html:16
 msgid "We couldn't activate Intelligence"
-msgstr ""
+msgstr "Não foi possível ativar o Intelligence"
 
 #: templates/intelligence/activation_failed.html:35
 msgid "Start a new checkout"
-msgstr ""
+msgstr "Iniciar um novo checkout"
 
 #: templates/intelligence/activation_failed.html:39
 #: templates/intelligence/billing_settings.html:18
 msgid "Back to Intelligence"
-msgstr ""
+msgstr "Voltar para o Intelligence"
 
 #: templates/intelligence/activation_failed.html:45
 msgid "If Stripe charged you and you don't see your subscription, contact"
-msgstr ""
+msgstr "Se a Stripe cobrou de você e a assinatura não aparece, entre em contato com"
 
 #: templates/intelligence/activation_org_mismatch.html:3
 msgid "Org mismatch"
-msgstr ""
+msgstr "Organização não confere"
 
 #: templates/intelligence/activation_org_mismatch.html:6
 msgid "This activation isn't for your org"
-msgstr ""
+msgstr "Esta ativação não é da sua organização"
 
 #: templates/intelligence/activation_org_mismatch.html:8
 #, python-format
 msgid ""
 "The Stripe payment was made for a different organization, OR your role no "
 "longer permits managing billing for %(org_name)s."
-msgstr ""
+msgstr "O pagamento na Stripe foi feito para outra organização, OU sua função não permite mais gerenciar a cobrança de %(org_name)s."
 
 #: templates/intelligence/activation_org_mismatch.html:11
 msgid "If you believe this is a mistake, contact"
-msgstr ""
+msgstr "Se você acha que isto é um engano, entre em contato com"
 
 #: templates/intelligence/billing_settings.html:4
 msgid "Intelligence billing"
-msgstr ""
+msgstr "Cobrança do Intelligence"
 
 #: templates/intelligence/billing_settings.html:9
 msgid "Billing"
-msgstr ""
+msgstr "Cobrança"
 
 #: templates/intelligence/billing_settings.html:11
 #, python-format
 msgid "Intelligence subscription for %(org_name)s."
-msgstr ""
+msgstr "Assinatura do Intelligence para %(org_name)s."
 
 #: templates/intelligence/billing_settings.html:28
 msgid "Subscription"
-msgstr ""
+msgstr "Assinatura"
 
 #: templates/intelligence/billing_settings.html:32
 msgid "Plan"
-msgstr ""
+msgstr "Plano"
 
 #: templates/intelligence/billing_settings.html:52
 msgid "Active"
-msgstr ""
+msgstr "Ativa"
 
 #: templates/intelligence/billing_settings.html:52
 msgid "canceling"
-msgstr ""
+msgstr "cancelando"
 
 #: templates/intelligence/billing_settings.html:72
 msgid "Access ends"
-msgstr ""
+msgstr "O acesso termina em"
 
 #: templates/intelligence/billing_settings.html:75
 msgid ""
 "You'll keep full Intelligence access until then, after which the "
 "subscription will be canceled and tool calls will stop."
-msgstr ""
+msgstr "Você mantém o acesso completo ao Intelligence até lá; depois disso, a assinatura é cancelada e as chamadas às ferramentas param."
 
 #: templates/intelligence/billing_settings.html:80
 msgid "Current period ends"
-msgstr ""
+msgstr "O período atual termina em"
 
 #: templates/intelligence/billing_settings.html:90
 msgid ""
 "Update your card, view past invoices, or cancel through Stripe's secure "
 "customer portal."
-msgstr ""
+msgstr "Atualize seu cartão, veja faturas anteriores ou cancele pelo portal seguro da Stripe."
 
 #: templates/intelligence/billing_settings.html:95
 msgid "Manage payment + invoices in Stripe"
-msgstr ""
+msgstr "Gerenciar pagamento e faturas na Stripe"
 
 #: templates/intelligence/deployment_not_authorized.html:3
 msgid "Not authorized"
-msgstr ""
+msgstr "Sem autorização"
 
 #: templates/intelligence/deployment_not_authorized.html:6
 msgid "This deployment isn't authorized"
-msgstr ""
+msgstr "Esta instalação não está autorizada"
 
 #: templates/intelligence/deployment_not_authorized.html:8
 msgid ""
 "This Studio deployment is not registered for the hosted Intelligence "
 "integration. If you're a fork operator running your own Stripe and "
 "Intelligence stack, you need to register your deployment first."
-msgstr ""
+msgstr "Esta instalação do Studio não está registrada para a integração hospedada do Intelligence. Se você opera um fork com sua própria infraestrutura de Stripe e Intelligence, precisa registrar sua instalação primeiro."
 
-#: templates/intelligence/deployment_not_authorized.html:11
-msgid "Contact"
-msgstr ""
-
-#: templates/intelligence/deployment_not_authorized.html:12
-msgid "for details."
-msgstr ""
+#: templates/intelligence/deployment_not_authorized.html:14
+#, python-format
+msgid "Contact %(link)s for details."
+msgstr "Entre em contato com %(link)s para mais detalhes."
 
 #: templates/intelligence/finalizing.html:3
 msgid "Finalizing…"
-msgstr ""
+msgstr "Finalizando…"
 
 #: templates/intelligence/finalizing.html:9
 msgid ""
 "Stripe confirmed your payment. We're finishing the handshake with the "
 "billing service, this usually takes a few seconds."
-msgstr ""
+msgstr "A Stripe confirmou seu pagamento. Estamos concluindo a comunicação com o serviço de cobrança; isso costuma levar alguns segundos."
 
 #: templates/intelligence/finalizing.html:17
 msgid "Checking…"
-msgstr ""
+msgstr "Verificando…"
 
 #: templates/intelligence/subscribe.html:13
 #, python-format
 msgid ""
 "YouTube packaging scoring, channel benchmarks, and content-gap research for "
 "%(org_name)s."
-msgstr ""
+msgstr "Avaliação de embalagem no YouTube, comparações de canais e pesquisa de lacunas de conteúdo para %(org_name)s."
 
 #: templates/intelligence/subscribe.html:34
 msgid "Resume your checkout"
-msgstr ""
+msgstr "Retomar seu checkout"
 
 #: templates/intelligence/subscribe.html:36
 msgid "Someone in your org already started a checkout for this organization."
-msgstr ""
+msgstr "Alguém da sua organização já iniciou um checkout para ela."
 
 #: templates/intelligence/subscribe.html:41
 msgid "Continue to Stripe"
-msgstr ""
+msgstr "Continuar para a Stripe"
 
 #: templates/intelligence/subscribe.html:50
 msgid "Discard Checkout Session"
-msgstr ""
+msgstr "Descartar sessão de checkout"
 
 #: templates/intelligence/subscribe.html:60
 msgid "Setting up your checkout…"
-msgstr ""
+msgstr "Preparando seu checkout…"
 
 #: templates/intelligence/subscribe.html:62
 msgid ""
 "We're talking to the billing service. This usually finishes in a few seconds."
-msgstr ""
+msgstr "Estamos falando com o serviço de cobrança. Isso costuma terminar em alguns segundos."
 
 #: templates/intelligence/subscribe.html:75
 msgid "No plans are available for this deployment."
-msgstr ""
+msgstr "Nenhum plano está disponível para esta instalação."
 
 #: templates/intelligence/subscribe.html:76
 msgid "Contact support if you think this is a mistake."
-msgstr ""
+msgstr "Fale com o suporte se achar que isto é um engano."
 
 #: templates/intelligence/subscribe.html:82
 msgid "Choose a plan"
-msgstr ""
+msgstr "Escolha um plano"
 
 #: templates/intelligence/subscribe.html:83
 msgid "Per-org subscription, billed monthly. Cancel anytime."
-msgstr ""
+msgstr "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
 
 #: templates/members/accept_invite.html:88
 #: templates/members/accept_invite.html:124
 #, python-format
 msgid "Join %(org)s"
-msgstr ""
+msgstr "Entrar em %(org)s"
 
 #: templates/members/accept_invite.html:90
 #, python-format
 msgid "%(inviter)s invited you to join their team on Brightbean."
-msgstr ""
+msgstr "%(inviter)s convidou você para a equipe no Brightbean."
 
 #: templates/members/accept_invite.html:99
 msgid "Organization"
-msgstr ""
+msgstr "Organização"
 
 #: templates/members/accept_invite.html:107
 #: templates/organizations/cross_calendar.html:216
 #: templates/organizations/workspaces.html:6 templates/workspaces/list.html:13
 msgid "Workspaces"
-msgstr ""
+msgstr "Workspaces"
 
 #: templates/members/accept_invite.html:130
 msgid "Sign Up to Join"
-msgstr ""
+msgstr "Cadastre-se para entrar"
 
 #: templates/members/accept_invite.html:132
 msgid "or"
-msgstr ""
+msgstr "ou"
 
 #: templates/members/accept_invite.html:134
 msgid "Log In to Join"
-msgstr ""
+msgstr "Entre para participar"
 
 #: templates/members/email/invite.html:14
 #, python-format
 msgid "Join %(org)s on Brightbean"
-msgstr ""
+msgstr "Entre em %(org)s no Brightbean"
 
 #: templates/members/email/invite.html:22
 msgid "Hi there,"
-msgstr ""
+msgstr "Olá,"
 
 #: templates/members/email/invite.html:25
 #, python-format
 msgid ""
 "%(inviter)s has invited you to join <strong>%(org)s</strong> as a team "
 "member. Click the button below to accept the invitation and get started."
-msgstr ""
+msgstr "%(inviter)s convidou você para fazer parte de <strong>%(org)s</strong> como membro da equipe. Clique no botão abaixo para aceitar o convite e começar."
 
 #: templates/members/email/invite.html:33
 msgid "Accept Invitation"
-msgstr ""
+msgstr "Aceitar convite"
 
 #: templates/members/email/invite.html:39
 msgid ""
 "This invitation expires in 7 days. If it expires, ask your team admin for a "
 "new one."
-msgstr ""
+msgstr "Este convite expira em 7 dias. Se expirar, peça um novo ao administrador da equipe."
 
 #: templates/members/email/invite.html:47
 #, python-format
 msgid ""
 "You're receiving this because someone invited you to %(org)s on Brightbean."
-msgstr ""
+msgstr "Você está recebendo esta mensagem porque alguém convidou você para %(org)s no Brightbean."
 
 #: templates/members/invite_expired.html:50
 msgid "Invitation Expired"
-msgstr ""
+msgstr "Convite expirado"
 
 #: templates/members/invite_expired.html:52
 msgid ""
 "This invitation link is no longer valid. It may have expired or already been "
 "used. Please contact your organization admin to request a new invitation."
-msgstr ""
+msgstr "Este link de convite não é mais válido. Ele pode ter expirado ou já ter sido usado. Fale com o administrador da sua organização para pedir um novo convite."
 
 #: templates/members/invite_expired.html:54
 msgid "Go to Brightbean"
-msgstr ""
+msgstr "Ir para o Brightbean"
 
 #: templates/members/list.html:8
 msgid "Team Members"
-msgstr ""
+msgstr "Membros da equipe"
 
 #: templates/members/list.html:13
 #: templates/members/partials/invite_modal.html:15
 msgid "Invite Team Member"
-msgstr ""
+msgstr "Convidar membro da equipe"
 
 #: templates/members/list.html:21
 #: templates/organizations/partials/workspace_card.html:25
@@ -3256,19 +3250,19 @@ msgstr[1] ""
 
 #: templates/members/list.html:28
 msgid "No team members yet."
-msgstr ""
+msgstr "Nenhum membro na equipe ainda."
 
 #: templates/members/list.html:38
 msgid "Pending Invitations"
-msgstr ""
+msgstr "Convites pendentes"
 
 #: templates/members/list.html:45
 msgid "No pending invitations."
-msgstr ""
+msgstr "Nenhum convite pendente."
 
 #: templates/members/partials/invitation_row.html:46
 msgid "Resend"
-msgstr ""
+msgstr "Reenviar"
 
 #: templates/members/partials/invitation_row.html:57
 msgid "Revoke"
