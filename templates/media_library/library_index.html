@@ -1,7 +1,15 @@
-{% extends "layouts/workspace_settings.html" %}
-{% load static %}
+{% extends "base.html" %}
+{% load static i18n %}
+{% comment %}
+Extends ``base.html``, not ``layouts/workspace_settings.html``.
 
-{% block title %}Media Library - {{ workspace.name }}{% endblock %}
+The gallery is a working tool — you reach for it while building a post or a
+flow, not while configuring the workspace. Under the settings layout, opening
+it replaced the whole sidebar with the settings menu, so arriving there meant
+losing the navigation you were using and having to find your way back.
+{% endcomment %}
+
+{% block title %}{% translate "Gallery" %} - {{ workspace.name }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -168,6 +176,54 @@
 
     <!-- ── Toolbar ── -->
     <div class="flex flex-wrap items-center gap-2 sm:gap-3 px-3 sm:px-4 lg:px-6 py-3 border-b rounded-tr-xl" style="border-color: var(--border, #E7E5E4); background: var(--surface-0, #FFF);">
+
+      {% comment %}
+      Which workspace's gallery this is, and a way to switch without leaving
+      the gallery. The sidebar's workspace switcher always lands on the
+      calendar, so using it here means losing your place — and the whole
+      reason to switch from this screen is to look at the *other* workspace's
+      images.
+
+      Scoped to this organization — see ``views._sibling_workspaces``. Only
+      rendered when there is more than one; a single-workspace organization
+      gains nothing from a picker with one entry in it.
+      {% endcomment %}
+      {% if gallery_workspaces|length > 1 %}
+      <div class="relative shrink-0" x-data="{ wsPickerOpen: false }" @click.outside="wsPickerOpen = false">
+        <button type="button" @click="wsPickerOpen = !wsPickerOpen"
+                class="flex items-center gap-2 px-2.5 py-2 text-sm border rounded-lg hover:bg-stone-50 transition-colors cursor-pointer"
+                style="border-color: var(--border, #E7E5E4); background: var(--surface-0, #FFF);">
+          {% if workspace.icon %}
+          <img src="{{ workspace.icon.url }}" alt="" class="w-5 h-5 rounded object-cover shrink-0">
+          {% else %}
+          <span class="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                style="background: var(--primary);">{{ workspace.name|make_list|first|upper }}</span>
+          {% endif %}
+          <span class="truncate max-w-[140px]">{{ workspace.name }}</span>
+          <svg class="w-3.5 h-3.5 text-stone-400 shrink-0 transition-transform" :class="wsPickerOpen && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+        </button>
+
+        <div x-show="wsPickerOpen" x-cloak
+             class="absolute left-0 top-full mt-1 w-60 bg-white rounded-xl shadow-lg ring-1 ring-stone-200 py-1 z-50 max-h-72 overflow-y-auto">
+          {% for ws in gallery_workspaces %}
+          {# Stays in the gallery, unlike the sidebar switcher. #}
+          <a href="{% url 'media_library:index' workspace_id=ws.id %}"
+             class="flex items-center gap-2.5 px-3 py-2 text-sm rounded-md hover:bg-black/[0.04] transition-colors {% if ws.id == workspace.id %}bg-stone-50 font-semibold text-stone-900{% else %}text-stone-700{% endif %}">
+            {% if ws.icon %}
+            <img src="{{ ws.icon.url }}" alt="" class="w-6 h-6 rounded object-cover shrink-0">
+            {% else %}
+            <span class="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold shrink-0"
+                  style="background: var(--primary);">{{ ws.name|make_list|first|upper }}</span>
+            {% endif %}
+            <span class="truncate">{{ ws.name }}</span>
+            {% if ws.id == workspace.id %}
+            <svg class="w-4 h-4 text-stone-400 ml-auto shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            {% endif %}
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
 
       <!-- Search -->
       <div class="relative flex-1 min-w-[160px] sm:max-w-sm">

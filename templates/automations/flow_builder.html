@@ -828,6 +828,26 @@ any zoom level.
                     </label>
                 </div>
 
+                {% comment %}
+                Whose gallery you are looking at. One brand asset is often the
+                same file every workspace in the organization reaches for, and
+                re-uploading it per workspace is how two copies drift apart.
+                Only shown when the organization has more than one workspace.
+                The server re-checks the organization on every request — see
+                ``flow_views._sibling_workspace``.
+                {% endcomment %}
+                <div x-show="mediaWorkspaces.length > 1" x-cloak
+                     class="flex items-center gap-1 px-5 py-2 border-b border-stone-100 shrink-0 overflow-x-auto">
+                    <template x-for="ws in mediaWorkspaces" :key="ws.id">
+                        <button type="button" @click="mediaSource = ws.id; loadMedia()"
+                                class="shrink-0 px-2.5 py-1 rounded-full text-[12px] font-medium border transition-colors cursor-pointer whitespace-nowrap"
+                                :class="mediaSource === ws.id
+                                    ? 'bg-orange-500 text-white border-orange-500'
+                                    : 'bg-white text-stone-600 border-stone-200 hover:border-stone-300'"
+                                x-text="ws.name"></button>
+                    </template>
+                </div>
+
                 <div x-show="mediaError" x-cloak class="px-5 py-2 bg-red-50 border-b border-red-100 text-[12px] text-red-700 shrink-0" x-text="mediaError"></div>
 
                 <div class="flex-1 overflow-y-auto p-5">
@@ -982,6 +1002,11 @@ function flowBuilder() {
         mediaLoading: false,
         mediaUploading: false,
         mediaError: '',
+        //: Which workspace's gallery is on screen, and the ones available.
+        //: Both come from the server, which re-checks the organization on
+        //: every request rather than trusting these.
+        mediaSource: '',
+        mediaWorkspaces: [],
         //: The clicked edge, which shows a labelled Delete button until it is
         //: used or the selection moves elsewhere.
         selectedEdge: null,
@@ -1667,9 +1692,17 @@ function flowBuilder() {
             try {
                 const url = new URL('{% url "automations:flow_media" workspace_id=workspace.id %}', window.location.origin);
                 if (this.mediaQuery) url.searchParams.set('q', this.mediaQuery);
+                if (this.mediaSource) url.searchParams.set('from', this.mediaSource);
                 const response = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 const data = await response.json();
                 this.mediaItems = data.ok ? (data.items || []) : [];
+                if (data.ok) {
+                    this.mediaWorkspaces = data.workspaces || [];
+                    // Echoed back rather than kept locally: if the server
+                    // declined the requested workspace, the tabs must show
+                    // the one it actually served.
+                    this.mediaSource = data.current || this.mediaSource;
+                }
             } catch (err) {
                 // The empty state already says there is nothing to show; an
                 // error banner here would be a second thing to dismiss in a
@@ -1692,6 +1725,11 @@ function flowBuilder() {
 
             this.mediaUploading = true;
             this.mediaError = '';
+            // Uploads go to *this* flow's workspace, whichever gallery is on
+            // screen. Writing into a sibling workspace from here would put a
+            // file somewhere the person was only looking.
+            const browsing = this.mediaSource;
+            this.mediaSource = '';
             try {
                 const body = new FormData();
                 files.forEach(f => body.append('files', f));
@@ -1712,6 +1750,7 @@ function flowBuilder() {
                 // that here is a second definition to keep in step.
                 await this.loadMedia();
             } catch (err) {
+                this.mediaSource = browsing;
                 this.mediaError = '{% translate "The upload failed. Check your connection and try again." %}';
             } finally {
                 this.mediaUploading = false;

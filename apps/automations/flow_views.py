@@ -24,7 +24,7 @@ import json
 import logging
 
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
@@ -597,6 +597,28 @@ def flow_delete(request, workspace_id, platform_post_id):
 MEDIA_PAGE_SIZE = 60
 
 
+def _sibling_workspace(user, workspace, requested_id):
+    """One of the user's workspaces **in this organization**, or ``None``.
+
+    Both halves are the point: membership, so a workspace id cannot be guessed
+    into, and the organization, because that is the tenant boundary — two
+    organizations are two customers, and an image crossing it could be posted
+    to the wrong client's account.
+    """
+    from apps.members.models import WorkspaceMembership
+
+    try:
+        return Workspace.objects.get(
+            id=requested_id,
+            organization_id=workspace.organization_id,
+            id__in=WorkspaceMembership.objects.filter(user=user).values("workspace_id"),
+        )
+    except (Workspace.DoesNotExist, ValidationError, ValueError):
+        # A malformed UUID raises rather than missing, and a bad query string
+        # is not an error worth a 500.
+        return None
+
+
 @login_required
 @require_permission("use_inbox")
 def flow_media(request, workspace_id):
@@ -620,8 +642,24 @@ def flow_media(request, workspace_id):
 
     from apps.media_library.models import MediaAsset
 
+    # A flow may use an image that lives in a *sibling* workspace: one brand's
+    # logo is often the same file every workspace in the organization reaches
+    # for, and re-uploading it per workspace is how two copies drift apart.
+    #
+    # **The organization is the boundary, and it is checked here rather than
+    # trusted from the request.** ``from`` is a workspace id off a query
+    # string; without this check it would read any workspace in the
+    # installation, which is one client's image posted to another client's
+    # account.
+    source = workspace
+    requested = (request.GET.get("from") or "").strip()
+    if requested and requested != str(workspace.id):
+        source = _sibling_workspace(request.user, workspace, requested)
+        if source is None:
+            return JsonResponse({"ok": False, "error": "That workspace is not available."}, status=404)
+
     assets = (
-        MediaAsset.objects.for_workspace_with_shared(workspace.id, workspace.organization_id)
+        MediaAsset.objects.for_workspace_with_shared(source.id, source.organization_id)
         .filter(media_type=MediaAsset.MediaType.IMAGE)
         .order_by("-created_at")
     )
@@ -644,4 +682,15 @@ def flow_media(request, workspace_id):
                 "thumbnail": request.build_absolute_uri(asset.thumbnail.url) if asset.thumbnail else "",
             }
         )
-    return JsonResponse({"ok": True, "items": items})
+    from apps.media_library.views import _sibling_workspaces
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "items": items,
+            "current": str(source.id),
+            # Sent with every response so the picker's tabs cannot fall out of
+            # step with what the server will actually serve.
+            "workspaces": [{"id": str(w.id), "name": w.name} for w in _sibling_workspaces(request.user, workspace)],
+        }
+    )

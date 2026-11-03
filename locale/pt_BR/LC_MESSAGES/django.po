@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 17:09+0000\n"
+"POT-Creation-Date: 2026-11-03 17:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -1547,108 +1547,109 @@ msgstr "Enviando…"
 msgid "Upload"
 msgstr "Enviar"
 
-#: templates/automations/flow_builder.html:861
+#: templates/automations/flow_builder.html:882
 msgid "Loading…"
 msgstr "Carregando…"
 
-#: templates/automations/flow_builder.html:869
+#: templates/automations/flow_builder.html:890
 msgid "No image matches that name."
 msgstr "Nenhuma imagem com esse nome."
 
-#: templates/automations/flow_builder.html:869
+#: templates/automations/flow_builder.html:890
 msgid "No images in the library yet."
 msgstr "Ainda não há imagens na biblioteca."
 
-#: templates/automations/flow_builder.html:870
+#: templates/automations/flow_builder.html:891
 msgid "Use Upload above to add one."
 msgstr "Use Enviar acima para adicionar uma."
 
-#: templates/automations/flow_builder.html:894
+#: templates/automations/flow_builder.html:915
 msgid "Add step"
 msgstr "Adicionar etapa"
 
-#: templates/automations/flow_builder.html:898
+#: templates/automations/flow_builder.html:919
 msgid "Reply to comment"
 msgstr "Responder ao comentário"
 
-#: templates/automations/flow_builder.html:903
+#: templates/automations/flow_builder.html:924
 #: templates/automations/form.html:266
 msgid "Send a DM"
 msgstr "Enviar uma DM"
 
-#: templates/automations/flow_builder.html:908
-#: templates/automations/flow_builder.html:945
+#: templates/automations/flow_builder.html:929
+#: templates/automations/flow_builder.html:966
 msgid "Card with image"
 msgstr "Card com imagem"
 
-#: templates/automations/flow_builder.html:913
-#: templates/automations/flow_builder.html:947
+#: templates/automations/flow_builder.html:934
+#: templates/automations/flow_builder.html:968
 msgid "Condition"
 msgstr "Condição"
 
-#: templates/automations/flow_builder.html:938
+#: templates/automations/flow_builder.html:959
 #: templates/automations/form.html:70
 msgid "When"
 msgstr "Quando"
 
-#: templates/automations/flow_builder.html:939
+#: templates/automations/flow_builder.html:960
 msgid "Comments on your post"
 msgstr "Comentários na sua publicação"
 
-#: templates/automations/flow_builder.html:940
+#: templates/automations/flow_builder.html:961
 msgid "Then reply"
 msgstr "Então responder"
 
-#: templates/automations/flow_builder.html:941
+#: templates/automations/flow_builder.html:962
 msgid "Reply under the comment"
 msgstr "Resposta sob o comentário"
 
-#: templates/automations/flow_builder.html:942
+#: templates/automations/flow_builder.html:963
 msgid "Then send"
 msgstr "Então enviar"
 
-#: templates/automations/flow_builder.html:943
+#: templates/automations/flow_builder.html:964
 msgid "Direct message"
 msgstr "Mensagem direta"
 
-#: templates/automations/flow_builder.html:944
+#: templates/automations/flow_builder.html:965
 msgid "Step"
 msgstr "Etapa"
 
-#: templates/automations/flow_builder.html:946
+#: templates/automations/flow_builder.html:967
 msgid "Only if"
 msgstr "Somente se"
 
-#: templates/automations/flow_builder.html:948
+#: templates/automations/flow_builder.html:969
 msgid "The flow could not be saved."
 msgstr "Não foi possível salvar o fluxo."
 
-#: templates/automations/flow_builder.html:949
+#: templates/automations/flow_builder.html:970
 msgid "The flow could not be saved. Check your connection and try again."
 msgstr ""
 "Não foi possível salvar o fluxo. Verifique sua conexão e tente novamente.Não "
 "foi possível salvar o fluxo. Verifique sua conexão e tente novamente."
 
-#: templates/automations/flow_builder.html:950
+#: templates/automations/flow_builder.html:971
 msgid "The flow could not be changed."
 msgstr "Não foi possível alterar o fluxo."
 
-#: templates/automations/flow_builder.html:951
+#: templates/automations/flow_builder.html:972
 msgid "The flow could not be changed. Check your connection and try again."
 msgstr ""
 "Não foi possível alterar o fluxo. Verifique sua conexão e tente "
 "novamente.Não foi possível alterar o fluxo. Verifique sua conexão e tente "
 "novamente."
 
-#: templates/automations/flow_builder.html:1733
+#: templates/automations/flow_builder.html:1772
 msgid "The upload failed."
 msgstr "O envio falhou."
 
-#: templates/automations/flow_builder.html:1741
+#: templates/automations/flow_builder.html:1781
 msgid "The upload failed. Check your connection and try again."
-msgstr "O envio falhou. Verifique sua conexão e tente novamente."
-"Não foi possível salvar o fluxo. Verifique sua conexão e tente novamente.Não "
-"foi possível salvar o fluxo. Verifique sua conexão e tente novamente."
+msgstr ""
+"O envio falhou. Verifique sua conexão e tente novamente.Não foi possível "
+"salvar o fluxo. Verifique sua conexão e tente novamente.Não foi possível "
+"salvar o fluxo. Verifique sua conexão e tente novamente."
 
 #: templates/automations/form.html:4 templates/automations/form.html:29
 msgid "Edit rule"
@@ -2214,7 +2215,7 @@ msgstr "Publicar"
 msgid "Social Inbox"
 msgstr "Caixa de entrada"
 
-#: templates/base.html:671
+#: templates/base.html:671 templates/media_library/library_index.html:12
 msgid "Gallery"
 msgstr "Galeria"
 

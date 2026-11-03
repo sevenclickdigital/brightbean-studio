@@ -120,8 +120,36 @@ def library_index(request, workspace_id):
         "accepted_file_types": get_accepted_file_types(),
         "max_bulk_upload": getattr(settings, "MEDIA_LIBRARY_MAX_BULK_UPLOAD", 50),
         "settings_active": "media",
+        # Workspaces whose gallery this user may switch to from here.
+        "gallery_workspaces": _sibling_workspaces(request.user, workspace),
     }
     return render(request, "media_library/library_index.html", context)
+
+
+def _sibling_workspaces(user, workspace):
+    """The user's other workspaces **in this organization**, for the switcher.
+
+    Scoped to the organization deliberately, and not to everything the user can
+    reach. An organization is the tenant boundary in this product: two orgs are
+    two customers, and a picker that reached across it would let one client's
+    image be posted to another client's account — a mistake that is one click
+    away and impossible to notice afterwards.
+
+    Within an organization the boundary is softer by design: ``MediaAsset``
+    already models "shared with the organization" as ``workspace=NULL``, so
+    looking at a sibling workspace's gallery is a view onto something the org
+    collectively owns.
+    """
+    from apps.members.models import WorkspaceMembership
+    from apps.workspaces.models import Workspace
+
+    return list(
+        Workspace.objects.filter(
+            id__in=WorkspaceMembership.objects.filter(user=user).values("workspace_id"),
+            organization_id=workspace.organization_id,
+            is_archived=False,
+        ).order_by("name")
+    )
 
 
 # ──────────────────────────────────────────────────────────────
