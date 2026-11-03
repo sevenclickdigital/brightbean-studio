@@ -13,6 +13,16 @@ losing the navigation you were using and having to find your way back.
 
 {% block extra_head %}
 <style>
+  /* Full-bleed shell — see the note on the content div below. */
+  .ml-shell { margin: -0.75rem; height: calc(100% + 1.5rem); min-height: 0; overflow: hidden; }
+  :has(> .ml-shell) { overflow: visible !important; }
+  @media (min-width: 640px) {
+    .ml-shell { margin: -1rem; height: calc(100% + 2rem); }
+  }
+  @media (min-width: 1024px) {
+    .ml-shell { margin: -1.5rem; height: calc(100% + 3rem); }
+  }
+
   /* ── Media Library Tokens (inherit from brand) ── */
   .ml-dropzone {
     border: 2px dashed var(--border, #E7E5E4);
@@ -107,7 +117,17 @@ losing the navigation you were using and having to find your way back.
 {% block page_title %}Media Library{% endblock %}
 
 {% block content %}
-<div x-data="{ ...mediaLibrary(), folderSidebarOpen: false }" class="flex flex-1 min-h-0 -m-3 sm:-m-4 lg:-m-6 -mb-3 sm:-mb-4 lg:-mb-6">
+{% comment %}
+``ml-shell`` rather than Tailwind's negative margins. The old classes were
+written for the settings layout, which sits below a header that absorbed the
+upward pull; under ``base.html`` there is nothing above to absorb it, so the
+toolbar and the folder heading were clipped off the top of the panel.
+
+Same approach as ``inbox/feed.html`` and the flow builder: cancel the main
+element's padding with an exact negative margin, grow the height back by the
+same amount, and turn off the ancestor's scrolling so this panel owns it.
+{% endcomment %}
+<div x-data="{ ...mediaLibrary(), folderSidebarOpen: false }" class="ml-shell flex">
 
   <!-- Mobile folder sidebar toggle -->
   <button @click="folderSidebarOpen = !folderSidebarOpen"
