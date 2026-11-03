@@ -658,6 +658,16 @@
                     <span class="sidebar-nav-label">{% translate "Social Inbox" %}</span>
                     {% if sidebar_unread_inbox_count %}<span class="sidebar-badge">{{ sidebar_unread_inbox_count }}</span>{% endif %}
                 </a>
+                {% comment %}
+                The media library had no way in from the sidebar — it was only
+                reachable from inside the composer's picker or by typing the
+                URL, which makes "where are my images?" a question with no
+                answer on screen.
+                {% endcomment %}
+                <a href="{% url 'media_library:index' workspace_id=request.workspace.id %}" class="mb-1 sidebar-nav-item {% if request.resolver_match.app_name == 'media_library' %}active{% endif %}">
+                    <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    <span class="sidebar-nav-label">{% translate "Gallery" %}</span>
+                </a>
                 <a href="{% url 'automations:list' workspace_id=request.workspace.id %}" class="mb-1 sidebar-nav-item {% if request.resolver_match.app_name == 'automations' %}active{% endif %}">
                     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     <span class="sidebar-nav-label">{% translate "Automations" %}</span>

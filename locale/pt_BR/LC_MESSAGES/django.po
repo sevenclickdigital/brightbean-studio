@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 14:37+0000\n"
+"POT-Creation-Date: 2026-11-03 17:09+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -843,7 +843,7 @@ msgid "Upload Photo"
 msgstr "Enviar foto"
 
 #: templates/accounts/settings.html:61
-#: templates/automations/flow_builder.html:748
+#: templates/automations/flow_builder.html:753
 #: templates/composer/categories.html:37
 msgid "Name"
 msgstr "Nome"
@@ -929,7 +929,7 @@ msgstr ""
 "Studio e seus dados pessoais serão excluídos permanentemente."
 
 #: templates/accounts/settings.html:190
-#: templates/automations/flow_builder.html:797
+#: templates/automations/flow_builder.html:802
 #: templates/automations/form.html:392 templates/calendar/calendar.html:393
 #: templates/calendar/partials/_delete_post_modal.html:42
 #: templates/calendar/partials/event_form.html:77
@@ -1076,7 +1076,7 @@ msgstr "Todas as publicações"
 
 #: templates/analytics/_page_header.html:6 templates/analytics/index.html:4
 #: templates/analytics/no_accounts.html:4
-#: templates/analytics/no_accounts.html:10 templates/base.html:677
+#: templates/analytics/no_accounts.html:10 templates/base.html:688
 msgid "Analytics"
 msgstr "Análises"
 
@@ -1222,11 +1222,11 @@ msgid "Not set up"
 msgstr "Não configurado"
 
 #: templates/automations/flow_builder.html:148
-#: templates/automations/flow_builder.html:738
+#: templates/automations/flow_builder.html:743
 msgid "Automation settings"
 msgstr "Configurações da automação"
 
-#: templates/automations/flow_builder.html:150 templates/base.html:863
+#: templates/automations/flow_builder.html:150 templates/base.html:874
 #: templates/organizations/partials/workspace_card.html:35
 #: templates/settings_manager/index.html:3
 #: templates/settings_manager/index.html:6
@@ -1255,12 +1255,12 @@ msgid "Fit"
 msgstr "Ajustar"
 
 #: templates/automations/flow_builder.html:195
-#: templates/automations/flow_builder.html:801
+#: templates/automations/flow_builder.html:806
 msgid "Saving…"
 msgstr "Salvando…"
 
 #: templates/automations/flow_builder.html:195
-#: templates/automations/flow_builder.html:801
+#: templates/automations/flow_builder.html:806
 #: templates/composer/categories.html:44 templates/composer/categories.html:90
 #: templates/members/partials/member_row.html:74
 #: templates/social_accounts/partials/_posting_slots_grid.html:82
@@ -1352,127 +1352,123 @@ msgstr "Ignorar respostas a outros comentários"
 msgid "Remove the image"
 msgstr "Remover a imagem"
 
-#: templates/automations/flow_builder.html:499
-msgid "Image URL (https://…)"
-msgstr "URL da imagem (https://…)"
+#: templates/automations/flow_builder.html:511
+msgid "Change image"
+msgstr "Trocar imagem"
 
-#: templates/automations/flow_builder.html:503
-msgid "Choose from the media library"
-msgstr "Escolher da biblioteca de mídia"
+#: templates/automations/flow_builder.html:511
+msgid "Choose an image"
+msgstr "Escolher uma imagem"
 
-#: templates/automations/flow_builder.html:505
-msgid "Library"
-msgstr "Biblioteca"
-
-#: templates/automations/flow_builder.html:515
+#: templates/automations/flow_builder.html:520
 msgid "The DM this person receives…"
 msgstr "A DM que esta pessoa recebe…"
 
-#: templates/automations/flow_builder.html:517
+#: templates/automations/flow_builder.html:522
 msgid "The card title…"
 msgstr "O título do card…"
 
-#: templates/automations/flow_builder.html:518
+#: templates/automations/flow_builder.html:523
 msgid "The public reply under their comment…"
 msgstr "A resposta pública sob o comentário dela…"
 
-#: templates/automations/flow_builder.html:540
+#: templates/automations/flow_builder.html:545
 msgid "Open a link"
 msgstr "Abrir um link"
 
-#: templates/automations/flow_builder.html:541
+#: templates/automations/flow_builder.html:546
 msgid "Continue the flow"
 msgstr "Continuar o fluxo"
 
-#: templates/automations/flow_builder.html:549
+#: templates/automations/flow_builder.html:554
 msgid "Button label (max 20)"
 msgstr "Texto do botão (máx. 20)"
 
-#: templates/automations/flow_builder.html:567
+#: templates/automations/flow_builder.html:572
 msgid ""
 "Connect this node to the next step — that's where the flow goes when they "
 "tap."
 msgstr ""
 "Conecte este nó à próxima etapa — é para lá que o fluxo vai quando tocarem."
 
-#: templates/automations/flow_builder.html:575
+#: templates/automations/flow_builder.html:580
 msgid "Button"
 msgstr "Botão"
 
-#: templates/automations/flow_builder.html:587
+#: templates/automations/flow_builder.html:592
 msgid "What they wrote"
 msgstr "O que escreveram"
 
-#: templates/automations/flow_builder.html:588
+#: templates/automations/flow_builder.html:593
 msgid "The comment text"
 msgstr "O texto do comentário"
 
-#: templates/automations/flow_builder.html:589
+#: templates/automations/flow_builder.html:594
 msgid "The person's name"
 msgstr "O nome da pessoa"
 
-#: templates/automations/flow_builder.html:591
+#: templates/automations/flow_builder.html:596
 msgid "Who they are"
 msgstr "Quem são"
 
-#: templates/automations/flow_builder.html:592
+#: templates/automations/flow_builder.html:597
 msgid "They follow the account"
 msgstr "Seguem a conta"
 
-#: templates/automations/flow_builder.html:593
+#: templates/automations/flow_builder.html:598
 msgid "The account follows them"
 msgstr "A conta segue a pessoa"
 
-#: templates/automations/flow_builder.html:594
+#: templates/automations/flow_builder.html:599
 msgid "Their profile is verified"
 msgstr "O perfil é verificado"
 
-#: templates/automations/flow_builder.html:595
+#: templates/automations/flow_builder.html:600
 msgid "Their follower count"
 msgstr "Quantidade de seguidores"
 
-#: templates/automations/flow_builder.html:603
+#: templates/automations/flow_builder.html:608
 msgid "Contains"
 msgstr "Contém"
 
-#: templates/automations/flow_builder.html:604
+#: templates/automations/flow_builder.html:609
 msgid "Does not contain"
 msgstr "Não contém"
 
-#: templates/automations/flow_builder.html:605
-#: templates/automations/flow_builder.html:623
+#: templates/automations/flow_builder.html:610
+#: templates/automations/flow_builder.html:628
 msgid "Is exactly"
 msgstr "É exatamente"
 
-#: templates/automations/flow_builder.html:606
+#: templates/automations/flow_builder.html:611
 msgid "Is empty"
 msgstr "Está vazio"
 
-#: templates/automations/flow_builder.html:607
+#: templates/automations/flow_builder.html:612
 msgid "Is not empty"
 msgstr "Não está vazio"
 
-#: templates/automations/flow_builder.html:614
+#: templates/automations/flow_builder.html:619
 msgid "Yes"
 msgstr "Sim"
 
-#: templates/automations/flow_builder.html:615
+#: templates/automations/flow_builder.html:620
 msgid "No"
 msgstr "Não"
 
-#: templates/automations/flow_builder.html:621
+#: templates/automations/flow_builder.html:626
 msgid "Is more than"
 msgstr "É maior que"
 
-#: templates/automations/flow_builder.html:622
+#: templates/automations/flow_builder.html:627
 msgid "Is less than"
 msgstr "É menor que"
 
-#: templates/automations/flow_builder.html:628
+#: templates/automations/flow_builder.html:633
 msgid "Word to look for…"
 msgstr "Palavra a procurar…"
 
-#: templates/automations/flow_builder.html:647
+#: templates/automations/flow_builder.html:652
 msgid ""
 "Put this after a button: the platform only answers once the person has "
 "replied to you."
@@ -1480,35 +1476,35 @@ msgstr ""
 "Coloque isto depois de um botão: a plataforma só responde depois que a "
 "pessoa te responder."
 
-#: templates/automations/flow_builder.html:651
+#: templates/automations/flow_builder.html:656
 msgid "Two outputs: the top port is yes, the bottom is no."
 msgstr "Duas saídas: a porta de cima é sim, a de baixo é não."
 
-#: templates/automations/flow_builder.html:664
+#: templates/automations/flow_builder.html:669
 msgid "Saved with the flow, but this step doesn't run yet."
 msgstr "Salvo com o fluxo, mas esta etapa ainda não é executada."
 
-#: templates/automations/flow_builder.html:681
+#: templates/automations/flow_builder.html:686
 msgid "YES"
 msgstr "SIM"
 
-#: templates/automations/flow_builder.html:684
+#: templates/automations/flow_builder.html:689
 msgid "NO"
 msgstr "NÃO"
 
-#: templates/automations/flow_builder.html:751
+#: templates/automations/flow_builder.html:756
 msgid "e.g. Send the guide"
 msgstr "ex.: Enviar o guia"
 
-#: templates/automations/flow_builder.html:754
+#: templates/automations/flow_builder.html:759
 msgid "How this automation appears in your list."
 msgstr "Como esta automação aparece na sua lista."
 
-#: templates/automations/flow_builder.html:760
+#: templates/automations/flow_builder.html:765
 msgid "Replies per hour"
 msgstr "Respostas por hora"
 
-#: templates/automations/flow_builder.html:766
+#: templates/automations/flow_builder.html:771
 msgid ""
 "A ceiling, so one busy post cannot turn into a flood. Zero stops this flow "
 "sending at all."
@@ -1516,125 +1512,143 @@ msgstr ""
 "Um teto, para uma publicação movimentada não virar uma enxurrada. Zero "
 "impede este fluxo de enviar."
 
-#: templates/automations/flow_builder.html:775
+#: templates/automations/flow_builder.html:780
 #: templates/automations/form.html:340
 msgid "One reply per person, per post"
 msgstr "Uma resposta por pessoa, por publicação"
 
-#: templates/automations/flow_builder.html:777
+#: templates/automations/flow_builder.html:782
 msgid "Someone who comments five times still hears from you once."
 msgstr "Quem comentar cinco vezes recebe resposta uma vez só."
 
-#: templates/automations/flow_builder.html:785
+#: templates/automations/flow_builder.html:790
 #: templates/automations/form.html:358
 msgid "Priority"
 msgstr "Prioridade"
 
-#: templates/automations/flow_builder.html:790
+#: templates/automations/flow_builder.html:795
 msgid "When several automations match one comment, the lowest number answers."
 msgstr ""
 "Quando várias automações combinam com um comentário, o menor número responde."
 
-#: templates/automations/flow_builder.html:821
+#: templates/automations/flow_builder.html:832
 msgid "Media library"
 msgstr "Biblioteca de mídia"
 
-#: templates/automations/flow_builder.html:830
-msgid "Search by name…"
-msgstr "Buscar por nome…"
+#: templates/automations/flow_builder.html:843
+msgid "Search images…"
+msgstr "Buscar imagens…"
 
-#: templates/automations/flow_builder.html:836
+#: templates/automations/flow_builder.html:851
+msgid "Uploading…"
+msgstr "Enviando…"
+
+#: templates/automations/flow_builder.html:851
+msgid "Upload"
+msgstr "Enviar"
+
+#: templates/automations/flow_builder.html:861
 msgid "Loading…"
 msgstr "Carregando…"
 
-#: templates/automations/flow_builder.html:841
+#: templates/automations/flow_builder.html:869
 msgid "No image matches that name."
 msgstr "Nenhuma imagem com esse nome."
 
-#: templates/automations/flow_builder.html:841
+#: templates/automations/flow_builder.html:869
 msgid "No images in the library yet."
 msgstr "Ainda não há imagens na biblioteca."
 
-#: templates/automations/flow_builder.html:844
-msgid "Open the media library"
-msgstr "Abrir a biblioteca de mídia"
+#: templates/automations/flow_builder.html:870
+msgid "Use Upload above to add one."
+msgstr "Use Enviar acima para adicionar uma."
 
-#: templates/automations/flow_builder.html:868
+#: templates/automations/flow_builder.html:894
 msgid "Add step"
 msgstr "Adicionar etapa"
 
-#: templates/automations/flow_builder.html:872
+#: templates/automations/flow_builder.html:898
 msgid "Reply to comment"
 msgstr "Responder ao comentário"
 
-#: templates/automations/flow_builder.html:877
+#: templates/automations/flow_builder.html:903
 #: templates/automations/form.html:266
 msgid "Send a DM"
 msgstr "Enviar uma DM"
 
-#: templates/automations/flow_builder.html:882
-#: templates/automations/flow_builder.html:919
+#: templates/automations/flow_builder.html:908
+#: templates/automations/flow_builder.html:945
 msgid "Card with image"
 msgstr "Card com imagem"
 
-#: templates/automations/flow_builder.html:887
-#: templates/automations/flow_builder.html:921
+#: templates/automations/flow_builder.html:913
+#: templates/automations/flow_builder.html:947
 msgid "Condition"
 msgstr "Condição"
 
-#: templates/automations/flow_builder.html:912
+#: templates/automations/flow_builder.html:938
 #: templates/automations/form.html:70
 msgid "When"
 msgstr "Quando"
 
-#: templates/automations/flow_builder.html:913
+#: templates/automations/flow_builder.html:939
 msgid "Comments on your post"
 msgstr "Comentários na sua publicação"
 
-#: templates/automations/flow_builder.html:914
+#: templates/automations/flow_builder.html:940
 msgid "Then reply"
 msgstr "Então responder"
 
-#: templates/automations/flow_builder.html:915
+#: templates/automations/flow_builder.html:941
 msgid "Reply under the comment"
 msgstr "Resposta sob o comentário"
 
-#: templates/automations/flow_builder.html:916
+#: templates/automations/flow_builder.html:942
 msgid "Then send"
 msgstr "Então enviar"
 
-#: templates/automations/flow_builder.html:917
+#: templates/automations/flow_builder.html:943
 msgid "Direct message"
 msgstr "Mensagem direta"
 
-#: templates/automations/flow_builder.html:918
+#: templates/automations/flow_builder.html:944
 msgid "Step"
 msgstr "Etapa"
 
-#: templates/automations/flow_builder.html:920
+#: templates/automations/flow_builder.html:946
 msgid "Only if"
 msgstr "Somente se"
 
-#: templates/automations/flow_builder.html:922
+#: templates/automations/flow_builder.html:948
 msgid "The flow could not be saved."
 msgstr "Não foi possível salvar o fluxo."
 
-#: templates/automations/flow_builder.html:923
+#: templates/automations/flow_builder.html:949
 msgid "The flow could not be saved. Check your connection and try again."
 msgstr ""
 "Não foi possível salvar o fluxo. Verifique sua conexão e tente novamente.Não "
 "foi possível salvar o fluxo. Verifique sua conexão e tente novamente."
 
-#: templates/automations/flow_builder.html:924
+#: templates/automations/flow_builder.html:950
 msgid "The flow could not be changed."
 msgstr "Não foi possível alterar o fluxo."
 
-#: templates/automations/flow_builder.html:925
+#: templates/automations/flow_builder.html:951
 msgid "The flow could not be changed. Check your connection and try again."
 msgstr ""
 "Não foi possível alterar o fluxo. Verifique sua conexão e tente "
 "novamente.Não foi possível alterar o fluxo. Verifique sua conexão e tente "
 "novamente."
+
+#: templates/automations/flow_builder.html:1733
+msgid "The upload failed."
+msgstr "O envio falhou."
+
+#: templates/automations/flow_builder.html:1741
+msgid "The upload failed. Check your connection and try again."
+msgstr "O envio falhou. Verifique sua conexão e tente novamente."
+"Não foi possível salvar o fluxo. Verifique sua conexão e tente novamente.Não "
+"foi possível salvar o fluxo. Verifique sua conexão e tente novamente."
 
 #: templates/automations/form.html:4 templates/automations/form.html:29
 msgid "Edit rule"
@@ -1849,7 +1863,7 @@ msgid "Create rule"
 msgstr "Criar regra"
 
 #: templates/automations/list.html:4 templates/automations/list.html:11
-#: templates/base.html:664
+#: templates/base.html:675
 msgid "Automations"
 msgstr "Automações"
 
@@ -2151,7 +2165,7 @@ msgstr ""
 msgid "No workspaces"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:366 templates/base.html:1429
+#: templates/base.html:366 templates/base.html:1440
 msgid "Create workspace"
 msgstr "Criar workspace"
 
@@ -2200,41 +2214,45 @@ msgstr "Publicar"
 msgid "Social Inbox"
 msgstr "Caixa de entrada"
 
-#: templates/base.html:670 templates/notifications/history.html:4
+#: templates/base.html:671
+msgid "Gallery"
+msgstr "Galeria"
+
+#: templates/base.html:681 templates/notifications/history.html:4
 #: templates/notifications/history.html:12
 #: templates/notifications/partials/drawer.html:5
 msgid "Notifications"
 msgstr "Notificações"
 
-#: templates/base.html:695
+#: templates/base.html:706
 msgid "Intelligence"
 msgstr "Inteligência"
 
-#: templates/base.html:703 templates/organizations/cross_calendar.html:188
+#: templates/base.html:714 templates/organizations/cross_calendar.html:188
 msgid "Channels"
 msgstr "Canais"
 
-#: templates/base.html:756
+#: templates/base.html:767
 msgid "Connect channels"
 msgstr "Conectar canais"
 
-#: templates/base.html:779
+#: templates/base.html:790
 msgid "More channels"
 msgstr "Mais canais"
 
-#: templates/base.html:846
+#: templates/base.html:857
 msgid "My Organization"
 msgstr "Minha organização"
 
-#: templates/base.html:854
+#: templates/base.html:865
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:880
+#: templates/base.html:891
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:894
+#: templates/base.html:905
 msgid "Log out"
 msgstr "Sair"
 
@@ -5230,3 +5248,15 @@ msgstr "Participações no workspace"
 #: templates/workspaces/settings.html:223
 msgid "Yes, delete this workspace"
 msgstr "Sim, excluir este workspace"
+
+#~ msgid "Image URL (https://…)"
+#~ msgstr "URL da imagem (https://…)"
+
+#~ msgid "Choose from the media library"
+#~ msgstr "Escolher da biblioteca de mídia"
+
+#~ msgid "Library"
+#~ msgstr "Biblioteca"
+
+#~ msgid "Open the media library"
+#~ msgstr "Abrir a biblioteca de mídia"

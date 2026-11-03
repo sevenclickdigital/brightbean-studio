@@ -479,17 +479,21 @@ any zoom level.
                                             </div>
                                         </template>
 
-                                        <div class="flex items-center gap-1.5">
-                                            <input type="text" x-model="node.data.image_url" @keydown.stop
-                                                   placeholder="{% translate 'Image URL (https://…)' %}"
-                                                   class="flex-1 min-w-0 text-[12px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
-                                            <button type="button" @click="openMediaPicker(node)"
-                                                    class="shrink-0 flex items-center gap-1 px-2 py-1.5 rounded-lg border border-stone-200 text-[11px] text-stone-500 hover:text-stone-700 hover:border-stone-300 transition-colors cursor-pointer"
-                                                    title="{% translate 'Choose from the media library' %}">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-                                                {% translate "Library" %}
-                                            </button>
-                                        </div>
+                                        {% comment %}
+                                        No URL field. It was a second way to do
+                                        the same thing, and the one that could
+                                        be got wrong — a pasted link that 404s
+                                        for Meta's fetcher fails at send time,
+                                        long after the author has moved on.
+                                        Everything the card can show is already
+                                        in the library, and the library can take
+                                        an upload.
+                                        {% endcomment %}
+                                        <button type="button" @click="openMediaPicker(node)"
+                                                class="w-full flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg border border-dashed border-stone-300 text-[12px] text-stone-500 hover:text-stone-700 hover:border-stone-400 transition-colors cursor-pointer">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                            <span x-text="node.data.image_url ? '{% translate "Change image" %}' : '{% translate "Choose an image" %}'"></span>
+                                        </button>
                                     </div>
                                 </template>
 
@@ -791,8 +795,13 @@ any zoom level.
         <div x-show="mediaPickerOpen" x-cloak
              @keydown.escape.window="mediaPickerOpen = false"
              class="absolute inset-0 z-30 flex items-center justify-center bg-stone-900/20 p-4">
+            {% comment %}
+            Sized like the library page rather than like a dropdown: choosing
+            an image is a visual task, and a three-column strip makes you scroll
+            past most of what you own to find it.
+            {% endcomment %}
             <div @click.outside="mediaPickerOpen = false"
-                 class="w-full max-w-lg bg-white rounded-2xl border border-stone-200 shadow-xl flex flex-col max-h-[80%]">
+                 class="w-full max-w-3xl h-[80%] bg-white rounded-2xl border border-stone-200 shadow-xl flex flex-col">
                 <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100 shrink-0">
                     <h3 class="text-sm font-semibold text-stone-900">{% translate "Media library" %}</h3>
                     <button type="button" @click="mediaPickerOpen = false"
@@ -801,11 +810,25 @@ any zoom level.
                     </button>
                 </div>
 
-                <div class="px-5 py-3 border-b border-stone-100 shrink-0">
-                    <input type="text" x-model="mediaQuery" @input.debounce.300ms="loadMedia()"
-                           placeholder="{% translate 'Search by name…' %}"
-                           class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                <div class="flex items-center gap-2 px-5 py-3 border-b border-stone-100 shrink-0">
+                    <div class="relative flex-1">
+                        <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                        <input type="text" x-model="mediaQuery" @input.debounce.300ms="loadMedia()"
+                               placeholder="{% translate 'Search images…' %}"
+                               class="w-full text-[13px] pl-8 pr-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                    </div>
+
+                    {# Upload without leaving the flow: the image you want is often the one you have not uploaded yet. #}
+                    <label class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500 text-white text-[13px] font-medium hover:bg-orange-600 transition-colors cursor-pointer"
+                           :class="mediaUploading ? 'opacity-60 pointer-events-none' : ''">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <span x-text="mediaUploading ? '{% translate "Uploading…" %}' : '{% translate "Upload" %}'"></span>
+                        <input type="file" accept="image/*" multiple class="hidden"
+                               @change="uploadMedia($event)">
+                    </label>
                 </div>
+
+                <div x-show="mediaError" x-cloak class="px-5 py-2 bg-red-50 border-b border-red-100 text-[12px] text-red-700 shrink-0" x-text="mediaError"></div>
 
                 <div class="flex-1 overflow-y-auto p-5">
                     <div x-show="mediaLoading" class="py-10 text-center text-[13px] text-stone-400">
@@ -813,18 +836,19 @@ any zoom level.
                     </div>
 
                     {# Empty reads differently depending on why. #}
-                    <div x-show="!mediaLoading && !mediaItems.length" class="py-10 text-center">
-                        <p class="text-[13px] text-stone-500" x-text="mediaQuery ? '{% translate "No image matches that name." %}' : '{% translate "No images in the library yet." %}'"></p>
-                        <a href="{% url 'media_library:index' workspace_id=workspace.id %}" target="_blank" rel="noopener"
-                           class="inline-block mt-2 text-[13px] text-orange-600 hover:text-orange-700 hover:underline">
-                            {% translate "Open the media library" %}
-                        </a>
+                    <div x-show="!mediaLoading && !mediaItems.length" class="py-16 text-center">
+                        <div class="w-14 h-14 mx-auto rounded-2xl bg-orange-50 flex items-center justify-center mb-3">
+                            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                        </div>
+                        <p class="text-[13px] font-medium text-stone-600" x-text="mediaQuery ? '{% translate "No image matches that name." %}' : '{% translate "No images in the library yet." %}'"></p>
+                        <p class="text-[12px] text-stone-400 mt-1" x-show="!mediaQuery">{% translate "Use Upload above to add one." %}</p>
                     </div>
 
-                    <div x-show="!mediaLoading && mediaItems.length" class="grid grid-cols-3 gap-2">
+                    <div x-show="!mediaLoading && mediaItems.length" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                         <template x-for="item in mediaItems" :key="item.id">
                             <button type="button" @click="chooseMedia(item)"
-                                    class="group relative aspect-square rounded-lg overflow-hidden border border-stone-200 bg-stone-50 hover:border-orange-400 transition-colors cursor-pointer">
+                                    class="group relative aspect-square rounded-xl overflow-hidden border-2 transition-colors cursor-pointer"
+                                    :class="(mediaTarget && mediaTarget.data.image_url === item.url) ? 'border-orange-500' : 'border-stone-200 hover:border-orange-400'">
                                 <img :src="item.thumbnail || item.url" :alt="item.title"
                                      class="w-full h-full object-cover" loading="lazy">
                                 <span class="absolute inset-x-0 bottom-0 px-1.5 py-1 bg-black/55 text-white text-[10px] truncate text-left"
@@ -956,6 +980,8 @@ function flowBuilder() {
         mediaItems: [],
         mediaQuery: '',
         mediaLoading: false,
+        mediaUploading: false,
+        mediaError: '',
         //: The clicked edge, which shows a labelled Delete button until it is
         //: used or the selection moves elsewhere.
         selectedEdge: null,
@@ -1630,6 +1656,7 @@ function flowBuilder() {
         openMediaPicker(node) {
             this.mediaTarget = node;
             this.mediaPickerOpen = true;
+            this.mediaError = '';
             // Re-fetched each time it opens: an image uploaded in another tab
             // between two openings should be there, and the list is small.
             this.loadMedia();
@@ -1650,6 +1677,44 @@ function flowBuilder() {
                 this.mediaItems = [];
             } finally {
                 this.mediaLoading = false;
+            }
+        },
+
+        // Upload straight into the library from here. The image someone wants
+        // on a card is often the one they have not uploaded yet, and sending
+        // them to another tab to do it loses the flow they were mid-way
+        // through building.
+        async uploadMedia(event) {
+            const files = [...(event.target.files || [])];
+            // Reset the input so picking the same file twice still fires.
+            event.target.value = '';
+            if (!files.length) return;
+
+            this.mediaUploading = true;
+            this.mediaError = '';
+            try {
+                const body = new FormData();
+                files.forEach(f => body.append('files', f));
+                body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+                const response = await fetch('{% url "media_library:upload" workspace_id=workspace.id %}', {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    this.mediaError = data.error || '{% translate "The upload failed." %}';
+                    return;
+                }
+                // Re-read the list rather than guessing the new entries: the
+                // server names, thumbnails and orders them, and reproducing
+                // that here is a second definition to keep in step.
+                await this.loadMedia();
+            } catch (err) {
+                this.mediaError = '{% translate "The upload failed. Check your connection and try again." %}';
+            } finally {
+                this.mediaUploading = false;
             }
         },
 
