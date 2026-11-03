@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block title %}{{ asset.original_filename }} - Media Library{% endblock %}
 
@@ -12,7 +13,7 @@
   <h1 class="text-lg font-semibold" style="color: var(--text-primary, #1C1917);">{{ asset.original_filename }}</h1>
   {% if asset.is_shared %}
   <span class="text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wider"
-        style="background: var(--accent-teal-soft); color: #0F766E;">Shared</span>
+        style="background: var(--accent-teal-soft); color: #0F766E;">{% translate "Shared" %}</span>
   {% endif %}
 </div>
 {% endblock %}

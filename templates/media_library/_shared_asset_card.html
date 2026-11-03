@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Asset card for shared org library. Uses org-scoped URLs only. Expects: asset, is_admin{% endcomment %}
 
 <div class="ml-asset-card group cursor-pointer relative"
@@ -29,7 +30,7 @@
     </span>
 
     <span class="absolute top-2 right-2" style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 6px; border-radius: var(--radius-sm, 0.25rem); background: rgba(20,184,166,0.9); color: white;">
-      SHARED
+      {% translate "SHARED" %}
     </span>
   </div>
 
@@ -62,7 +63,7 @@
          class="flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors btn-surface-1"
          style="color: var(--text-primary, #1C1917);">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        Edit
+        {% translate "Edit" %}
       </a>
       <button type="button"
               hx-post="{% url 'media_library_org:shared_asset_delete' asset_id=asset.id %}"
@@ -74,7 +75,7 @@
               class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium transition-colors cursor-pointer btn-danger-soft-bg"
               style="color: var(--error-500, #EF4444);">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-        Delete
+        {% translate "Delete" %}
       </button>
     </div>
   </div>

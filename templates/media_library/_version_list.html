@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Version history list. Expects: asset, versions, workspace{% endcomment %}
 
 <style>
@@ -26,7 +27,7 @@
         <span class="text-xs font-bold" style="color: var(--text-primary, #1C1917);">Version {{ version.version_number }}</span>
         {% if asset.current_version_id == version.id %}
         <span class="text-xs px-1.5 py-0.5 rounded-full font-semibold"
-              style="background: var(--success-50, #F0FDF4); color: var(--success-700, #15803D);">Current</span>
+              style="background: var(--success-50, #F0FDF4); color: var(--success-700, #15803D);">{% translate "Current" %}</span>
         {% endif %}
       </div>
       {% if version.change_description %}
@@ -41,12 +42,12 @@
             hx-post="{% url 'media_library:version_restore' workspace_id=workspace.id asset_id=asset.id version_id=version.id %}"
             hx-target="#version-list-{{ asset.id }}"
             hx-confirm="Restore version {{ version.version_number }}? This will create a new version.">
-      Restore
+      {% translate "Restore" %}
     </button>
     {% endif %}
   </div>
   {% endfor %}
 </div>
 {% else %}
-<p class="text-xs py-3 text-center" style="color: var(--text-ghost, #A8A29E);">No version history yet. Edits will appear here.</p>
+<p class="text-xs py-3 text-center" style="color: var(--text-ghost, #A8A29E);">{% translate "No version history yet. Edits will appear here." %}</p>
 {% endif %}

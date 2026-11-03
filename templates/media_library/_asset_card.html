@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Single asset card for grid view. Expects: asset, workspace{% endcomment %}
 
 <div class="ml-asset-card group cursor-pointer overflow-hidden"
@@ -47,7 +48,7 @@
     {% if asset.is_shared %}
     <span class="ml-type-badge absolute top-2 right-2"
           style="background: rgba(20,184,166,0.9); color: white;">
-      SHARED
+      {% translate "SHARED" %}
     </span>
     {% endif %}
 

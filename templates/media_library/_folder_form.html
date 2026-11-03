@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Modal for creating a new folder. Expects: workspace{% endcomment %}
 
 <div class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="showNewFolder = false">
@@ -7,13 +8,13 @@
   <!-- Modal -->
   <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6"
        @click.stop>
-    <h3 class="text-base font-semibold mb-4" style="color: var(--text-primary, #1C1917);">New Folder</h3>
+    <h3 class="text-base font-semibold mb-4" style="color: var(--text-primary, #1C1917);">{% translate "New Folder" %}</h3>
 
     <form hx-post="{% url 'media_library:folder_create' workspace_id=workspace.id %}"
           hx-target="#folder-tree"
           hx-swap="innerHTML"
           @htmx:after-request="showNewFolder = false">
-      <input type="text" name="name" placeholder="Folder name..."
+      <input type="text" name="name" placeholder="{% translate 'Folder name...' %}"
              class="input-focus w-full text-sm px-3 py-2 border rounded-lg outline-none mb-4"
              style="border-color: var(--border, #E7E5E4);"
              required autofocus>
@@ -22,12 +23,12 @@
         <button type="button" @click="showNewFolder = false"
                 class="btn-surface-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer"
                 style="color: var(--text-secondary, #57534E);">
-          Cancel
+          {% translate "Cancel" %}
         </button>
         <button type="submit"
                 class="btn-primary-hover px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors cursor-pointer"
                 style="background: var(--primary, #F97316);">
-          Create Folder
+          {% translate "Create Folder" %}
         </button>
       </div>
     </form>

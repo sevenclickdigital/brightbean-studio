@@ -1,4 +1,4 @@
-{% load common_extras %}
+{% load common_extras i18n %}
 {% comment %}Tag editor with autocomplete. Expects: asset, workspace, is_shared_library, is_admin{% endcomment %}
 
 <div x-data="tagInput({{ asset.tags|json_attr }})" class="space-y-2">
@@ -27,7 +27,7 @@
            @keydown.backspace="inputValue === '' && removeTag(tags.length - 1)"
            @input.debounce.300ms="fetchSuggestions()"
            @click.away="suggestions = []"
-           placeholder="Add tag..."
+           placeholder="{% translate 'Add tag...' %}"
            class="input-focus w-full text-xs px-3 py-2 border rounded-lg outline-none">
 
     <!-- Autocomplete dropdown -->

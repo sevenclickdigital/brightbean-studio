@@ -1,5 +1,5 @@
 {% extends "layouts/settings.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Shared Library{% endblock %}
 
@@ -46,12 +46,12 @@
   <!-- Header -->
   <div class="flex items-center justify-between mb-5">
     <div>
-      <p class="text-sm" style="color: var(--text-secondary);">Organization-wide assets available to all workspaces.</p>
+      <p class="text-sm" style="color: var(--text-secondary);">{% translate "Organization-wide assets available to all workspaces." %}</p>
     </div>
     {% if is_admin %}
     <label class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 hover:border-orange-300 active:bg-orange-100 transition-all duration-150 cursor-pointer">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-      Upload to Shared
+      {% translate "Upload to Shared" %}
       <input id="shared-upload-input" type="file" multiple accept="{{ accepted_file_types }}" class="hidden">
     </label>
     {% endif %}
@@ -61,7 +61,7 @@
   <div class="flex items-center gap-3 mb-4">
     <div class="relative flex-1 max-w-sm">
       <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color: var(--text-ghost);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input type="search" name="q" value="{{ query }}" placeholder="Search shared assets..."
+      <input type="search" name="q" value="{{ query }}" placeholder="{% translate 'Search shared assets...' %}"
              class="ml-search-input w-full pl-9 pr-4 py-2 text-sm border rounded-lg outline-none"
              hx-get="{% url 'media_library_org:shared_index' %}"
              hx-trigger="keyup changed delay:400ms"
@@ -69,7 +69,7 @@
              hx-include="[name='q']">
     </div>
     <div class="flex items-center gap-1.5">
-      <a href="{% url 'media_library_org:shared_index' %}" class="ml-filter-pill {% if not current_type %}active{% endif %}">All</a>
+      <a href="{% url 'media_library_org:shared_index' %}" class="ml-filter-pill {% if not current_type %}active{% endif %}">{% translate "All" %}</a>
       {% for type_val, type_label in file_types %}
       <a href="{% url 'media_library_org:shared_index' %}?type={{ type_val }}" class="ml-filter-pill {% if current_type == type_val %}active{% endif %}">{{ type_label }}</a>
       {% endfor %}

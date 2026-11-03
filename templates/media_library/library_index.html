@@ -134,7 +134,7 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
           class="lg:hidden fixed bottom-4 left-4 z-40 flex items-center gap-2 px-3 py-2.5 bg-white border border-stone-200 rounded-xl shadow-lg text-sm font-medium text-stone-600 hover:bg-stone-50 transition-colors cursor-pointer"
           x-show="!detailOpen">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2l2 2h6a2 2 0 012 2v2M4 6v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2H4z"/></svg>
-    Folders
+    {% translate "Folders" %}
   </button>
 
   <!-- Mobile folder sidebar backdrop -->
@@ -151,11 +151,11 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
        @click="if (window.innerWidth < 1024 && $event.target.closest('a')) { folderSidebarOpen = false }">
     <div class="p-4">
       <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-tertiary, #78716C);">Folders</span>
+        <span class="text-xs font-bold uppercase tracking-wider" style="color: var(--text-tertiary, #78716C);">{% translate "Folders" %}</span>
         <button @click="showNewFolder = true"
                 class="w-6 h-6 flex items-center justify-center rounded-md hover:bg-stone-100 cursor-pointer transition-colors"
                 style="color: var(--text-tertiary, #78716C);"
-                title="New folder">
+                title="{% translate 'New folder' %}">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         </button>
       </div>
@@ -164,14 +164,14 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
       <a href="{% url 'media_library:index' workspace_id=workspace.id %}"
          class="ml-folder-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer {% if not current_folder %}active{% endif %}">
         <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2l2 2h6a2 2 0 012 2v2M4 6v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2H4z"/></svg>
-        All Media
+        {% translate "All Media" %}
       </a>
 
       <!-- Starred -->
       <a href="{% url 'media_library:index' workspace_id=workspace.id %}?starred=1"
          class="ml-folder-item flex items-center gap-2 px-3 py-2 rounded-lg text-sm cursor-pointer {% if is_starred %}active{% endif %}">
         <svg class="w-4 h-4 flex-shrink-0" fill="{% if is_starred %}currentColor{% else %}none{% endif %}" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
-        Starred
+        {% translate "Starred" %}
       </a>
 
       <div class="my-3 border-t" style="border-color: var(--surface-2, #F5F5F4);"></div>
@@ -251,7 +251,7 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
         <input type="search"
                name="q"
                value="{{ query }}"
-               placeholder="Search media..."
+               placeholder="{% translate 'Search media...' %}"
                class="input-focus w-full pl-9 pr-4 py-2 text-sm border rounded-lg outline-none"
                style="border-color: var(--border, #E7E5E4); background: var(--surface-0, #FFF);"
                hx-get="{% url 'media_library:index' workspace_id=workspace.id %}{% if current_folder %}?folder={{ current_folder }}{% endif %}"
@@ -263,7 +263,7 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
       <!-- Type filters -->
       <div class="flex items-center gap-1.5 overflow-x-auto flex-nowrap">
         <a href="{% url 'media_library:index' workspace_id=workspace.id %}{% if current_folder %}?folder={{ current_folder }}{% endif %}"
-           class="ml-filter-pill {% if not current_type %}active{% endif %}">All</a>
+           class="ml-filter-pill {% if not current_type %}active{% endif %}">{% translate "All" %}</a>
         {% for type_val, type_label in file_types %}
         <a href="{% url 'media_library:index' workspace_id=workspace.id %}?type={{ type_val }}{% if current_folder %}&folder={{ current_folder }}{% endif %}"
            class="ml-filter-pill {% if current_type == type_val %}active{% endif %}">{{ type_label }}</a>
@@ -280,12 +280,12 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
               hx-trigger="change"
               hx-target="#asset-grid"
               hx-include="[name='q'], [name='sort']">
-        <option value="-date" {% if current_sort == '-date' %}selected{% endif %}>Newest first</option>
-        <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Oldest first</option>
-        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>Name A-Z</option>
-        <option value="-name" {% if current_sort == '-name' %}selected{% endif %}>Name Z-A</option>
-        <option value="-size" {% if current_sort == '-size' %}selected{% endif %}>Largest first</option>
-        <option value="size" {% if current_sort == 'size' %}selected{% endif %}>Smallest first</option>
+        <option value="-date" {% if current_sort == '-date' %}selected{% endif %}>{% translate "Newest first" %}</option>
+        <option value="date" {% if current_sort == 'date' %}selected{% endif %}>{% translate "Oldest first" %}</option>
+        <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% translate "Name A-Z" %}</option>
+        <option value="-name" {% if current_sort == '-name' %}selected{% endif %}>{% translate "Name Z-A" %}</option>
+        <option value="-size" {% if current_sort == '-size' %}selected{% endif %}>{% translate "Largest first" %}</option>
+        <option value="size" {% if current_sort == 'size' %}selected{% endif %}>{% translate "Smallest first" %}</option>
       </select>
 
       <!-- View toggle -->
@@ -306,7 +306,7 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
       <button @click="$refs.fileInput.click()"
               class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 hover:border-orange-300 active:bg-orange-100 transition-all duration-150 cursor-pointer">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-        Upload
+        {% translate "Upload" %}
       </button>
       <input type="file" x-ref="fileInput" @change="handleFiles($event.target.files)" multiple
              accept="{{ accepted_file_types }}" class="hidden">
@@ -328,8 +328,8 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
         <template x-if="!uploading">
           <div>
             <svg class="w-10 h-10 mx-auto mb-3" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-            <p class="text-sm font-medium" style="color: var(--text-secondary, #57534E);">Drop files here to upload</p>
-            <p class="text-xs mt-1" style="color: var(--text-ghost, #A8A29E);">Images up to 20MB, videos up to 1GB</p>
+            <p class="text-sm font-medium" style="color: var(--text-secondary, #57534E);">{% translate "Drop files here to upload" %}</p>
+            <p class="text-xs mt-1" style="color: var(--text-ghost, #A8A29E);">{% translate "Images up to 20MB, videos up to 1GB" %}</p>
           </div>
         </template>
         <template x-if="uploading">
@@ -346,7 +346,7 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
                     <div class="ml-progress-fill" :style="'width: ' + (file.progress || 0) + '%'"></div>
                   </div>
                 </div>
-                <span x-show="file.status === 'complete'" class="text-xs font-semibold" style="color: var(--success-500, #22C55E);">Done</span>
+                <span x-show="file.status === 'complete'" class="text-xs font-semibold" style="color: var(--success-500, #22C55E);">{% translate "Done" %}</span>
                 <span x-show="file.status === 'error'" class="text-xs font-semibold" style="color: var(--error-500, #EF4444);" x-text="file.error || 'Failed'"></span>
               </div>
             </template>

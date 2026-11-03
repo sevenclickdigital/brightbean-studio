@@ -1,3 +1,4 @@
+{% load i18n %}
 {% comment %}Nested folder tree for sidebar. Expects: folders, workspace, current_folder{% endcomment %}
 
 <div x-data="{ folderToDelete: null, folderDeleteName: '', folderDeleteUrl: '' }">
@@ -67,7 +68,7 @@
   {% endif %}
 </div>
 {% empty %}
-<p class="text-xs px-3 py-2" style="color: var(--text-ghost, #A8A29E);">No folders yet</p>
+<p class="text-xs px-3 py-2" style="color: var(--text-ghost, #A8A29E);">{% translate "No folders yet" %}</p>
 {% endfor %}
 
 <!-- Folder delete confirmation modal -->
@@ -80,21 +81,21 @@
          style="background: var(--error-50, #FEF2F2);">
       <svg class="w-5 h-5" style="color: var(--error-500, #EF4444);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
     </div>
-    <h3 class="text-base font-semibold text-center mb-1" style="color: var(--text-primary, #1C1917);">Delete folder?</h3>
+    <h3 class="text-base font-semibold text-center mb-1" style="color: var(--text-primary, #1C1917);">{% translate "Delete folder?" %}</h3>
     <p class="text-sm text-center mb-5" style="color: var(--text-secondary, #57534E);">
-      Delete <span class="font-medium" x-text="folderDeleteName"></span>? Assets will be moved to the parent folder.
+      {% translate "Delete" %} <span class="font-medium" x-text="folderDeleteName"></span>{% translate "? Assets will be moved to the parent folder." %}
     </p>
     <div class="flex gap-2">
       <button type="button" @click="folderToDelete = null"
               class="btn-surface-2 flex-1 px-4 py-2 text-sm font-medium rounded-lg transition-colors cursor-pointer"
               style="color: var(--text-secondary, #57534E); border: 1px solid var(--border, #E7E5E4);">
-        Cancel
+        {% translate "Cancel" %}
       </button>
       <button type="button"
               class="btn-error-darker flex-1 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors cursor-pointer"
               style="background: var(--error-500, #EF4444);"
               @click="htmx.ajax('POST', folderDeleteUrl, {target: '#folder-tree', swap: 'innerHTML'}); folderToDelete = null">
-        Delete
+        {% translate "Delete" %}
       </button>
     </div>
   </div>

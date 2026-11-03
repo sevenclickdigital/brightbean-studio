@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 17:22+0000\n"
+"POT-Creation-Date: 2026-11-03 22:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -219,7 +219,8 @@ msgstr "A fazer"
 msgid "In Progress"
 msgstr "Em andamento"
 
-#: apps/composer/models.py:123 templates/notifications/unsubscribed.html:12
+#: apps/composer/models.py:123 templates/media_library/library_index.html:350
+#: templates/notifications/unsubscribed.html:12
 msgid "Done"
 msgstr "Pronto"
 
@@ -845,6 +846,7 @@ msgstr "Enviar foto"
 #: templates/accounts/settings.html:61
 #: templates/automations/flow_builder.html:753
 #: templates/composer/categories.html:37
+#: templates/media_library/_asset_grid.html:19
 msgid "Name"
 msgstr "Nome"
 
@@ -936,8 +938,19 @@ msgstr ""
 #: templates/calendar/partials/publish_approvals.html:87
 #: templates/calendar/queues.html:64 templates/composer/categories.html:45
 #: templates/composer/categories.html:91
+#: templates/composer/create_landing.html:495
+#: templates/composer/create_landing.html:972
+#: templates/composer/create_landing.html:1008
+#: templates/composer/partials/feeds_tab.html:105
+#: templates/composer/partials/feeds_tab.html:194
+#: templates/composer/partials/kanban_board.html:21
 #: templates/inbox/partials/_saved_reply_form.html:24
 #: templates/inbox/sla_config.html:64 templates/intelligence/subscribe.html:19
+#: templates/media_library/_asset_detail_panel.html:93
+#: templates/media_library/_folder_form.html:27
+#: templates/media_library/_folder_tree.html:93
+#: templates/media_library/asset_edit.html:106
+#: templates/media_library/asset_edit.html:181
 #: templates/members/partials/invite_modal.html:93
 #: templates/oauth2_provider/authorize.html:40
 #: templates/onboarding/connection_page.html:198
@@ -1140,7 +1153,9 @@ msgstr "todo o período"
 
 #: templates/analytics/_post_table.html:18
 #: templates/calendar/partials/publish_approvals.html:22
-#: templates/inbox/feed.html:138 templates/notifications/history.html:77
+#: templates/inbox/feed.html:138 templates/media_library/library_index.html:267
+#: templates/media_library/shared_library.html:72
+#: templates/notifications/history.html:77
 msgid "All"
 msgstr "Todos"
 
@@ -1297,7 +1312,14 @@ msgstr ""
 #: templates/calendar/calendar.html:370 templates/calendar/calendar.html:397
 #: templates/calendar/partials/_delete_post_modal.html:59
 #: templates/calendar/partials/_post_actions_menu.html:35
+#: templates/composer/create_landing.html:914
+#: templates/composer/create_landing.html:988
 #: templates/inbox/saved_replies.html:50
+#: templates/media_library/_asset_detail_panel.html:74
+#: templates/media_library/_asset_detail_panel.html:109
+#: templates/media_library/_folder_tree.html:87
+#: templates/media_library/_folder_tree.html:99
+#: templates/media_library/_shared_asset_card.html:79
 msgid "Delete"
 msgstr "Deletar"
 
@@ -1544,6 +1566,7 @@ msgid "Uploading…"
 msgstr "Enviando…"
 
 #: templates/automations/flow_builder.html:851
+#: templates/media_library/library_index.html:310
 msgid "Upload"
 msgstr "Enviar"
 
@@ -1971,10 +1994,14 @@ msgstr[0] "Página %(page)s de %(total)s &middot; %(counter)s registro"
 msgstr[1] "Página %(page)s de %(total)s &middot; %(counter)s registros"
 
 #: templates/automations/log.html:114
+#: templates/media_library/_asset_grid.html:41
+#: templates/media_library/_shared_asset_grid.html:25
 msgid "Previous"
 msgstr "Anterior"
 
 #: templates/automations/log.html:118
+#: templates/media_library/_asset_grid.html:56
+#: templates/media_library/_shared_asset_grid.html:38
 #: templates/notifications/partials/history_list.html:109
 msgid "Next"
 msgstr "Próxima"
@@ -2191,18 +2218,28 @@ msgid "Capture a content idea"
 msgstr "Registrar uma ideia de conteúdo"
 
 #: templates/base.html:451 templates/base.html:655
+#: templates/composer/create_landing.html:587
 msgid "Create Idea"
 msgstr "Criar ideia"
 
-#: templates/base.html:476 templates/organizations/cross_calendar.html:200
+#: templates/base.html:476 templates/composer/create_landing.html:445
+#: templates/composer/create_landing.html:612
+#: templates/composer/create_landing.html:809
+#: templates/media_library/_asset_detail_panel.html:159
+#: templates/organizations/cross_calendar.html:200
 msgid "Tags"
 msgstr "Tags"
 
-#: templates/base.html:563
+#: templates/base.html:563 templates/composer/create_landing.html:702
+#: templates/composer/create_landing.html:902
 msgid "Add another file"
 msgstr "Adicionar outro arquivo"
 
-#: templates/base.html:621
+#: templates/base.html:621 templates/composer/create_landing.html:478
+#: templates/composer/create_landing.html:487
+#: templates/composer/create_landing.html:651
+#: templates/composer/create_landing.html:848
+#: templates/composer/create_landing.html:1000
 msgid "Create new tag"
 msgstr "Criar nova tag"
 
@@ -2306,6 +2343,9 @@ msgid "Connect a Channel"
 msgstr "Conectar um canal"
 
 #: templates/calendar/partials/_post_actions_menu.html:30
+#: templates/media_library/_asset_detail_panel.html:44
+#: templates/media_library/_asset_detail_panel.html:51
+#: templates/media_library/_shared_asset_card.html:67
 msgid "Edit"
 msgstr "Editar"
 
@@ -2404,6 +2444,8 @@ msgid "Create your first post to see it on the calendar"
 msgstr "Crie sua primeira publicação para vê-la no calendário"
 
 #: templates/calendar/partials/list_view.html:71
+#: templates/composer/create_landing.html:746
+#: templates/composer/create_landing.html:921
 #: templates/composer/drafts_list.html:67
 msgid "Create Post"
 msgstr "Criar publicação"
@@ -2589,7 +2631,9 @@ msgstr "Categoria (opcional)"
 msgid "Any category"
 msgstr "Qualquer categoria"
 
-#: templates/calendar/queues.html:63
+#: templates/calendar/queues.html:63 templates/composer/create_landing.html:400
+#: templates/composer/create_landing.html:502
+#: templates/composer/create_landing.html:1015
 #: templates/inbox/partials/_saved_reply_form.html:21
 #: templates/workspaces/list.html:71
 msgid "Create"
@@ -2642,6 +2686,8 @@ msgid "Create categories to organize your posts."
 msgstr "Crie categorias para organizar suas publicações."
 
 #: templates/composer/compose.html:298
+#: templates/composer/create_landing.html:687
+#: templates/composer/create_landing.html:887
 msgid "Preview"
 msgstr "Prévia"
 
@@ -2713,6 +2759,7 @@ msgid "Save Template"
 msgstr "Salvar modelo"
 
 #: templates/composer/compose.html:499
+#: templates/composer/create_landing.html:1064
 #: templates/composer/templates_list.html:55
 msgid "Use Template"
 msgstr "Usar modelo"
@@ -2853,6 +2900,174 @@ msgstr ""
 msgid "Set Schedule"
 msgstr "Definir agendamento"
 
+#: templates/composer/create_landing.html:407
+msgid "New Idea"
+msgstr "Nova ideia"
+
+
+#: templates/composer/create_landing.html:418
+msgid "Ideas"
+msgstr "Ideias"
+
+
+#: templates/composer/create_landing.html:422
+msgid "Templates"
+msgstr "Modelos"
+
+
+#: templates/composer/create_landing.html:426
+msgid "Feeds"
+msgstr "Feeds"
+
+
+#: templates/composer/create_landing.html:455
+msgid "Search tags..."
+msgstr "Buscar etiquetas..."
+
+
+#: templates/composer/create_landing.html:467
+msgid "No tags yet"
+msgstr "Nenhuma etiqueta ainda"
+
+
+#: templates/composer/create_landing.html:470
+msgid "No matching tags"
+msgstr "Nenhuma etiqueta encontrada"
+
+
+#: templates/composer/create_landing.html:491
+#: templates/composer/create_landing.html:1004
+msgid "Tag name..."
+msgstr "Nome da etiqueta..."
+
+
+#: templates/composer/create_landing.html:571
+#: templates/composer/create_landing.html:767
+#: templates/composer/create_landing.html:1029
+msgid "Close"
+msgstr "Fechar"
+
+
+#: templates/composer/create_landing.html:623
+#: templates/composer/create_landing.html:820
+msgid "Search or create tag..."
+msgstr "Buscar ou criar etiqueta..."
+
+
+#: templates/composer/create_landing.html:635
+#: templates/composer/create_landing.html:832
+msgid "No tags yet. Type to create one."
+msgstr "Nenhuma etiqueta ainda. Digite para criar uma."
+
+
+#: templates/composer/create_landing.html:643
+#: templates/composer/create_landing.html:840
+msgid "Create \\"
+msgstr "Criar \\"
+
+
+#: templates/composer/create_landing.html:675
+#: templates/composer/create_landing.html:874
+msgid "Give your idea a title"
+msgstr "Dê um título à sua ideia"
+
+
+#: templates/composer/create_landing.html:676
+#: templates/composer/create_landing.html:875
+msgid "Let it flow... or"
+msgstr "Deixe fluir... ou"
+
+
+#: templates/composer/create_landing.html:689
+#: templates/composer/create_landing.html:889
+#: templates/composer/partials/feeds_tab.html:93
+msgid "Remove"
+msgstr "Remover"
+
+
+#: templates/composer/create_landing.html:701
+#: templates/composer/create_landing.html:901
+msgid "Drag &amp; drop"
+msgstr "Arraste e solte"
+
+
+#: templates/composer/create_landing.html:703
+#: templates/composer/create_landing.html:903
+#: templates/members/accept_invite.html:132
+msgid "or"
+msgstr "ou"
+
+#: templates/composer/create_landing.html:703
+#: templates/composer/create_landing.html:903
+msgid "select a file"
+msgstr "selecione um arquivo"
+
+
+#: templates/composer/create_landing.html:713
+msgid "Emoji"
+msgstr "Emoji"
+
+
+#: templates/composer/create_landing.html:722
+msgid "Search emoji..."
+msgstr "Buscar emoji..."
+
+
+#: templates/composer/create_landing.html:733
+msgid "emoji.n"
+msgstr "emoji.n"
+
+
+#: templates/composer/create_landing.html:753
+#: templates/composer/create_landing.html:928
+msgid "Save Idea"
+msgstr "Salvar ideia"
+
+
+#: templates/composer/create_landing.html:784
+msgid "Edit Idea"
+msgstr "Editar ideia"
+
+
+#: templates/composer/create_landing.html:966
+msgid "Delete idea?"
+msgstr "Excluir ideia?"
+
+
+#: templates/composer/create_landing.html:967
+msgid ""
+"This action cannot be undone. The idea and all associated data will be "
+"permanently removed."
+msgstr ""
+"Esta ação não pode ser desfeita. A ideia e todos os dados associados serão "
+"removidos permanentemente."
+
+#: templates/composer/create_landing.html:989
+msgid "Deleting…"
+msgstr "Excluindo…"
+
+
+#: templates/composer/create_landing.html:1057
+msgid "Copy to clipboard"
+msgstr "Copiar"
+
+
+#: templates/composer/create_landing.html:1072
+msgid "By"
+msgstr "Por"
+
+
+#: templates/composer/create_landing.html:1073
+msgid "Brightbean"
+msgstr "Brightbean"
+
+
+#: templates/composer/create_landing.html:1075
+#: templates/composer/create_landing.html:1082
+msgid "&bull;"
+msgstr "&bull;"
+
+
 #: templates/composer/csv_import.html:9
 msgid "Import from CSV"
 msgstr "Importar de CSV"
@@ -2917,6 +3132,79 @@ msgstr "Nenhum rascunho"
 msgid "Start composing to create your first draft"
 msgstr "Comece a escrever para criar seu primeiro rascunho"
 
+#: templates/composer/partials/feeds_tab.html:15
+msgid "All feeds"
+msgstr "Todos os feeds"
+
+
+#: templates/composer/partials/feeds_tab.html:31
+#: templates/composer/partials/feeds_tab.html:133
+#: templates/composer/partials/feeds_tab.html:200
+msgid "Add Feed"
+msgstr "Adicionar feed"
+
+
+#: templates/composer/partials/feeds_tab.html:36
+#: templates/composer/partials/feeds_tab.html:138
+msgid "Explore Curated Feeds"
+msgstr "Explorar feeds selecionados"
+
+
+#: templates/composer/partials/feeds_tab.html:80
+#: templates/composer/partials/feeds_tab.html:91
+#: templates/composer/partials/feeds_tab.html:109
+msgid "Delete Feed"
+msgstr "Excluir feed"
+
+
+#: templates/composer/partials/feeds_tab.html:93
+msgid "from your feeds?"
+msgstr "dos seus feeds?"
+
+
+#: templates/composer/partials/feeds_tab.html:126
+msgid "Add your First Feed"
+msgstr "Adicione seu primeiro feed"
+
+
+#: templates/composer/partials/feeds_tab.html:127
+msgid ""
+"Subscribe to your favorite blogs, websites, or creators to get the latest "
+"content ideas."
+msgstr ""
+"Assine seus blogs, sites ou criadores favoritos para receber as ideias de "
+"conteúdo mais recentes."
+
+#: templates/composer/partials/feeds_tab.html:162
+msgid "Add RSS Feed"
+msgstr "Adicionar feed RSS"
+
+
+#: templates/composer/partials/feeds_tab.html:181
+msgid "RSS URL"
+msgstr "URL do RSS"
+
+
+#: templates/composer/partials/feeds_tab.html:186
+msgid "https://example.com/feed"
+msgstr "https://exemplo.com/feed"
+
+
+#: templates/composer/partials/kanban_board.html:12
+msgid "New Group"
+msgstr "Novo grupo"
+
+
+#: templates/composer/partials/kanban_board.html:16
+msgid "Column name..."
+msgstr "Nome da coluna..."
+
+
+#: templates/composer/partials/kanban_board.html:20
+#: templates/social_accounts/partials/_posting_slots_grid.html:116
+msgid "Add"
+msgstr "Adicionar"
+
 #: templates/composer/partials/media_picker.html:57
 msgid "No media yet"
 msgstr "Nenhuma mídia ainda"
@@ -2928,6 +3216,21 @@ msgstr "Envie arquivos para sua biblioteca de mídia para usá-los aqui"
 #: templates/composer/partials/preview_panel.html:42
 msgid "Video thumbnail"
 msgstr "Miniatura do vídeo"
+
+#: templates/composer/partials/template_gallery.html:14
+msgid "Featured templates"
+msgstr "Modelos em destaque"
+
+
+#: templates/composer/partials/template_gallery.html:15
+msgid "Our top picks"
+msgstr "Nossas escolhas"
+
+
+#: templates/composer/partials/template_gallery.html:16
+msgid "Helpful starting points to plan your next post."
+msgstr "Bons pontos de partida para planejar sua próxima publicação."
+
 
 #: templates/composer/templates_list.html:9
 msgid "Post Templates"
@@ -3851,6 +4154,270 @@ msgid "Per-org subscription, billed monthly. Cancel anytime."
 msgstr ""
 "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
 
+#: templates/media_library/_asset_card.html:52
+#: templates/media_library/_shared_asset_card.html:34
+msgid "SHARED"
+msgstr "COMPARTILHADA"
+
+#: templates/media_library/_asset_detail_panel.html:59
+#: templates/media_library/_asset_detail_panel.html:66
+msgid "Download"
+msgstr "Baixar"
+
+#: templates/media_library/_asset_detail_panel.html:87
+msgid "Delete asset?"
+msgstr "Excluir arquivo?"
+
+#: templates/media_library/_asset_detail_panel.html:122
+msgid "Details"
+msgstr "Detalhes"
+
+#: templates/media_library/_asset_detail_panel.html:125
+msgid "File size"
+msgstr "Tamanho do arquivo"
+
+#: templates/media_library/_asset_detail_panel.html:129
+msgid "Format"
+msgstr "Formato"
+
+#: templates/media_library/_asset_detail_panel.html:134
+msgid "Dimensions"
+msgstr "Dimensões"
+
+#: templates/media_library/_asset_detail_panel.html:140
+msgid "Duration"
+msgstr "Duração"
+
+#: templates/media_library/_asset_detail_panel.html:145
+#: templates/media_library/_asset_grid.html:22
+msgid "Uploaded"
+msgstr "Enviado em"
+
+#: templates/media_library/_asset_detail_panel.html:150
+msgid "Uploaded by"
+msgstr "Enviado por"
+
+#: templates/media_library/_asset_detail_panel.html:168
+msgid "Version History"
+msgstr "Histórico de versões"
+
+#: templates/media_library/_asset_grid.html:20
+#: templates/notifications/history.html:46
+msgid "Type"
+msgstr "Tipo"
+
+#: templates/media_library/_asset_grid.html:21
+msgid "Size"
+msgstr "Tamanho"
+
+#: templates/media_library/_delete_blocked.html:11
+msgid "Cannot delete this asset"
+msgstr "Não é possível excluir este arquivo"
+
+#: templates/media_library/_empty_state.html:15
+#: templates/media_library/_shared_asset_grid.html:53
+msgid "No media matches your search"
+msgstr "Nenhuma mídia corresponde à sua busca"
+
+#: templates/media_library/_empty_state.html:16
+msgid "Try adjusting your search terms or filters."
+msgstr "Tente ajustar os termos da busca ou os filtros."
+
+#: templates/media_library/_empty_state.html:20
+msgid "Clear search"
+msgstr "Limpar busca"
+
+#: templates/media_library/_empty_state.html:23
+msgid "No media uploaded yet"
+msgstr "Nenhuma mídia enviada ainda"
+
+#: templates/media_library/_empty_state.html:24
+msgid "Upload images and videos to organize and reuse across your posts."
+msgstr ""
+"Envie imagens e vídeos para organizar e reutilizar nas suas publicações."
+
+#: templates/media_library/_empty_state.html:28
+msgid "Upload media"
+msgstr "Enviar mídia"
+
+#: templates/media_library/_folder_form.html:12
+msgid "New Folder"
+msgstr "Nova pasta"
+
+#: templates/media_library/_folder_form.html:18
+msgid "Folder name..."
+msgstr "Nome da pasta..."
+
+#: templates/media_library/_folder_form.html:32
+msgid "Create Folder"
+msgstr "Criar pasta"
+
+#: templates/media_library/_folder_tree.html:72
+msgid "No folders yet"
+msgstr "Nenhuma pasta ainda"
+
+#: templates/media_library/_folder_tree.html:85
+msgid "Delete folder?"
+msgstr "Excluir pasta?"
+
+#: templates/media_library/_folder_tree.html:87
+msgid "? Assets will be moved to the parent folder."
+msgstr "? Os arquivos serão movidos para a pasta superior."
+
+#: templates/media_library/_shared_asset_grid.html:54
+msgid "Try adjusting your search terms."
+msgstr "Tente ajustar os termos da busca."
+
+#: templates/media_library/_shared_asset_grid.html:56
+msgid "No shared media yet"
+msgstr "Nenhuma mídia compartilhada ainda"
+
+#: templates/media_library/_shared_asset_grid.html:57
+msgid ""
+"Organization admins can upload assets here for use across all workspaces."
+msgstr ""
+"Administradores da organização podem enviar arquivos aqui para usar em todos "
+"os workspaces."
+
+#: templates/media_library/_tag_input.html:31
+msgid "Add tag..."
+msgstr "Adicionar etiqueta..."
+
+#: templates/media_library/_version_list.html:31
+msgid "Current"
+msgstr "Atual"
+
+#: templates/media_library/_version_list.html:46
+msgid "Restore"
+msgstr "Restaurar"
+
+#: templates/media_library/_version_list.html:53
+msgid "No version history yet. Edits will appear here."
+msgstr "Ainda não há histórico de versões. As edições aparecerão aqui."
+
+#: templates/media_library/asset_detail.html:16
+#: templates/media_library/asset_edit.html:60
+msgid "Shared"
+msgstr "Compartilhada"
+
+#: templates/media_library/asset_edit.html:82
+msgid "Crop"
+msgstr "Recortar"
+
+#: templates/media_library/asset_edit.html:86
+msgid "Rotate Left"
+msgstr "Girar à esquerda"
+
+#: templates/media_library/asset_edit.html:90
+msgid "Rotate Right"
+msgstr "Girar à direita"
+
+#: templates/media_library/asset_edit.html:94
+msgid "Flip H"
+msgstr "Inverter na horizontal"
+
+#: templates/media_library/asset_edit.html:98
+msgid "Flip V"
+msgstr "Inverter na vertical"
+
+#: templates/media_library/asset_edit.html:111
+msgid "Save as new version"
+msgstr "Salvar como nova versão"
+
+#: templates/media_library/asset_edit.html:144
+msgid "Start"
+msgstr "Início"
+
+#: templates/media_library/asset_edit.html:148
+#: templates/media_library/asset_edit.html:155
+msgid "sec"
+msgstr "s"
+
+#: templates/media_library/asset_edit.html:151
+msgid "End"
+msgstr "Fim"
+
+#: templates/media_library/asset_edit.html:174
+msgid "Preview trim"
+msgstr "Pré-visualizar corte"
+
+#: templates/media_library/asset_edit.html:191
+msgid "Trim &amp; save"
+msgstr "Cortar e salvar"
+
+#: templates/media_library/asset_edit.html:201
+msgid "Editing is not available for this file type."
+msgstr "A edição não está disponível para este tipo de arquivo."
+
+#: templates/media_library/asset_edit.html:205
+msgid "Back to library"
+msgstr "Voltar para a biblioteca"
+
+#: templates/media_library/library_index.html:137
+#: templates/media_library/library_index.html:154
+msgid "Folders"
+msgstr "Pastas"
+
+#: templates/media_library/library_index.html:158
+msgid "New folder"
+msgstr "Nova pasta"
+
+#: templates/media_library/library_index.html:167
+msgid "All Media"
+msgstr "Todas as mídias"
+
+#: templates/media_library/library_index.html:174
+msgid "Starred"
+msgstr "Favoritas"
+
+#: templates/media_library/library_index.html:255
+msgid "Search media..."
+msgstr "Buscar mídias..."
+
+#: templates/media_library/library_index.html:284
+msgid "Newest first"
+msgstr "Mais recentes primeiro"
+
+#: templates/media_library/library_index.html:285
+msgid "Oldest first"
+msgstr "Mais antigas primeiro"
+
+#: templates/media_library/library_index.html:286
+msgid "Name A-Z"
+msgstr "Nome A-Z"
+
+#: templates/media_library/library_index.html:287
+msgid "Name Z-A"
+msgstr "Nome Z-A"
+
+#: templates/media_library/library_index.html:288
+msgid "Largest first"
+msgstr "Maiores primeiro"
+
+#: templates/media_library/library_index.html:289
+msgid "Smallest first"
+msgstr "Menores primeiro"
+
+#: templates/media_library/library_index.html:332
+msgid "Drop files here to upload"
+msgstr "Solte os arquivos aqui para enviar"
+
+#: templates/media_library/library_index.html:333
+msgid "Images up to 20MB, videos up to 1GB"
+msgstr "Imagens até 20MB, vídeos até 1GB"
+
+#: templates/media_library/shared_library.html:49
+msgid "Organization-wide assets available to all workspaces."
+msgstr "Arquivos da organização disponíveis para todos os workspaces."
+
+#: templates/media_library/shared_library.html:54
+msgid "Upload to Shared"
+msgstr "Enviar para compartilhados"
+
+#: templates/media_library/shared_library.html:64
+msgid "Search shared assets..."
+msgstr "Buscar arquivos compartilhados..."
+
 #: templates/members/accept_invite.html:88
 #: templates/members/accept_invite.html:124
 #, python-format
@@ -3875,10 +4442,6 @@ msgstr "Workspaces"
 #: templates/members/accept_invite.html:130
 msgid "Sign Up to Join"
 msgstr "Cadastre-se para entrar"
-
-#: templates/members/accept_invite.html:132
-msgid "or"
-msgstr "ou"
 
 #: templates/members/accept_invite.html:134
 msgid "Log In to Join"
@@ -4067,10 +4630,6 @@ msgstr "Marcar todas as notificações como lidas?"
 #: templates/notifications/partials/drawer.html:13
 msgid "Mark all read"
 msgstr "Marcar todas como lidas"
-
-#: templates/notifications/history.html:46
-msgid "Type"
-msgstr "Tipo"
 
 #: templates/notifications/history.html:79
 msgid "Read"
@@ -5052,10 +5611,6 @@ msgstr "Remover horário"
 #: templates/social_accounts/partials/_posting_slots_grid.html:99
 msgid "Add time slot"
 msgstr "Adicionar horário"
-
-#: templates/social_accounts/partials/_posting_slots_grid.html:116
-msgid "Add"
-msgstr "Adicionar"
 
 #: templates/workspaces/approvals_settings.html:8
 msgid ""

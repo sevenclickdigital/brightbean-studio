@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load static %}
+{% load static i18n %}
 
 {% block title %}Edit - {{ asset.original_filename }}{% endblock %}
 
@@ -57,7 +57,7 @@
   <h1 class="text-lg font-semibold" style="color: var(--text-primary, #1C1917);">Edit - {{ asset.original_filename }}</h1>
   {% if is_shared_library %}
   <span class="text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider"
-        style="background: rgba(20,184,166,0.15); color: #0F766E;">Shared</span>
+        style="background: rgba(20,184,166,0.15); color: #0F766E;">{% translate "Shared" %}</span>
   {% endif %}
 </div>
 {% endblock %}
@@ -79,23 +79,23 @@
     <div class="flex items-center gap-1">
       <button @click="setMode('crop')" :class="mode === 'crop' ? 'active' : ''" class="ml-tool-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h4m0 0V3m0 4v14h14m-4-4h4m0 0v4m0-4H7"/></svg>
-        Crop
+        {% translate "Crop" %}
       </button>
       <button @click="rotate(-90)" class="ml-tool-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h1l1-2 2-2h4V2l5 5-5 5V8H7l-1 1-1 2H3v-1z"/></svg>
-        Rotate Left
+        {% translate "Rotate Left" %}
       </button>
       <button @click="rotate(90)" class="ml-tool-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform: scaleX(-1)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h1l1-2 2-2h4V2l5 5-5 5V8H7l-1 1-1 2H3v-1z"/></svg>
-        Rotate Right
+        {% translate "Rotate Right" %}
       </button>
       <button @click="flip('horizontal')" class="ml-tool-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-        Flip H
+        {% translate "Flip H" %}
       </button>
       <button @click="flip('vertical')" class="ml-tool-btn">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="transform: rotate(90deg)"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
-        Flip V
+        {% translate "Flip V" %}
       </button>
 
       <div class="flex-1"></div>
@@ -103,12 +103,12 @@
       <a href="{% if is_shared_library %}{% url 'media_library_org:shared_asset_detail' asset_id=asset.id %}{% else %}{% url 'media_library:asset_detail' workspace_id=workspace.id asset_id=asset.id %}{% endif %}"
          class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border transition-colors btn-surface-1"
          style="border-color: var(--border); color: var(--text-secondary);">
-        Cancel
+        {% translate "Cancel" %}
       </a>
       <button @click="save()" class="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white rounded-full transition-all btn-primary-hover"
               style="background: var(--primary, #F97316); box-shadow: var(--shadow-primary);">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-        Save as new version
+        {% translate "Save as new version" %}
       </button>
     </div>
   </div>
@@ -141,18 +141,18 @@
   <div class="ml-edit-toolbar p-4">
     <div class="flex items-center gap-6 mb-3">
       <div class="flex items-center gap-2">
-        <label class="text-xs font-semibold" style="color: var(--text-tertiary);">Start</label>
+        <label class="text-xs font-semibold" style="color: var(--text-tertiary);">{% translate "Start" %}</label>
         <input type="number" x-model.number="trimStart" step="0.1" min="0" :max="trimEnd"
                class="input-focus w-24 text-xs px-2.5 py-1.5 border rounded-lg text-center outline-none"
                style="font-variant-numeric: tabular-nums;">
-        <span class="text-xs" style="color: var(--text-ghost);">sec</span>
+        <span class="text-xs" style="color: var(--text-ghost);">{% translate "sec" %}</span>
       </div>
       <div class="flex items-center gap-2">
-        <label class="text-xs font-semibold" style="color: var(--text-tertiary);">End</label>
+        <label class="text-xs font-semibold" style="color: var(--text-tertiary);">{% translate "End" %}</label>
         <input type="number" x-model.number="trimEnd" step="0.1" :min="trimStart" :max="duration"
                class="input-focus w-24 text-xs px-2.5 py-1.5 border rounded-lg text-center outline-none"
                style="font-variant-numeric: tabular-nums;">
-        <span class="text-xs" style="color: var(--text-ghost);">sec</span>
+        <span class="text-xs" style="color: var(--text-ghost);">{% translate "sec" %}</span>
       </div>
       <span class="text-xs font-semibold px-2.5 py-1 rounded-full"
             style="background: var(--primary-soft); color: var(--brand-700);"
@@ -171,14 +171,14 @@
     <div class="flex items-center justify-between mt-3">
       <button @click="preview()" class="ml-tool-btn flex-row gap-1.5">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/></svg>
-        Preview trim
+        {% translate "Preview trim" %}
       </button>
 
       <div class="flex items-center gap-2">
         <a href="{% if is_shared_library %}{% url 'media_library_org:shared_asset_detail' asset_id=asset.id %}{% else %}{% url 'media_library:asset_detail' workspace_id=workspace.id asset_id=asset.id %}{% endif %}"
            class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full border transition-colors"
            style="border-color: var(--border); color: var(--text-secondary);">
-          Cancel
+          {% translate "Cancel" %}
         </a>
         <form method="POST" action="{% if is_shared_library %}{% url 'media_library_org:shared_asset_edit' asset_id=asset.id %}{% else %}{% url 'media_library:asset_edit' workspace_id=workspace.id asset_id=asset.id %}{% endif %}">
           {% csrf_token %}
@@ -188,7 +188,7 @@
                   class="inline-flex items-center gap-1.5 px-5 py-2 text-xs font-semibold text-white rounded-full transition-all"
                   style="background: var(--primary); box-shadow: var(--shadow-primary);">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-            Trim &amp; save
+            {% translate "Trim &amp; save" %}
           </button>
         </form>
       </div>
@@ -198,11 +198,11 @@
 
 {% else %}
 <div class="text-center py-20">
-  <p class="text-sm" style="color: var(--text-secondary);">Editing is not available for this file type.</p>
+  <p class="text-sm" style="color: var(--text-secondary);">{% translate "Editing is not available for this file type." %}</p>
   <a href="{% if is_shared_library %}{% url 'media_library_org:shared_index' %}{% else %}{% url 'media_library:index' workspace_id=workspace.id %}{% endif %}"
      class="inline-flex items-center gap-1.5 mt-4 px-4 py-2 text-sm font-semibold rounded-full border"
      style="border-color: var(--border); color: var(--text-secondary);">
-    Back to library
+    {% translate "Back to library" %}
   </a>
 </div>
 {% endif %}
