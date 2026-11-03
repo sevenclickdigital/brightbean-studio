@@ -4,6 +4,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.managers import WorkspaceScopedManager
 from apps.common.validators import validate_hex_color
@@ -17,13 +18,13 @@ class PostingSlot(models.Model):
     """
 
     class DayOfWeek(models.IntegerChoices):
-        MONDAY = 0, "Monday"
-        TUESDAY = 1, "Tuesday"
-        WEDNESDAY = 2, "Wednesday"
-        THURSDAY = 3, "Thursday"
-        FRIDAY = 4, "Friday"
-        SATURDAY = 5, "Saturday"
-        SUNDAY = 6, "Sunday"
+        MONDAY = 0, _("Monday")
+        TUESDAY = 1, _("Tuesday")
+        WEDNESDAY = 2, _("Wednesday")
+        THURSDAY = 3, _("Thursday")
+        FRIDAY = 4, _("Friday")
+        SATURDAY = 5, _("Saturday")
+        SUNDAY = 6, _("Sunday")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     social_account = models.ForeignKey(
@@ -133,9 +134,9 @@ class RecurrenceRule(models.Model):
     """
 
     class Frequency(models.TextChoices):
-        DAILY = "daily", "Daily"
-        WEEKLY = "weekly", "Weekly"
-        MONTHLY = "monthly", "Monthly"
+        DAILY = "daily", _("Daily")
+        WEEKLY = "weekly", _("Weekly")
+        MONTHLY = "monthly", _("Monthly")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.OneToOneField(

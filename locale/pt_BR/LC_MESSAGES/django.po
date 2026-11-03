@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 01:06+0000\n"
+"POT-Creation-Date: 2026-11-03 01:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -113,6 +113,315 @@ msgstr "A chave “%(name)s” não está ativa; não é possível editá-la."
 msgid "Updated “%(name)s”."
 msgstr "“%(name)s” atualizada."
 
+#: apps/automations/forms.py:71
+msgid "Matches the whole comment"
+msgstr "Corresponde ao comentário inteiro"
+
+#: apps/automations/forms.py:72
+msgid "Appears anywhere"
+msgstr "Aparece em qualquer lugar"
+
+#: apps/automations/forms.py:73
+msgid "Appears anywhere (ignore accents)"
+msgstr "Aparece em qualquer lugar (ignorar acentos)"
+
+#: apps/automations/forms.py:74
+msgid "Matches a whole word"
+msgstr "Corresponde a uma palavra inteira"
+
+#: apps/automations/forms.py:75
+msgid "Matches a whole word (ignore accents)"
+msgstr "Corresponde a uma palavra inteira (ignorar acentos)"
+
+#: apps/calendar/models.py:21
+msgid "Monday"
+msgstr "Segunda-feira"
+
+#: apps/calendar/models.py:22
+msgid "Tuesday"
+msgstr "Terça-feira"
+
+#: apps/calendar/models.py:23
+msgid "Wednesday"
+msgstr "Quarta-feira"
+
+#: apps/calendar/models.py:24
+msgid "Thursday"
+msgstr "Quinta-feira"
+
+#: apps/calendar/models.py:25
+msgid "Friday"
+msgstr "Sexta-feira"
+
+#: apps/calendar/models.py:26
+msgid "Saturday"
+msgstr "Sábado"
+
+#: apps/calendar/models.py:27
+msgid "Sunday"
+msgstr "Domingo"
+
+#: apps/calendar/models.py:137
+msgid "Daily"
+msgstr "Diária"
+
+#: apps/calendar/models.py:138
+msgid "Weekly"
+msgstr "Semanal"
+
+#: apps/calendar/models.py:139
+msgid "Monthly"
+msgstr "Mensal"
+
+#: apps/composer/forms.py:58
+msgid "Write your post caption..."
+msgstr "Escreva a legenda da publicação..."
+
+#: apps/composer/forms.py:67
+msgid "First comment (optional)..."
+msgstr "Primeiro comentário (opcional)..."
+
+#: apps/composer/forms.py:74
+msgid "Internal notes (not visible to clients)..."
+msgstr "Notas internas (não visíveis para clientes)..."
+
+#: apps/composer/forms.py:99
+msgid "e.g., Educational, Promotional..."
+msgstr "ex.: Educativo, Promocional..."
+
+#: apps/composer/forms.py:121
+msgid "Template name..."
+msgstr "Nome do modelo..."
+
+#: apps/composer/forms.py:128
+msgid "Optional description..."
+msgstr "Descrição opcional..."
+
+#: apps/composer/forms.py:144
+msgid "Custom caption for this platform (leave empty to use shared caption)..."
+msgstr ""
+"Legenda específica desta plataforma (deixe em branco para usar a legenda "
+"compartilhada)..."
+
+#: apps/composer/forms.py:154
+msgid "Custom first comment..."
+msgstr "Primeiro comentário específico..."
+
+#: apps/composer/models.py:120 templates/inbox/feed.html:150
+msgid "Unassigned"
+msgstr "Sem responsável"
+
+#: apps/composer/models.py:121
+msgid "To Do"
+msgstr "A fazer"
+
+#: apps/composer/models.py:122
+msgid "In Progress"
+msgstr "Em andamento"
+
+#: apps/composer/models.py:123 templates/notifications/unsubscribed.html:12
+msgid "Done"
+msgstr "Pronto"
+
+#: apps/composer/models.py:343 apps/inbox/models.py:138
+#: templates/calendar/calendar.html:368
+#: templates/inbox/partials/_draft_reply_item.html:8
+msgid "Draft"
+msgstr "Rascunho"
+
+#: apps/composer/models.py:344
+#: templates/calendar/partials/publish_approvals.html:23
+msgid "Pending Review"
+msgstr "Aguardando revisão"
+
+#: apps/composer/models.py:345
+#: templates/calendar/partials/publish_approvals.html:24
+msgid "Pending Client"
+msgstr "Aguardando cliente"
+
+#: apps/composer/models.py:346
+#: templates/calendar/partials/publish_approvals.html:25
+msgid "Approved"
+msgstr "Aprovado"
+
+#: apps/composer/models.py:347
+#: templates/calendar/partials/publish_approvals.html:27
+msgid "Changes Requested"
+msgstr "Alterações solicitadas"
+
+#: apps/composer/models.py:348
+#: templates/calendar/partials/publish_approvals.html:26
+msgid "Rejected"
+msgstr "Recusado"
+
+#: apps/composer/models.py:349
+msgid "Scheduled"
+msgstr "Agendado"
+
+#: apps/composer/models.py:350
+msgid "Publishing"
+msgstr "Publicando"
+
+#: apps/composer/models.py:351 templates/calendar/partials/publish_sent.html:16
+msgid "Published"
+msgstr "Publicado"
+
+#: apps/composer/models.py:352 apps/composer/models.py:417
+#: apps/composer/models.py:760 apps/inbox/models.py:140
+#: templates/inbox/partials/_draft_reply_item.html:6
+msgid "Failed"
+msgstr "Falhou"
+
+#: apps/composer/models.py:353
+msgid "On Hold"
+msgstr "Em espera"
+
+#: apps/composer/models.py:414
+msgid "Not requested"
+msgstr "Não solicitado"
+
+#: apps/composer/models.py:415 apps/composer/models.py:757
+#: templates/automations/log.html:71
+msgid "Pending"
+msgstr "Pendente"
+
+#: apps/composer/models.py:416
+msgid "Posted"
+msgstr "Publicado"
+
+#: apps/composer/models.py:758
+msgid "Processing"
+msgstr "Processando"
+
+#: apps/composer/models.py:759
+msgid "Completed"
+msgstr "Concluído"
+
+#: apps/credentials/forms.py:23
+msgid ""
+"JSON object of app credentials, e.g. <code>{\"client_id\": \"...\", "
+"\"client_secret\": \"...\"}</code>. "
+msgstr "Objeto JSON com as credenciais do app, por exemplo <code>{\"client_id\": \"...\", \"client_secret\": \"...\"}</code>. "
+
+#: apps/credentials/forms.py:24
+msgid "Required keys per platform:<br>"
+msgstr "Chaves obrigatórias por plataforma:<br>"
+
+#: apps/credentials/forms.py:59
+msgid ""
+"Credentials must be a JSON object, e.g. {\"client_id\": \"...\", "
+"\"client_secret\": \"...\"}."
+msgstr "As credenciais devem ser um objeto JSON, por exemplo {\"client_id\": \"...\", \"client_secret\": \"...\"}."
+
+#: apps/credentials/forms.py:80
+#, python-format
+msgid ""
+"Missing required keys for %(platform)s. Expected: %(hint)s. Fill in every "
+"required key — the row stays inactive until they are all present."
+msgstr "Faltam chaves obrigatórias para %(platform)s. Esperadas: %(hint)s. Preencha todas as chaves obrigatórias — a linha continua inativa enquanto alguma faltar."
+
+#: apps/credentials/forms.py:84
+msgid "none"
+msgstr "nenhuma"
+
+#: apps/inbox/forms.py:14 templates/inbox/partials/_reply_composer.html:65
+msgid "Write a reply..."
+msgstr "Escreva uma resposta..."
+
+#: apps/inbox/forms.py:26
+msgid "Add an internal note..."
+msgstr "Adicione uma nota interna..."
+
+#: apps/inbox/forms.py:49
+msgid "Mark as Read"
+msgstr "Marcar como lida"
+
+#: apps/inbox/forms.py:50 templates/inbox/feed.html:189
+msgid "Resolve"
+msgstr "Resolver"
+
+#: apps/inbox/forms.py:51 templates/inbox/feed.html:190
+msgid "Archive"
+msgstr "Arquivar"
+
+#: apps/inbox/forms.py:52 templates/inbox/partials/_assignment_dropdown.html:13
+msgid "Assign"
+msgstr "Atribuir"
+
+#: apps/inbox/forms.py:70
+msgid "Reply title"
+msgstr "Título da resposta"
+
+#: apps/inbox/forms.py:77
+#, python-brace-format
+msgid ""
+"Reply body. Use {sender_name}, {account_name}, {post_url} for variables."
+msgstr ""
+"Corpo da resposta. Use {sender_name}, {account_name}, {post_url} como "
+"variáveis."
+
+#: apps/inbox/models.py:16
+msgid "Comment"
+msgstr "Comentário"
+
+#: apps/inbox/models.py:17
+msgid "Mention"
+msgstr "Menção"
+
+#: apps/inbox/models.py:18
+msgid "Direct Message"
+msgstr "Mensagem direta"
+
+#: apps/inbox/models.py:19
+msgid "Review"
+msgstr "Avaliação"
+
+#: apps/inbox/models.py:22 templates/inbox/partials/_filter_bar.html:51
+#: templates/notifications/history.html:78
+msgid "Unread"
+msgstr "Não lidas"
+
+#: apps/inbox/models.py:23 templates/calendar/partials/day_grid.html:41
+#: templates/calendar/partials/week_grid.html:49
+#: templates/inbox/partials/_filter_bar.html:52
+msgid "Open"
+msgstr "Abrir"
+
+#: apps/inbox/models.py:24 templates/inbox/partials/_filter_bar.html:53
+msgid "Resolved"
+msgstr "Resolvidas"
+
+#: apps/inbox/models.py:25 templates/inbox/partials/_filter_bar.html:54
+#: templates/organizations/partials/workspace_card.html:21
+#: templates/organizations/workspaces.html:23
+msgid "Archived"
+msgstr "Arquivadas"
+
+#: apps/inbox/models.py:28 templates/inbox/partials/_filter_bar.html:64
+msgid "Positive"
+msgstr "Positivo"
+
+#: apps/inbox/models.py:29 templates/inbox/partials/_filter_bar.html:65
+msgid "Neutral"
+msgstr "Neutro"
+
+#: apps/inbox/models.py:30 templates/inbox/partials/_filter_bar.html:66
+msgid "Negative"
+msgstr "Negativo"
+
+#: apps/inbox/models.py:33
+msgid "Auto"
+msgstr "Automático"
+
+#: apps/inbox/models.py:34
+msgid "Manual"
+msgstr "Manual"
+
+#: apps/inbox/models.py:139
+#: templates/calendar/partials/publish_list_shell.html:27
+msgid "Sent"
+msgstr "Enviado"
+
 #: apps/notifications/views.py:187
 msgid "Notification preferences saved."
 msgstr "Preferências de notificação salvas."
@@ -169,6 +478,51 @@ msgid ""
 msgstr ""
 "Exclusão da organização cancelada. Reconecte os canais do YouTube removidos "
 "quando a exclusão foi solicitada."
+
+#: apps/social_accounts/models.py:28
+msgid "Not checked"
+msgstr "Não verificado"
+
+#: apps/social_accounts/models.py:29
+msgid "Checking"
+msgstr "Verificando"
+
+#: apps/social_accounts/models.py:30
+msgid "Ready"
+msgstr "Pronto"
+
+#: apps/social_accounts/models.py:31
+msgid "Reconnect required"
+msgstr "Reconexão necessária"
+
+#: apps/social_accounts/models.py:32
+msgid "Operator attention required"
+msgstr "Requer atenção do operador"
+
+#: apps/social_accounts/models.py:33
+msgid "Temporary failure"
+msgstr "Falha temporária"
+
+#: apps/social_accounts/models.py:36
+#: templates/onboarding/connection_page.html:121
+#: templates/social_accounts/partials/_status_badge.html:9
+msgid "Connected"
+msgstr "Conectada"
+
+#: apps/social_accounts/models.py:37
+#: templates/social_accounts/partials/_status_badge.html:14
+msgid "Token Expiring"
+msgstr "Token expirando"
+
+#: apps/social_accounts/models.py:38
+#: templates/social_accounts/partials/_status_badge.html:19
+msgid "Disconnected"
+msgstr "Desconectada"
+
+#: apps/social_accounts/models.py:39
+#: templates/social_accounts/partials/_status_badge.html:24
+msgid "Error"
+msgstr "Erro"
 
 #: apps/social_accounts/views.py:228
 msgid "This platform is not available."
@@ -901,18 +1255,96 @@ msgstr ""
 "Esta publicação ainda não foi publicada. Salve o fluxo agora — ele começa a "
 "monitorar os comentários sozinho assim que a publicação entrar no ar."
 
-#: templates/automations/flow_builder.html:310
+#: templates/automations/flow_builder.html:225
+msgid ""
+"Runs when someone comments on <strong class=\"text-stone-700\">this post</"
+"strong>."
+msgstr ""
+"Roda quando alguém comenta <strong class=\"text-stone-700\">nesta "
+"publicação</strong>."
+
+#: templates/automations/flow_builder.html:238
+msgid "Add a keyword, then press Enter"
+msgstr "Digite uma palavra-chave e pressione Enter"
+
+#: templates/automations/flow_builder.html:244
+msgid ""
+"No keyword means <strong>every</strong> comment on this post fires the flow."
+msgstr ""
+"Sem palavra-chave, <strong>todo</strong> comentário nesta publicação dispara "
+"o fluxo."
+
+#: templates/automations/flow_builder.html:257
+msgid "Ignore replies to other comments"
+msgstr "Ignorar respostas a outros comentários"
+
+#: templates/automations/flow_builder.html:269
+msgid "The DM this person receives…"
+msgstr "A DM que esta pessoa recebe…"
+
+#: templates/automations/flow_builder.html:270
+msgid "The public reply under their comment…"
+msgstr "A resposta pública sob o comentário dela…"
+
+#: templates/automations/flow_builder.html:311
 msgid "Add step"
 msgstr "Adicionar etapa"
 
-#: templates/automations/flow_builder.html:314
+#: templates/automations/flow_builder.html:315
 msgid "Reply to comment"
 msgstr "Responder ao comentário"
 
-#: templates/automations/flow_builder.html:319
+#: templates/automations/flow_builder.html:320
 #: templates/automations/form.html:266
 msgid "Send a DM"
 msgstr "Enviar uma DM"
+
+#: templates/automations/flow_builder.html:344
+#: templates/automations/form.html:70
+msgid "When"
+msgstr "Quando"
+
+#: templates/automations/flow_builder.html:345
+msgid "Comments on your post"
+msgstr "Comentários na sua publicação"
+
+#: templates/automations/flow_builder.html:346
+msgid "Then reply"
+msgstr "Então responder"
+
+#: templates/automations/flow_builder.html:347
+msgid "Reply under the comment"
+msgstr "Resposta sob o comentário"
+
+#: templates/automations/flow_builder.html:348
+msgid "Then send"
+msgstr "Então enviar"
+
+#: templates/automations/flow_builder.html:349
+msgid "Direct message"
+msgstr "Mensagem direta"
+
+#: templates/automations/flow_builder.html:350
+msgid "Step"
+msgstr "Etapa"
+
+#: templates/automations/flow_builder.html:351
+msgid "The flow could not be saved."
+msgstr "Não foi possível salvar o fluxo."
+
+#: templates/automations/flow_builder.html:352
+msgid "The flow could not be saved. Check your connection and try again."
+msgstr ""
+"Não foi possível salvar o fluxo. Verifique sua conexão e tente novamente."
+
+#: templates/automations/flow_builder.html:353
+msgid "The flow could not be changed."
+msgstr "Não foi possível alterar o fluxo."
+
+#: templates/automations/flow_builder.html:354
+msgid "The flow could not be changed. Check your connection and try again."
+msgstr ""
+"Não foi possível alterar o fluxo. Verifique sua conexão e tente novamente."
 
 #: templates/automations/form.html:4 templates/automations/form.html:29
 msgid "Edit rule"
@@ -946,10 +1378,6 @@ msgid ""
 msgstr ""
 "Uma regra só pode ser ativada quando tiver uma resposta pública ou uma DM "
 "para enviar."
-
-#: templates/automations/form.html:70
-msgid "When"
-msgstr "Quando"
 
 #: templates/automations/form.html:71
 msgid "Which comments this rule picks up."
@@ -1220,10 +1648,6 @@ msgstr "Filtrar"
 msgid "Clear"
 msgstr "Limpar"
 
-#: templates/automations/log.html:71
-msgid "Pending"
-msgstr "Pendente"
-
 #: templates/automations/log.html:77
 msgid "Deleted rule"
 msgstr "Regra excluída"
@@ -1367,8 +1791,14 @@ msgid ""
 msgid_plural ""
 "It replays the rule against the %(counter)s most recent comments already in "
 "your inbox — no replies and no DMs were posted, and nobody was notified."
-msgstr[0] "Simula a regra no %(counter)s comentário mais recente que já está na sua caixa de entrada — nenhuma resposta ou DM foi publicada, e ninguém foi notificado."
-msgstr[1] "Simula a regra nos %(counter)s comentários mais recentes que já estão na sua caixa de entrada — nenhuma resposta ou DM foi publicada, e ninguém foi notificado."
+msgstr[0] ""
+"Simula a regra no %(counter)s comentário mais recente que já está na sua "
+"caixa de entrada — nenhuma resposta ou DM foi publicada, e ninguém foi "
+"notificado."
+msgstr[1] ""
+"Simula a regra nos %(counter)s comentários mais recentes que já estão na sua "
+"caixa de entrada — nenhuma resposta ou DM foi publicada, e ninguém foi "
+"notificado."
 
 #: templates/automations/partials/_test_result.html:31
 msgid "This rule is off."
@@ -1400,7 +1830,8 @@ msgstr ""
 msgid "%(matched)s of %(counter)s recent comment would match"
 msgid_plural "%(matched)s of %(counter)s recent comments would match"
 msgstr[0] "%(matched)s de %(counter)s comentário recente seria identificado"
-msgstr[1] "%(matched)s de %(counter)s comentários recentes seriam identificados"
+msgstr[1] ""
+"%(matched)s de %(counter)s comentários recentes seriam identificados"
 
 #: templates/automations/partials/_test_result.html:60
 msgid "Unknown"
@@ -1419,7 +1850,8 @@ msgstr ""
 msgid "None of the %(counter)s most recent comment matches this rule."
 msgid_plural "None of the %(counter)s most recent comments match this rule."
 msgstr[0] "O %(counter)s comentário mais recente não corresponde a esta regra."
-msgstr[1] "Nenhum dos %(counter)s comentários mais recentes corresponde a esta regra."
+msgstr[1] ""
+"Nenhum dos %(counter)s comentários mais recentes corresponde a esta regra."
 
 #: templates/automations/partials/_test_result.html:76
 msgid ""
@@ -1535,11 +1967,6 @@ msgstr "Lista"
 msgid "Calendar"
 msgstr "Calendário"
 
-#: templates/calendar/calendar.html:368
-#: templates/inbox/partials/_draft_reply_item.html:8
-msgid "Draft"
-msgstr "Rascunho"
-
 #: templates/calendar/calendar.html:370 templates/calendar/calendar.html:397
 #: templates/calendar/partials/_delete_post_modal.html:59
 #: templates/calendar/partials/_post_actions_menu.html:35
@@ -1600,12 +2027,6 @@ msgstr "Selecionar"
 #: templates/calendar/partials/week_grid.html:29
 msgid "Create post"
 msgstr "Criar publicação"
-
-#: templates/calendar/partials/day_grid.html:41
-#: templates/calendar/partials/week_grid.html:49
-#: templates/inbox/partials/_filter_bar.html:52
-msgid "Open"
-msgstr "Abrir"
 
 #: templates/calendar/partials/day_grid.html:67
 #: templates/calendar/partials/week_grid.html:75
@@ -1705,26 +2126,6 @@ msgstr "Criar publicação"
 msgid "more"
 msgstr "mais"
 
-#: templates/calendar/partials/publish_approvals.html:23
-msgid "Pending Review"
-msgstr "Aguardando revisão"
-
-#: templates/calendar/partials/publish_approvals.html:24
-msgid "Pending Client"
-msgstr "Aguardando cliente"
-
-#: templates/calendar/partials/publish_approvals.html:25
-msgid "Approved"
-msgstr "Aprovado"
-
-#: templates/calendar/partials/publish_approvals.html:26
-msgid "Rejected"
-msgstr "Recusado"
-
-#: templates/calendar/partials/publish_approvals.html:27
-msgid "Changes Requested"
-msgstr "Alterações solicitadas"
-
 #: templates/calendar/partials/publish_approvals.html:28
 msgid "Hold"
 msgstr "Em espera"
@@ -1813,17 +2214,9 @@ msgstr "Rascunhos"
 msgid "Approvals"
 msgstr "Aprovações"
 
-#: templates/calendar/partials/publish_list_shell.html:27
-msgid "Sent"
-msgstr "Enviado"
-
 #: templates/calendar/partials/publish_queue.html:32
 msgid "Custom"
 msgstr "Personalizado"
-
-#: templates/calendar/partials/publish_sent.html:16
-msgid "Published"
-msgstr "Publicado"
 
 #: templates/calendar/partials/publish_sent.html:20
 msgid "Automation"
@@ -2281,10 +2674,6 @@ msgstr "Caixa de entrada"
 msgid "My Queue"
 msgstr "Minha fila"
 
-#: templates/inbox/feed.html:150
-msgid "Unassigned"
-msgstr "Sem responsável"
-
 #: templates/inbox/feed.html:156 templates/inbox/feed.html:158
 #: templates/inbox/partials/_reply_composer.html:35
 #: templates/inbox/saved_replies.html:4 templates/inbox/saved_replies.html:16
@@ -2304,14 +2693,6 @@ msgstr "SLA"
 msgid "Mark Read"
 msgstr "Marcar como lida"
 
-#: templates/inbox/feed.html:189
-msgid "Resolve"
-msgstr "Resolver"
-
-#: templates/inbox/feed.html:190
-msgid "Archive"
-msgstr "Arquivar"
-
 #: templates/inbox/feed.html:205
 #: templates/social_accounts/bluesky_connect.html:10
 #: templates/social_accounts/devto_connect.html:10
@@ -2327,17 +2708,9 @@ msgstr "Selecione uma mensagem para ver os detalhes"
 msgid "Back to Inbox"
 msgstr "Voltar para a caixa de entrada"
 
-#: templates/inbox/partials/_assignment_dropdown.html:13
-msgid "Assign"
-msgstr "Atribuir"
-
 #: templates/inbox/partials/_assignment_dropdown.html:27
 msgid "Unassign"
 msgstr "Remover atribuição"
-
-#: templates/inbox/partials/_draft_reply_item.html:6
-msgid "Failed"
-msgstr "Falhou"
 
 #: templates/inbox/partials/_draft_reply_item.html:15
 #, python-format
@@ -2424,36 +2797,9 @@ msgstr "Avaliações"
 msgid "All statuses"
 msgstr "Todos os status"
 
-#: templates/inbox/partials/_filter_bar.html:51
-#: templates/notifications/history.html:78
-msgid "Unread"
-msgstr "Não lidas"
-
-#: templates/inbox/partials/_filter_bar.html:53
-msgid "Resolved"
-msgstr "Resolvidas"
-
-#: templates/inbox/partials/_filter_bar.html:54
-#: templates/organizations/partials/workspace_card.html:21
-#: templates/organizations/workspaces.html:23
-msgid "Archived"
-msgstr "Arquivadas"
-
 #: templates/inbox/partials/_filter_bar.html:63
 msgid "All sentiment"
 msgstr "Todos os sentimentos"
-
-#: templates/inbox/partials/_filter_bar.html:64
-msgid "Positive"
-msgstr "Positivo"
-
-#: templates/inbox/partials/_filter_bar.html:65
-msgid "Neutral"
-msgstr "Neutro"
-
-#: templates/inbox/partials/_filter_bar.html:66
-msgid "Negative"
-msgstr "Negativo"
 
 #: templates/inbox/partials/_message_panel.html:75
 msgid "This message was deleted by its sender."
@@ -2519,10 +2865,6 @@ msgid ""
 msgstr ""
 "Resposta de atendimento humano: revise a mensagem antes de enviar. Esta "
 "resposta usa o acesso Human Agent de sete dias aprovado para o seu app."
-
-#: templates/inbox/partials/_reply_composer.html:65
-msgid "Write a reply..."
-msgstr "Escreva uma resposta..."
 
 #: templates/inbox/partials/_reply_composer.html:76
 #, python-format
@@ -3592,10 +3934,6 @@ msgstr ""
 msgid "Unsubscribed"
 msgstr "Inscrição cancelada"
 
-#: templates/notifications/unsubscribed.html:12
-msgid "Done"
-msgstr "Pronto"
-
 #: templates/notifications/unsubscribed.html:14
 #, python-format
 msgid ""
@@ -3737,11 +4075,6 @@ msgstr "Publicações locais"
 msgid "Federated social"
 msgstr "Rede federada"
 
-#: templates/onboarding/connection_page.html:121
-#: templates/social_accounts/partials/_status_badge.html:9
-msgid "Connected"
-msgstr "Conectada"
-
 #: templates/onboarding/connection_page.html:150
 #: templates/onboarding/connection_page.html:204
 #: templates/onboarding/connection_page.html:224
@@ -3824,8 +4157,12 @@ msgid ""
 msgid_plural ""
 "%(counter)s accounts connected to <strong style=\"color: var(--text-primary);"
 "\">%(workspace)s</strong>."
-msgstr[0] "%(counter)s conta conectada a <strong style=\"color: var(--text-primary);\">%(workspace)s</strong>."
-msgstr[1] "%(counter)s contas conectadas a <strong style=\"color: var(--text-primary);\">%(workspace)s</strong>."
+msgstr[0] ""
+"%(counter)s conta conectada a <strong style=\"color: var(--text-primary);"
+"\">%(workspace)s</strong>."
+msgstr[1] ""
+"%(counter)s contas conectadas a <strong style=\"color: var(--text-primary);"
+"\">%(workspace)s</strong>."
 
 #: templates/onboarding/connection_success.html:41
 #, python-format
@@ -4058,7 +4395,11 @@ msgid ""
 "team memberships. YouTube connections and API data are removed immediately. "
 "Other data has a 14-day grace period. Cancelling requires reconnecting "
 "YouTube."
-msgstr "Solicite a exclusão desta organização e dos seus workspaces, publicações, mídias e participações de equipe. As conexões e os dados de API do YouTube são removidos imediatamente. Os demais dados têm um prazo de carência de 14 dias. Cancelar a exclusão exige reconectar o YouTube."
+msgstr ""
+"Solicite a exclusão desta organização e dos seus workspaces, publicações, "
+"mídias e participações de equipe. As conexões e os dados de API do YouTube "
+"são removidos imediatamente. Os demais dados têm um prazo de carência de 14 "
+"dias. Cancelar a exclusão exige reconectar o YouTube."
 
 #: templates/organizations/settings.html:166
 msgid "Delete Organization"
@@ -4071,7 +4412,11 @@ msgid ""
 "the organization for permanent deletion in 14 days. YouTube connections, API "
 "data and notification copies are deleted immediately. Cancelling deletion "
 "will require reconnecting YouTube."
-msgstr "Tem certeza de que deseja excluir <strong>%(org)s</strong>? Isto agenda a exclusão permanente da organização em 14 dias. As conexões do YouTube, os dados de API e as cópias de notificação são excluídos imediatamente. Cancelar a exclusão exigirá reconectar o YouTube."
+msgstr ""
+"Tem certeza de que deseja excluir <strong>%(org)s</strong>? Isto agenda a "
+"exclusão permanente da organização em 14 dias. As conexões do YouTube, os "
+"dados de API e as cópias de notificação são excluídos imediatamente. "
+"Cancelar a exclusão exigirá reconectar o YouTube."
 
 #: templates/organizations/settings.html:220
 msgid "Yes, delete this organization"
@@ -4100,7 +4445,9 @@ msgstr[1] "Selecionar contas"
 msgid ""
 "Your %(platform_name)s login has access to multiple accounts. Select which "
 "one to connect."
-msgstr "Seu login em %(platform_name)s tem acesso a várias contas. Selecione qual conectar."
+msgstr ""
+"Seu login em %(platform_name)s tem acesso a várias contas. Selecione qual "
+"conectar."
 
 #: templates/social_accounts/account_select.html:26
 msgid "selected"
@@ -4126,7 +4473,9 @@ msgstr "selecione para atualizar"
 msgid ""
 "DMs unavailable: grant messaging access on the linked Facebook Page, then "
 "reconnect."
-msgstr "DMs indisponíveis: conceda acesso a mensagens na página do Facebook vinculada e conecte novamente."
+msgstr ""
+"DMs indisponíveis: conceda acesso a mensagens na página do Facebook "
+"vinculada e conecte novamente."
 
 #: templates/social_accounts/account_select.html:82
 msgid "Connect Selected"
@@ -4136,7 +4485,9 @@ msgstr "Conectar selecionadas"
 msgid ""
 "Bluesky uses app passwords for authentication. You can create one in your "
 "Bluesky account settings."
-msgstr "O Bluesky usa senhas de app para autenticação. Você pode criar uma nas configurações da sua conta do Bluesky."
+msgstr ""
+"O Bluesky usa senhas de app para autenticação. Você pode criar uma nas "
+"configurações da sua conta do Bluesky."
 
 #: templates/social_accounts/bluesky_connect.html:28
 msgid "Your full Bluesky handle including domain"
@@ -4145,13 +4496,17 @@ msgstr "Seu usuário completo no Bluesky, incluindo o domínio"
 #: templates/social_accounts/bluesky_connect.html:35
 msgid ""
 "Generate one in Bluesky at Settings → Privacy and Security → App Passwords"
-msgstr "Gere uma no Bluesky em Configurações → Privacidade e Segurança → Senhas de app"
+msgstr ""
+"Gere uma no Bluesky em Configurações → Privacidade e Segurança → Senhas de "
+"app"
 
 #: templates/social_accounts/bluesky_connect.html:41
 msgid ""
 "App passwords are separate from your main password. They can be revoked at "
 "any time without affecting your Bluesky account."
-msgstr "As senhas de app são separadas da sua senha principal. Elas podem ser revogadas a qualquer momento sem afetar sua conta do Bluesky."
+msgstr ""
+"As senhas de app são separadas da sua senha principal. Elas podem ser "
+"revogadas a qualquer momento sem afetar sua conta do Bluesky."
 
 #: templates/social_accounts/connect.html:3
 msgid "Connect Social Account"
@@ -4199,7 +4554,9 @@ msgstr "Conectar o DEV.to"
 msgid ""
 "DEV.to authenticates with a personal API key. Generate one under Settings → "
 "Extensions → DEV Community API Keys."
-msgstr "O DEV.to autentica com uma chave de API pessoal. Gere uma em Settings → Extensions → DEV Community API Keys."
+msgstr ""
+"O DEV.to autentica com uma chave de API pessoal. Gere uma em Settings → "
+"Extensions → DEV Community API Keys."
 
 #: templates/social_accounts/devto_connect.html:25
 msgid "API Key"
@@ -4213,7 +4570,10 @@ msgstr "Crie uma em DEV.to → Settings → Extensions → DEV Community API Key
 msgid ""
 "Posts publish as DEV.to articles (title + Markdown body). The API key can be "
 "revoked at any time from your DEV.to settings."
-msgstr "As publicações saem como artigos no DEV.to (título + corpo em Markdown). A chave de API pode ser revogada a qualquer momento nas configurações do DEV.to."
+msgstr ""
+"As publicações saem como artigos no DEV.to (título + corpo em Markdown). A "
+"chave de API pode ser revogada a qualquer momento nas configurações do "
+"DEV.to."
 
 #: templates/social_accounts/list.html:3 templates/social_accounts/list.html:9
 msgid "Social Accounts"
@@ -4234,8 +4594,12 @@ msgid ""
 msgid_plural ""
 "%(counter)s accounts connected. Health checks run automatically every 6 "
 "hours."
-msgstr[0] "%(counter)s conta conectada. As verificações de saúde rodam automaticamente a cada 6 horas."
-msgstr[1] "%(counter)s contas conectadas. As verificações de saúde rodam automaticamente a cada 6 horas."
+msgstr[0] ""
+"%(counter)s conta conectada. As verificações de saúde rodam automaticamente "
+"a cada 6 horas."
+msgstr[1] ""
+"%(counter)s contas conectadas. As verificações de saúde rodam "
+"automaticamente a cada 6 horas."
 
 #: templates/social_accounts/list.html:40
 msgid "No accounts connected yet"
@@ -4245,7 +4609,9 @@ msgstr "Nenhuma conta conectada ainda"
 msgid ""
 "Connect your social media accounts to start publishing content, tracking "
 "engagement, and managing your inbox."
-msgstr "Conecte suas contas de redes sociais para começar a publicar conteúdo, acompanhar o engajamento e gerenciar sua caixa de entrada."
+msgstr ""
+"Conecte suas contas de redes sociais para começar a publicar conteúdo, "
+"acompanhar o engajamento e gerenciar sua caixa de entrada."
 
 #: templates/social_accounts/list.html:45
 msgid "Connect Your First Account"
@@ -4255,7 +4621,8 @@ msgstr "Conecte sua primeira conta"
 msgid ""
 "Mastodon is federated, enter your profile URL to begin the connection "
 "process."
-msgstr "O Mastodon é federado: informe a URL do seu perfil para iniciar a conexão."
+msgstr ""
+"O Mastodon é federado: informe a URL do seu perfil para iniciar a conexão."
 
 #: templates/social_accounts/mastodon_connect.html:25
 msgid "Profile URL"
@@ -4270,7 +4637,10 @@ msgid ""
 "After entering your instance URL, you'll be redirected to your Mastodon "
 "instance to authorize access. We request <strong>read</strong>, "
 "<strong>write</strong>, and <strong>follow</strong> permissions."
-msgstr "Depois de informar a URL da instância, você será redirecionado a ela para autorizar o acesso. Pedimos as permissões <strong>read</strong>, <strong>write</strong> e <strong>follow</strong>."
+msgstr ""
+"Depois de informar a URL da instância, você será redirecionado a ela para "
+"autorizar o acesso. Pedimos as permissões <strong>read</strong>, "
+"<strong>write</strong> e <strong>follow</strong>."
 
 #: templates/social_accounts/mastodon_connect.html:45
 msgid "Continue to Mastodon"
@@ -4294,27 +4664,37 @@ msgstr "Isto revoga o acesso da BrightBean à conta."
 msgid ""
 "This removes the account from BrightBean only. To revoke our access "
 "entirely, remove BrightBean in Facebook › Settings › Apps and Websites."
-msgstr "Isto remove a conta apenas da BrightBean. Para revogar nosso acesso por completo, remova a BrightBean em Facebook › Configurações › Apps e sites."
+msgstr ""
+"Isto remove a conta apenas da BrightBean. Para revogar nosso acesso por "
+"completo, remova a BrightBean em Facebook › Configurações › Apps e sites."
 
 #: templates/social_accounts/partials/_account_card.html:73
 #, python-format
 msgid ""
 "This removes the account from BrightBean only. To revoke our access "
 "entirely, remove BrightBean in your %(platform)s settings."
-msgstr "Isto remove a conta apenas da BrightBean. Para revogar nosso acesso por completo, remova a BrightBean nas configurações de %(platform)s."
+msgstr ""
+"Isto remove a conta apenas da BrightBean. Para revogar nosso acesso por "
+"completo, remova a BrightBean nas configurações de %(platform)s."
 
 #: templates/social_accounts/partials/_account_card.html:78
 msgid ""
 "YouTube data, analytics and copied comments are deleted immediately, "
 "including notification copies. Your original uploads and posts shared with "
 "other channels stay."
-msgstr "Os dados do YouTube, as análises e as cópias de comentários são excluídos imediatamente, incluindo as cópias em notificações. Seus envios originais e as publicações compartilhadas com outros canais permanecem."
+msgstr ""
+"Os dados do YouTube, as análises e as cópias de comentários são excluídos "
+"imediatamente, incluindo as cópias em notificações. Seus envios originais e "
+"as publicações compartilhadas com outros canais permanecem."
 
 #: templates/social_accounts/partials/_account_card.html:80
 msgid ""
 "Its analytics, inbox messages and posts made only for it are deleted from "
 "BrightBean. Posts shared with other channels stay."
-msgstr "As análises, as mensagens da caixa de entrada e as publicações feitas só para ela são excluídas da BrightBean. As publicações compartilhadas com outros canais permanecem."
+msgstr ""
+"As análises, as mensagens da caixa de entrada e as publicações feitas só "
+"para ela são excluídas da BrightBean. As publicações compartilhadas com "
+"outros canais permanecem."
 
 #: templates/social_accounts/partials/_account_card.html:96
 msgid "Disconnecting…"
@@ -4329,19 +4709,25 @@ msgstr "Alguns recursos estão indisponíveis."
 msgid ""
 "This account was connected without %(scopes)s. Anything relying on them will "
 "fail until the permission is granted — reconnect to try again."
-msgstr "Esta conta foi conectada sem %(scopes)s. Tudo o que depende disso vai falhar até a permissão ser concedida — reconecte para tentar de novo."
+msgstr ""
+"Esta conta foi conectada sem %(scopes)s. Tudo o que depende disso vai falhar "
+"até a permissão ser concedida — reconecte para tentar de novo."
 
 #: templates/social_accounts/partials/_account_card.html:122
 msgid ""
 "Instagram DM access is unavailable for this connection. Contact your "
 "administrator to enable it."
-msgstr "O acesso a DMs do Instagram está indisponível nesta conexão. Fale com o administrador para habilitá-lo."
+msgstr ""
+"O acesso a DMs do Instagram está indisponível nesta conexão. Fale com o "
+"administrador para habilitá-lo."
 
 #: templates/social_accounts/partials/_account_card.html:124
 msgid ""
 "DMs unavailable: grant messaging access on the linked Facebook Page, then "
 "reconnect this account."
-msgstr "DMs indisponíveis: conceda acesso a mensagens na página do Facebook vinculada e reconecte esta conta."
+msgstr ""
+"DMs indisponíveis: conceda acesso a mensagens na página do Facebook "
+"vinculada e reconecte esta conta."
 
 #: templates/social_accounts/partials/_account_card.html:183
 msgid "Trying…"
@@ -4354,7 +4740,9 @@ msgstr "Tentar novamente"
 #: templates/social_accounts/partials/_account_card.html:197
 msgid ""
 "Set recurring time slots for when queued posts are automatically published."
-msgstr "Defina horários recorrentes para a publicação automática das publicações em fila."
+msgstr ""
+"Defina horários recorrentes para a publicação automática das publicações em "
+"fila."
 
 #: templates/social_accounts/partials/_posting_slots_grid.html:30
 #, python-format
@@ -4382,23 +4770,13 @@ msgstr "Adicionar horário"
 msgid "Add"
 msgstr "Adicionar"
 
-#: templates/social_accounts/partials/_status_badge.html:14
-msgid "Token Expiring"
-msgstr "Token expirando"
-
-#: templates/social_accounts/partials/_status_badge.html:19
-msgid "Disconnected"
-msgstr "Desconectada"
-
-#: templates/social_accounts/partials/_status_badge.html:24
-msgid "Error"
-msgstr "Erro"
-
 #: templates/workspaces/approvals_settings.html:8
 msgid ""
 "Control whether posts need to be reviewed before they can be scheduled or "
 "published."
-msgstr "Defina se as publicações precisam ser revisadas antes de serem agendadas ou publicadas."
+msgstr ""
+"Defina se as publicações precisam ser revisadas antes de serem agendadas ou "
+"publicadas."
 
 #: templates/workspaces/approvals_settings.html:30
 msgid "No approvals"
@@ -4418,23 +4796,31 @@ msgstr "Revisão interna + aprovação do cliente"
 
 #: templates/workspaces/approvals_settings.html:39
 msgid "Anyone with publishing rights can schedule or publish directly."
-msgstr "Qualquer pessoa com permissão de publicação pode agendar ou publicar diretamente."
+msgstr ""
+"Qualquer pessoa com permissão de publicação pode agendar ou publicar "
+"diretamente."
 
 #: templates/workspaces/approvals_settings.html:41
 msgid "Creators can choose to submit a post for review, but it's not required."
-msgstr "Quem cria pode enviar uma publicação para revisão, mas isso não é obrigatório."
+msgstr ""
+"Quem cria pode enviar uma publicação para revisão, mas isso não é "
+"obrigatório."
 
 #: templates/workspaces/approvals_settings.html:43
 msgid ""
 "Every post must be approved by a team member with review rights before it "
 "can go out."
-msgstr "Toda publicação precisa ser aprovada por um membro da equipe com permissão de revisão antes de sair."
+msgstr ""
+"Toda publicação precisa ser aprovada por um membro da equipe com permissão "
+"de revisão antes de sair."
 
 #: templates/workspaces/approvals_settings.html:45
 msgid ""
 "Posts go through internal review, then are sent to the client portal for "
 "final sign-off."
-msgstr "As publicações passam por revisão interna e depois vão ao portal do cliente para aprovação final."
+msgstr ""
+"As publicações passam por revisão interna e depois vão ao portal do cliente "
+"para aprovação final."
 
 #: templates/workspaces/approvals_settings.html:66
 msgid "Members"
@@ -4445,7 +4831,9 @@ msgstr "Membros"
 msgid ""
 "Reviewers are workspace members with the \"Approve posts\" permission. "
 "Manage them on the %(link)s page."
-msgstr "Os revisores são membros do workspace com a permissão \"Aprovar publicações\". Gerencie-os na página %(link)s."
+msgstr ""
+"Os revisores são membros do workspace com a permissão \"Aprovar "
+"publicações\". Gerencie-os na página %(link)s."
 
 #: templates/workspaces/list.html:46
 msgid "No workspaces yet. Create your first workspace to get started."
@@ -4483,19 +4871,26 @@ msgstr "Arquivar este workspace"
 msgid ""
 "This workspace is currently archived. Restoring it will make it visible in "
 "the sidebar and accessible to all members again."
-msgstr "Este workspace está arquivado. Restaurá-lo o torna visível na barra lateral e acessível a todos os membros novamente."
+msgstr ""
+"Este workspace está arquivado. Restaurá-lo o torna visível na barra lateral "
+"e acessível a todos os membros novamente."
 
 #: templates/workspaces/settings.html:87
 msgid ""
 "Archiving hides this workspace from the sidebar and prevents new posts. All "
 "existing data is preserved and the workspace can be restored at any time."
-msgstr "Arquivar oculta este workspace da barra lateral e impede novas publicações. Todos os dados são preservados e o workspace pode ser restaurado a qualquer momento."
+msgstr ""
+"Arquivar oculta este workspace da barra lateral e impede novas publicações. "
+"Todos os dados são preservados e o workspace pode ser restaurado a qualquer "
+"momento."
 
 #: templates/workspaces/settings.html:89
 msgid ""
 "You cannot archive the last active workspace in the organization. Create "
 "another workspace first."
-msgstr "Não é possível arquivar o último workspace ativo da organização. Crie outro antes."
+msgstr ""
+"Não é possível arquivar o último workspace ativo da organização. Crie outro "
+"antes."
 
 #: templates/workspaces/settings.html:101
 msgid "Restore Workspace"
@@ -4511,7 +4906,10 @@ msgid ""
 "Are you sure you want to archive <strong>%(ws)s</strong>? The workspace will "
 "be hidden from the sidebar and no new posts can be created. All existing "
 "data will be preserved."
-msgstr "Tem certeza de que deseja arquivar <strong>%(ws)s</strong>? O workspace ficará oculto na barra lateral e não será possível criar novas publicações. Todos os dados existentes serão preservados."
+msgstr ""
+"Tem certeza de que deseja arquivar <strong>%(ws)s</strong>? O workspace "
+"ficará oculto na barra lateral e não será possível criar novas publicações. "
+"Todos os dados existentes serão preservados."
 
 #: templates/workspaces/settings.html:145
 msgid "Yes, archive this workspace"
@@ -4527,13 +4925,18 @@ msgid ""
 "Permanently delete this workspace and all of its data. This includes all "
 "posts, connected social accounts, media assets, and workspace memberships. "
 "This action cannot be undone."
-msgstr "Exclua permanentemente este workspace e todos os seus dados. Isso inclui todas as publicações, contas sociais conectadas, arquivos de mídia e participações no workspace. Esta ação não pode ser desfeita."
+msgstr ""
+"Exclua permanentemente este workspace e todos os seus dados. Isso inclui "
+"todas as publicações, contas sociais conectadas, arquivos de mídia e "
+"participações no workspace. Esta ação não pode ser desfeita."
 
 #: templates/workspaces/settings.html:165
 msgid ""
 "You cannot delete the last active workspace in the organization. Create "
 "another workspace first."
-msgstr "Não é possível excluir o último workspace ativo da organização. Crie outro antes."
+msgstr ""
+"Não é possível excluir o último workspace ativo da organização. Crie outro "
+"antes."
 
 #: templates/workspaces/settings.html:174
 msgid "Delete Workspace"
@@ -4544,7 +4947,9 @@ msgstr "Excluir workspace"
 msgid ""
 "Are you sure you want to permanently delete <strong>%(ws)s</strong>? This "
 "action cannot be undone."
-msgstr "Tem certeza de que deseja excluir permanentemente <strong>%(ws)s</strong>? Esta ação não pode ser desfeita."
+msgstr ""
+"Tem certeza de que deseja excluir permanentemente <strong>%(ws)s</strong>? "
+"Esta ação não pode ser desfeita."
 
 #: templates/workspaces/settings.html:206
 msgid "Connected social accounts"

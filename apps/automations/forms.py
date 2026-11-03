@@ -36,6 +36,7 @@ import json
 from typing import Any
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.automations import keywords as keyword_matching
 from apps.automations import matching
@@ -63,12 +64,15 @@ MAX_REPLY_TEXT_CHARS = 500
 #: ("contains", "any_word") on purpose: *"Appears anywhere"* versus *"Matches a
 #: whole word"* is the distinction users actually get wrong, and naming the
 #: behaviour rather than the mode is what makes it choosable.
+#: ``gettext_lazy``, not ``gettext``: this dict is built at import time, before
+#: any request has set a language, so translating eagerly would freeze whichever
+#: locale the process started in for every user.
 _KEYWORD_MODE_LABELS = {
-    "exact": "Matches the whole comment",
-    "contains": "Appears anywhere",
-    "contains_loose": "Appears anywhere (ignore accents)",
-    "any_word": "Matches a whole word",
-    "any_word_loose": "Matches a whole word (ignore accents)",
+    "exact": _("Matches the whole comment"),
+    "contains": _("Appears anywhere"),
+    "contains_loose": _("Appears anywhere (ignore accents)"),
+    "any_word": _("Matches a whole word"),
+    "any_word_loose": _("Matches a whole word (ignore accents)"),
 }
 
 KEYWORD_MODE_CHOICES = tuple((mode, _KEYWORD_MODE_LABELS[mode]) for mode in keyword_matching.KEYWORD_MODES)

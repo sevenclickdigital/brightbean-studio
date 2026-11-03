@@ -1,5 +1,6 @@
 from django import forms
 from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
 
 from .models import REQUIRED_CREDENTIAL_KEYS, PlatformCredential, derive_is_configured
 
@@ -19,8 +20,8 @@ _KEY_HINTS = {
 }
 
 CREDENTIALS_HELP = mark_safe(
-    'JSON object of app credentials, e.g. <code>{"client_id": "...", "client_secret": "..."}</code>. '
-    "Required keys per platform:<br>"
+    _('JSON object of app credentials, e.g. <code>{"client_id": "...", "client_secret": "..."}</code>. ')
+    + _("Required keys per platform:<br>")
     + "<br>".join(f"<b>{platform}</b>: {hint}" for platform, hint in _KEY_HINTS.items())
 )
 
@@ -55,7 +56,7 @@ class PlatformCredentialAdminForm(forms.ModelForm):
             return {}
         if not isinstance(data, dict):
             raise forms.ValidationError(
-                'Credentials must be a JSON object, e.g. {"client_id": "...", "client_secret": "..."}.'
+                _('Credentials must be a JSON object, e.g. {"client_id": "...", "client_secret": "..."}.')
             )
         cleaned = {}
         for key, value in data.items():
@@ -75,7 +76,12 @@ class PlatformCredentialAdminForm(forms.ModelForm):
             hint = ", ".join(" / ".join(group) for group in required)
             self.add_error(
                 "credentials",
-                f"Missing required keys for {platform}. Expected: {hint or 'none'}. "
-                "Fill in every required key — the row stays inactive until they are all present.",
+                _(
+                    "Missing required keys for %(platform)s. Expected: %(hint)s. Fill in every required key — the row stays inactive until they are all present."
+                )
+                % {
+                    "platform": platform,
+                    "hint": hint or _("none"),
+                },
             )
         return cleaned

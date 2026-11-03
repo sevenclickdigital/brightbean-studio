@@ -1,6 +1,7 @@
 """Forms for the Post Composer."""
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.validators import normalize_tags, parse_and_truncate_tag_string
 
@@ -54,7 +55,7 @@ class PostForm(forms.ModelForm):
             "caption": forms.Textarea(
                 attrs={
                     "rows": 6,
-                    "placeholder": "Write your post caption...",
+                    "placeholder": _("Write your post caption..."),
                     "class": "form-input w-full",
                     "x-model": "caption",
                     "@input.debounce.500ms": "updatePreview()",
@@ -63,14 +64,14 @@ class PostForm(forms.ModelForm):
             "first_comment": forms.Textarea(
                 attrs={
                     "rows": 2,
-                    "placeholder": "First comment (optional)...",
+                    "placeholder": _("First comment (optional)..."),
                     "class": "form-input w-full",
                 }
             ),
             "internal_notes": forms.Textarea(
                 attrs={
                     "rows": 2,
-                    "placeholder": "Internal notes (not visible to clients)...",
+                    "placeholder": _("Internal notes (not visible to clients)..."),
                     "class": "form-input w-full",
                 }
             ),
@@ -95,7 +96,7 @@ class ContentCategoryForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(
                 attrs={
-                    "placeholder": "e.g., Educational, Promotional...",
+                    "placeholder": _("e.g., Educational, Promotional..."),
                     "class": "form-input w-full",
                 }
             ),
@@ -117,14 +118,14 @@ class PostTemplateForm(forms.ModelForm):
         widgets = {
             "name": forms.TextInput(
                 attrs={
-                    "placeholder": "Template name...",
+                    "placeholder": _("Template name..."),
                     "class": "form-input w-full",
                 }
             ),
             "description": forms.Textarea(
                 attrs={
                     "rows": 2,
-                    "placeholder": "Optional description...",
+                    "placeholder": _("Optional description..."),
                     "class": "form-input w-full",
                 }
             ),
@@ -140,7 +141,7 @@ class PlatformOverrideForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 4,
-                "placeholder": "Custom caption for this platform (leave empty to use shared caption)...",
+                "placeholder": _("Custom caption for this platform (leave empty to use shared caption)..."),
                 "class": "form-input w-full text-sm",
             }
         ),
@@ -150,7 +151,7 @@ class PlatformOverrideForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 2,
-                "placeholder": "Custom first comment...",
+                "placeholder": _("Custom first comment..."),
                 "class": "form-input w-full text-sm",
             }
         ),

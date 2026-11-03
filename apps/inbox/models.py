@@ -4,6 +4,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.managers import WorkspaceScopedManager
 
@@ -12,25 +13,25 @@ class InboxMessage(models.Model):
     api_refreshed_at = models.DateTimeField(null=True, blank=True, db_index=True)
 
     class MessageType(models.TextChoices):
-        COMMENT = "comment", "Comment"
-        MENTION = "mention", "Mention"
-        DM = "dm", "Direct Message"
-        REVIEW = "review", "Review"
+        COMMENT = "comment", _("Comment")
+        MENTION = "mention", _("Mention")
+        DM = "dm", _("Direct Message")
+        REVIEW = "review", _("Review")
 
     class Status(models.TextChoices):
-        UNREAD = "unread", "Unread"
-        OPEN = "open", "Open"
-        RESOLVED = "resolved", "Resolved"
-        ARCHIVED = "archived", "Archived"
+        UNREAD = "unread", _("Unread")
+        OPEN = "open", _("Open")
+        RESOLVED = "resolved", _("Resolved")
+        ARCHIVED = "archived", _("Archived")
 
     class Sentiment(models.TextChoices):
-        POSITIVE = "positive", "Positive"
-        NEUTRAL = "neutral", "Neutral"
-        NEGATIVE = "negative", "Negative"
+        POSITIVE = "positive", _("Positive")
+        NEUTRAL = "neutral", _("Neutral")
+        NEGATIVE = "negative", _("Negative")
 
     class SentimentSource(models.TextChoices):
-        AUTO = "auto", "Auto"
-        MANUAL = "manual", "Manual"
+        AUTO = "auto", _("Auto")
+        MANUAL = "manual", _("Manual")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
@@ -134,9 +135,9 @@ class InboxMessage(models.Model):
 
 class InboxReply(models.Model):
     class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        SENT = "sent", "Sent"
-        FAILED = "failed", "Failed"
+        DRAFT = "draft", _("Draft")
+        SENT = "sent", _("Sent")
+        FAILED = "failed", _("Failed")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     inbox_message = models.ForeignKey(

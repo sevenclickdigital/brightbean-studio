@@ -1,6 +1,7 @@
 """Forms for the Unified Social Inbox."""
 
 from django import forms
+from django.utils.translation import gettext_lazy as _
 
 from .models import InboxMessage, InboxSLAConfig, SavedReply
 
@@ -10,7 +11,7 @@ class ReplyForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 3,
-                "placeholder": "Write a reply...",
+                "placeholder": _("Write a reply..."),
                 "class": "form-input w-full",
             }
         ),
@@ -22,7 +23,7 @@ class InternalNoteForm(forms.Form):
         widget=forms.Textarea(
             attrs={
                 "rows": 2,
-                "placeholder": "Add an internal note...",
+                "placeholder": _("Add an internal note..."),
                 "class": "form-input w-full",
             }
         ),
@@ -45,10 +46,10 @@ class BulkActionForm(forms.Form):
     message_ids = forms.CharField()
     action = forms.ChoiceField(
         choices=[
-            ("mark_read", "Mark as Read"),
-            ("resolve", "Resolve"),
-            ("archive", "Archive"),
-            ("assign", "Assign"),
+            ("mark_read", _("Mark as Read")),
+            ("resolve", _("Resolve")),
+            ("archive", _("Archive")),
+            ("assign", _("Assign")),
         ]
     )
     value = forms.CharField(required=False)
@@ -66,14 +67,14 @@ class SavedReplyForm(forms.ModelForm):
             "title": forms.TextInput(
                 attrs={
                     "class": "form-input w-full",
-                    "placeholder": "Reply title",
+                    "placeholder": _("Reply title"),
                 }
             ),
             "body": forms.Textarea(
                 attrs={
                     "class": "form-input w-full",
                     "rows": 4,
-                    "placeholder": "Reply body. Use {sender_name}, {account_name}, {post_url} for variables.",
+                    "placeholder": _("Reply body. Use {sender_name}, {account_name}, {post_url} for variables."),
                 }
             ),
         }

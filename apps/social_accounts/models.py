@@ -4,6 +4,7 @@ from typing import Any
 from django.conf import settings
 from django.db import models, router, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.encryption import EncryptedTextField
 from apps.common.managers import WorkspaceScopedManager
@@ -24,18 +25,18 @@ class SocialAccount(models.Model):
     _skip_analytics_backfill: bool
 
     class AnalyticsStatus(models.TextChoices):
-        UNKNOWN = "unknown", "Not checked"
-        CHECKING = "checking", "Checking"
-        READY = "ready", "Ready"
-        RECONNECT = "reconnect_required", "Reconnect required"
-        ATTENTION = "attention_required", "Operator attention required"
-        TEMPORARY = "temporary_error", "Temporary failure"
+        UNKNOWN = "unknown", _("Not checked")
+        CHECKING = "checking", _("Checking")
+        READY = "ready", _("Ready")
+        RECONNECT = "reconnect_required", _("Reconnect required")
+        ATTENTION = "attention_required", _("Operator attention required")
+        TEMPORARY = "temporary_error", _("Temporary failure")
 
     class ConnectionStatus(models.TextChoices):
-        CONNECTED = "connected", "Connected"
-        TOKEN_EXPIRING = "token_expiring", "Token Expiring"
-        DISCONNECTED = "disconnected", "Disconnected"
-        ERROR = "error", "Error"
+        CONNECTED = "connected", _("Connected")
+        TOKEN_EXPIRING = "token_expiring", _("Token Expiring")
+        DISCONNECTED = "disconnected", _("Disconnected")
+        ERROR = "error", _("Error")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(

@@ -17,6 +17,7 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.managers import WorkspaceScopedManager
 from apps.common.validators import validate_hex_color
@@ -116,10 +117,10 @@ class Idea(models.Model):
     """A content idea on the Kanban board, scoped to a workspace."""
 
     class Status(models.TextChoices):
-        UNASSIGNED = "unassigned", "Unassigned"
-        TODO = "todo", "To Do"
-        IN_PROGRESS = "in_progress", "In Progress"
-        DONE = "done", "Done"
+        UNASSIGNED = "unassigned", _("Unassigned")
+        TODO = "todo", _("To Do")
+        IN_PROGRESS = "in_progress", _("In Progress")
+        DONE = "done", _("Done")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
@@ -339,17 +340,17 @@ class PlatformPost(models.Model):
     """
 
     class Status(models.TextChoices):
-        DRAFT = "draft", "Draft"
-        PENDING_REVIEW = "pending_review", "Pending Review"
-        PENDING_CLIENT = "pending_client", "Pending Client"
-        APPROVED = "approved", "Approved"
-        CHANGES_REQUESTED = "changes_requested", "Changes Requested"
-        REJECTED = "rejected", "Rejected"
-        SCHEDULED = "scheduled", "Scheduled"
-        PUBLISHING = "publishing", "Publishing"
-        PUBLISHED = "published", "Published"
-        FAILED = "failed", "Failed"
-        ON_HOLD = "on_hold", "On Hold"
+        DRAFT = "draft", _("Draft")
+        PENDING_REVIEW = "pending_review", _("Pending Review")
+        PENDING_CLIENT = "pending_client", _("Pending Client")
+        APPROVED = "approved", _("Approved")
+        CHANGES_REQUESTED = "changes_requested", _("Changes Requested")
+        REJECTED = "rejected", _("Rejected")
+        SCHEDULED = "scheduled", _("Scheduled")
+        PUBLISHING = "publishing", _("Publishing")
+        PUBLISHED = "published", _("Published")
+        FAILED = "failed", _("Failed")
+        ON_HOLD = "on_hold", _("On Hold")
 
     # Every field :meth:`transition_to` may write. A caller that passes
     # ``update_fields`` MUST include these or the transition half-applies
@@ -410,10 +411,10 @@ class PlatformPost(models.Model):
     }
 
     class FirstCommentStatus(models.TextChoices):
-        NONE = "none", "Not requested"
-        PENDING = "pending", "Pending"
-        POSTED = "posted", "Posted"
-        FAILED = "failed", "Failed"
+        NONE = "none", _("Not requested")
+        PENDING = "pending", _("Pending")
+        POSTED = "posted", _("Posted")
+        FAILED = "failed", _("Failed")
 
     STATUS_COLORS = {
         "draft": "gray",
@@ -753,10 +754,10 @@ class CSVImportJob(models.Model):
     """Tracks a bulk CSV import job for posts."""
 
     class Status(models.TextChoices):
-        PENDING = "pending", "Pending"
-        PROCESSING = "processing", "Processing"
-        COMPLETED = "completed", "Completed"
-        FAILED = "failed", "Failed"
+        PENDING = "pending", _("Pending")
+        PROCESSING = "processing", _("Processing")
+        COMPLETED = "completed", _("Completed")
+        FAILED = "failed", _("Failed")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(

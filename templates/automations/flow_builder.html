@@ -217,8 +217,7 @@ any zoom level.
                         <template x-if="node.type === 'trigger_comment'">
                             <div class="space-y-2.5">
                                 <p class="text-xs text-stone-500 leading-relaxed">
-                                    Runs when someone comments on
-                                    <strong class="text-stone-700">this post</strong>.
+                                    {% blocktranslate %}Runs when someone comments on <strong class="text-stone-700">this post</strong>.{% endblocktranslate %}
                                 </p>
 
                                 <div class="flex flex-wrap gap-1.5">
@@ -231,13 +230,13 @@ any zoom level.
                                     </template>
                                 </div>
 
-                                <input type="text" placeholder="Add a keyword, then press Enter"
+                                <input type="text" placeholder="{% translate 'Add a keyword, then press Enter' %}"
                                        @keydown.enter.prevent="addKeyword(node, $event.target)"
                                        @keydown.stop
                                        class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
 
                                 <p class="text-[11px] text-stone-400 leading-relaxed" x-show="!(node.data.keywords || []).length">
-                                    No keyword means <strong>every</strong> comment on this post fires the flow.
+                                    {% blocktranslate %}No keyword means <strong>every</strong> comment on this post fires the flow.{% endblocktranslate %}
                                 </p>
 
                                 <select x-model="node.data.match_mode" @mousedown.stop
@@ -250,7 +249,7 @@ any zoom level.
                                 <label class="flex items-center gap-2 text-[11px] text-stone-500 cursor-pointer">
                                     <input type="checkbox" x-model="node.data.top_level_only"
                                            class="rounded border-stone-300 text-orange-500 focus:ring-orange-200">
-                                    Ignore replies to other comments
+                                    {% translate "Ignore replies to other comments" %}
                                 </label>
                             </div>
                         </template>
@@ -259,9 +258,11 @@ any zoom level.
                         <template x-if="node.type === 'reply_comment' || node.type === 'send_dm'">
                             <div class="space-y-1.5">
                                 <textarea x-model="node.data.text" rows="3" @keydown.stop
+                                          {# Django renders the attribute before Alpine evaluates it, so the #}
+                                          {# tag resolves server-side and Alpine receives the translated text. #}
                                           :placeholder="node.type === 'send_dm'
-                                              ? 'The DM this person receives…'
-                                              : 'The public reply under their comment…'"
+                                              ? '{% translate "The DM this person receives…" %}'
+                                              : '{% translate "The public reply under their comment…" %}'"
                                           class="w-full text-[13px] px-2.5 py-2 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all resize-none"></textarea>
                                 <p class="text-[10px] text-stone-400">
                                     <button type="button" @click="insertToken(node, '{sender_name}')" class="hover:text-orange-500 cursor-pointer underline decoration-dotted">{sender_name}</button>
@@ -327,7 +328,42 @@ failure is silent and looks like a layout bug — Alpine still runs, but
 and the canvas renders empty. Same pattern as ``inbox/feed.html`` and
 ``composer/compose.html``.
 {% endcomment %}
+{% comment %}
+The canvas labels are built in JavaScript, which no {% translate %} reaches —
+the tag runs when the template renders, and these strings are chosen later, by
+node type, in the browser. Rather than add a JavaScriptCatalog view for one
+screen, they are translated here, where gettext can see them, and handed over
+as data. json_script escapes for a JS context, which is where they land.
+{% endcomment %}
+{% translate "When" as lbl_when %}
+{% translate "Comments on your post" as lbl_trigger %}
+{% translate "Then reply" as lbl_then_reply %}
+{% translate "Reply under the comment" as lbl_reply_title %}
+{% translate "Then send" as lbl_then_send %}
+{% translate "Direct message" as lbl_dm_title %}
+{% translate "Step" as lbl_step %}
+{% translate "The flow could not be saved." as lbl_save_failed %}
+{% translate "The flow could not be saved. Check your connection and try again." as lbl_save_failed_net %}
+{% translate "The flow could not be changed." as lbl_change_failed %}
+{% translate "The flow could not be changed. Check your connection and try again." as lbl_change_failed_net %}
+{{ lbl_when|json_script:"fb-when" }}
+{{ lbl_trigger|json_script:"fb-trigger" }}
+{{ lbl_then_reply|json_script:"fb-then-reply" }}
+{{ lbl_reply_title|json_script:"fb-reply-title" }}
+{{ lbl_then_send|json_script:"fb-then-send" }}
+{{ lbl_dm_title|json_script:"fb-dm-title" }}
+{{ lbl_step|json_script:"fb-step" }}
+{{ lbl_save_failed|json_script:"fb-save-failed" }}
+{{ lbl_save_failed_net|json_script:"fb-save-failed-net" }}
+{{ lbl_change_failed|json_script:"fb-change-failed" }}
+{{ lbl_change_failed_net|json_script:"fb-change-failed-net" }}
 <script nonce="{{ request.csp_nonce }}">
+// Reads a label the template translated and left in a json_script tag.
+function fbLabel(id) {
+    const node = document.getElementById('fb-' + id);
+    return node ? JSON.parse(node.textContent) : '';
+}
+
 function flowBuilder() {
     return {
         // --- State ------------------------------------------------------
@@ -410,29 +446,29 @@ function flowBuilder() {
         nodeMeta(type) {
             const map = {
                 trigger_comment: {
-                    kicker: 'When',
-                    title: 'Comments on your post',
+                    kicker: fbLabel('when'),
+                    title: fbLabel('trigger'),
                     chip: 'bg-amber-50 text-amber-600',
                     label: 'text-amber-600',
                     icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>',
                 },
                 reply_comment: {
-                    kicker: 'Then reply',
-                    title: 'Reply under the comment',
+                    kicker: fbLabel('then-reply'),
+                    title: fbLabel('reply-title'),
                     chip: 'bg-blue-50 text-blue-600',
                     label: 'text-blue-600',
                     icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M21 11.5a8.4 8.4 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.4 8.4 0 013.8-.9h.5a8.5 8.5 0 018 8v.5z"/></svg>',
                 },
                 send_dm: {
-                    kicker: 'Then send',
-                    title: 'Direct message',
+                    kicker: fbLabel('then-send'),
+                    title: fbLabel('dm-title'),
                     chip: 'bg-orange-50 text-orange-600',
                     label: 'text-orange-600',
                     icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
                 },
             };
             return map[type] || {
-                kicker: 'Step',
+                kicker: fbLabel('step'),
                 title: type,
                 chip: 'bg-stone-100 text-stone-500',
                 label: 'text-stone-400',
@@ -683,11 +719,11 @@ function flowBuilder() {
                 });
                 const data = await response.json();
                 this.warnings = data.warnings || [];
-                if (!data.ok) { this.error = data.error || 'The flow could not be saved.'; return; }
+                if (!data.ok) { this.error = data.error || fbLabel('save-failed'); return; }
                 this.status = data.status;
                 this.statusLabel = data.status_label;
             } catch (err) {
-                this.error = 'The flow could not be saved. Check your connection and try again.';
+                this.error = fbLabel('save-failed-net');
             } finally {
                 this.saving = false;
             }
@@ -705,11 +741,11 @@ function flowBuilder() {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 });
                 const data = await response.json();
-                if (!data.ok) { this.error = data.error || 'The flow could not be changed.'; return; }
+                if (!data.ok) { this.error = data.error || fbLabel('change-failed'); return; }
                 this.status = data.status;
                 this.statusLabel = data.status_label;
             } catch (err) {
-                this.error = 'The flow could not be changed. Check your connection and try again.';
+                this.error = fbLabel('change-failed-net');
             } finally {
                 this.saving = false;
             }
