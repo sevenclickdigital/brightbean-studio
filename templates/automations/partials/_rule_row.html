@@ -61,8 +61,15 @@ because the thing that needs fixing is this row.
         </div>
 
         <div class="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-            <a href="{% url 'automations:edit' workspace_id=workspace.id rule_id=rule.id %}"
-               title="{% translate 'Edit this rule' %}"
+            {% comment %}
+            A rule drawn in the flow builder opens in the flow builder. The
+            form editor cannot show a canvas, so sending someone there to edit
+            a flow presents a version of their automation with the nodes,
+            buttons and branches missing — and saving it would flatten what the
+            form can see back onto the rule.
+            {% endcomment %}
+            <a href="{% if rule.post_automation %}{% url 'automations:flow_builder' workspace_id=workspace.id platform_post_id=rule.post_automation.platform_post_id %}{% else %}{% url 'automations:edit' workspace_id=workspace.id rule_id=rule.id %}{% endif %}"
+               title="{% if rule.post_automation %}{% translate 'Open the flow builder' %}{% else %}{% translate 'Edit this rule' %}{% endif %}"
                class="w-7 h-7 flex items-center justify-center rounded-md text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all">
                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
             </a>

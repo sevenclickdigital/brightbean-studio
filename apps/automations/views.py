@@ -164,7 +164,10 @@ def rule_list(request, workspace_id):
     since = timezone.now() - timezone.timedelta(hours=24)
     rules = (
         AutomationRule.objects.for_workspace(workspace.id)
-        .select_related("social_account")
+        # ``post_automation`` is read by ``_rule_row.html`` to decide whether
+        # Edit opens the flow builder or the form editor; without it that is a
+        # query per row.
+        .select_related("social_account", "post_automation")
         .annotate(
             sent_24h=Count(
                 "logs",
@@ -261,7 +264,11 @@ def rule_toggle(request, workspace_id, rule_id):
     always be available.
     """
     workspace = _get_workspace(request, workspace_id)
-    rule = get_object_or_404(AutomationRule.objects.select_related("social_account"), id=rule_id, workspace=workspace)
+    rule = get_object_or_404(
+        AutomationRule.objects.select_related("social_account", "post_automation"),
+        id=rule_id,
+        workspace=workspace,
+    )
 
     error = None
     if not rule.is_active:
@@ -337,7 +344,11 @@ def rule_test(request, workspace_id, rule_id):
     to the template as explicit, separate warnings.
     """
     workspace = _get_workspace(request, workspace_id)
-    rule = get_object_or_404(AutomationRule.objects.select_related("social_account"), id=rule_id, workspace=workspace)
+    rule = get_object_or_404(
+        AutomationRule.objects.select_related("social_account", "post_automation"),
+        id=rule_id,
+        workspace=workspace,
+    )
 
     messages = (
         InboxMessage.objects.for_workspace(workspace.id)

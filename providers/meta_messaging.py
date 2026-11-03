@@ -434,3 +434,46 @@ def build_send_payload(
     if human_agent:
         payload["tag"] = "HUMAN_AGENT"
     return payload
+
+
+#: Profile fields a flow condition may read about the person it is talking to.
+#:
+#: All four arrive in one call, so asking for the set costs the same as asking
+#: for one. ``is_user_follow_business`` is the one this exists for — "send the
+#: link only to followers" — and the others ride along because splitting them
+#: into separate requests would spend a round trip to learn nothing new.
+PROFILE_FIELDS = ("name", "username", "follower_count", "is_user_follow_business", "is_business_follow_user", "is_verified_user")
+
+
+def fetch_user_profile(request, *, base_url: str, user_id: str, access_token: str) -> dict:
+    """Read what Meta will tell us about one person. ``{}`` when it will not.
+
+    **Consent is the whole story here.** Meta only answers for someone who has
+    *messaged the business* — a comment is not enough, and asking about a
+    commenter who has never sent a DM returns "User consent is required to
+    access the user profile". In a flow that opens with a private reply, the
+    consent exists by the time the person taps a button, which is why a
+    follower check belongs after a button rather than on the trigger.
+
+    Returns ``{}`` rather than raising for every refusal: missing consent, a
+    blocked business, a revoked token, a network blip. A condition that cannot
+    be answered must read as "no" rather than take down the conversation the
+    person is in the middle of — and ``{}`` is what
+    ``engine.evaluate_condition`` reads as an unmet condition.
+    """
+    if not user_id or not access_token:
+        return {}
+    try:
+        response = request(
+            "GET",
+            f"{base_url}/{user_id}",
+            access_token=access_token,
+            params={"fields": ",".join(PROFILE_FIELDS)},
+        )
+        data = response.json() if hasattr(response, "json") else response
+    except Exception as exc:
+        # Type only, never the message: a Graph error echoes the request back,
+        # and the request names a person.
+        logger.info("User profile unavailable: error_type=%s", type(exc).__name__)
+        return {}
+    return data if isinstance(data, dict) else {}

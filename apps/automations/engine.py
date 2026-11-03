@@ -191,6 +191,112 @@ def _next_node_id(graph: Any, node_id: str, *, branch: str = "") -> str:
 # ---------------------------------------------------------------------------
 
 
+#: Condition fields answered by a profile lookup rather than by the comment.
+#:
+#: ``follows_us`` is the one this exists for: "send the link only to people who
+#: follow us", and the loop that asks someone to follow before continuing. The
+#: other three arrive in the same response, so offering them costs nothing
+#: beyond the branch that reads them.
+PROFILE_CONDITION_FIELDS = frozenset(
+    {"follows_us", "we_follow_them", "is_verified", "follower_count"}
+)
+
+#: Which Graph field answers each of ours. Named separately so the editor's
+#: vocabulary ("follows_us") does not have to match Meta's, and so a renamed
+#: Graph field is one line to re-point.
+_PROFILE_FIELD_MAP = {
+    "follows_us": "is_user_follow_business",
+    "we_follow_them": "is_business_follow_user",
+    "is_verified": "is_verified_user",
+    "follower_count": "follower_count",
+}
+
+
+def _profile_for(context: dict) -> dict:
+    """The profile of the person this run is talking to, fetched at most once.
+
+    **Lazy, and cached on the context.** The lookup is a Graph call, and most
+    flows never ask a profile question — fetching eagerly would spend a round
+    trip per run to answer nothing. Caching matters just as much: a flow with
+    three follower checks must not make three calls, and must not be able to
+    see a *different* answer at each one.
+
+    ``{}`` is cached too, under a separate flag, so a refusal is not retried
+    once per condition. Meta's refusals here are not transient: no consent, a
+    blocked business, a platform with no such endpoint.
+    """
+    if context.get("_profile_loaded"):
+        return context.get("_profile") or {}
+    context["_profile_loaded"] = True
+    context["_profile"] = {}
+
+    run = context.get("run")
+    account = getattr(run, "social_account", None)
+    recipient = (getattr(run, "recipient_id", "") or "").strip()
+    if account is None or not recipient:
+        # Before the first tap there is no directly-addressable id, and Meta
+        # would refuse anyway: consent comes from the person messaging us.
+        return {}
+
+    try:
+        from apps.publisher.engine import _resolve_publish_credentials
+        from providers import get_provider
+
+        provider = get_provider(account.platform, _resolve_publish_credentials(account))
+        profile = provider.fetch_user_profile(account.oauth_access_token, recipient)
+    except Exception as exc:
+        logger.info(
+            "Flow run %s could not read the profile: error_type=%s",
+            getattr(run, "pk", None),
+            type(exc).__name__,
+        )
+        return {}
+
+    context["_profile"] = profile if isinstance(profile, dict) else {}
+    return context["_profile"]
+
+
+def _evaluate_profile_condition(field: str, operator: str, value: Any, context: dict) -> bool:
+    """Answer a condition about *who* is talking, rather than what they wrote.
+
+    **An unknown answer is always false**, whichever operator was chosen —
+    including the negative ones. That is deliberate and worth stating: if Meta
+    will not tell us whether someone follows the account, "does not follow"
+    must not come out true, because the flow's false branch is where the
+    "please follow us" message lives and sending it to an existing follower is
+    the one outcome this feature must avoid. A missing answer stops the branch
+    instead of guessing at it.
+    """
+    profile = _profile_for(context)
+    graph_field = _PROFILE_FIELD_MAP.get(field, field)
+    if graph_field not in profile:
+        return False
+    actual = profile[graph_field]
+
+    if field == "follower_count":
+        try:
+            count = int(actual)
+            threshold = int(str(value).strip())
+        except (TypeError, ValueError):
+            return False
+        if operator == "greater_than":
+            return count > threshold
+        if operator == "less_than":
+            return count < threshold
+        if operator == "equals":
+            return count == threshold
+        return False
+
+    # The three booleans. ``is_true`` / ``is_false`` rather than a value field,
+    # because "follows us: yes" needs no second input and an empty text box
+    # next to it would read as something still to fill in.
+    truth = bool(actual)
+    if operator == "is_false":
+        return not truth
+    # ``is_true`` and anything unrecognised: the affirmative reading.
+    return truth
+
+
 def evaluate_condition(node: dict, context: dict) -> bool:
     """Whether a condition node takes its ``true`` branch.
 
@@ -209,10 +315,17 @@ def evaluate_condition(node: dict, context: dict) -> bool:
         return False
 
     field = data.get("field") if isinstance(data.get("field"), str) else "comment_text"
+    operator = data.get("operator") if isinstance(data.get("operator"), str) else "contains"
+
+    # Profile fields are answered separately: they are booleans and numbers
+    # rather than text, and reaching one costs a Graph call that the text
+    # fields do not.
+    if field in PROFILE_CONDITION_FIELDS:
+        return _evaluate_profile_condition(field, operator, data.get("value"), context)
+
     actual = str(context.get(field, "") or "").casefold()
     expected = data.get("value")
     expected = expected.casefold().strip() if isinstance(expected, str) else ""
-    operator = data.get("operator") if isinstance(data.get("operator"), str) else "contains"
 
     if operator == "contains":
         return bool(expected) and expected in actual
@@ -524,10 +637,17 @@ def _advance(run: FlowRun, graph: Any, start_node_id: str, context: dict) -> Non
 # ---------------------------------------------------------------------------
 
 
-def _context_for(message) -> dict:
-    """What a condition may read and a placeholder may substitute."""
+def _context_for(message, run=None) -> dict:
+    """What a condition may read and a placeholder may substitute.
+
+    ``run`` is carried so a profile condition can reach the account and the
+    person's id — see :func:`_profile_for`. The profile itself is not fetched
+    here: most flows never ask, and an eager lookup would be a Graph call per
+    run spent on nothing.
+    """
     return {
         "message": message,
+        "run": run,
         "comment_text": getattr(message, "body", "") or "",
         "sender_name": getattr(message, "sender_name", "") or "",
     }
@@ -586,7 +706,7 @@ def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> 
         logger.info("Flow start declined: a run already exists for this sender on account %s", account.pk)
         return None
 
-    _advance(run, graph, start_node_id, _context_for(message))
+    _advance(run, graph, start_node_id, _context_for(message, run))
     return run
 
 
@@ -648,6 +768,23 @@ def resume_from_postback(account, sender_id: str, payload: str) -> bool:
         run.save(update_fields=["is_waiting", "awaiting_node_id", "updated_at"])
         return False
 
+    # **A tap starts a fresh pass, so the visited set is cleared.**
+    #
+    # ``visited`` bounds one uninterrupted walk: without it a cycle would
+    # message somebody forever in a single wake. A tap is not that — it is a
+    # deliberate act, minutes or days later, and it is what makes the "follow
+    # us, then tap again" loop possible at all. Keeping the old trail would
+    # let that loop run exactly once: the second tap would reach the same
+    # check node, find it visited, and stop with nothing sent, which reads as
+    # the button having broken.
+    #
+    # The loop stays bounded because each pass still needs a human tap to
+    # begin, and each pass is capped by ``MAX_STEPS_PER_WAKE``.
+    run.visited_node_ids = []
+
     # The parked node is already in ``visited``; the walk continues past it.
-    _advance(run, flow.graph, next_id, {"message": None, "comment_text": "", "sender_name": ""})
+    # ``run`` carries the account and the recipient id a profile condition
+    # needs. This is the path where such a condition actually works: the tap
+    # that got us here is what gave Meta the consent to answer.
+    _advance(run, flow.graph, next_id, {"message": None, "run": run, "comment_text": "", "sender_name": ""})
     return True

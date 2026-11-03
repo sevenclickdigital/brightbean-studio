@@ -19,6 +19,7 @@ by the comment webhook.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 
@@ -122,6 +123,39 @@ def post_permalink(platform_post) -> str:
     return ""
 
 
+#: Bounds on what the settings modal may set. The ceiling is a sanity limit
+#: rather than a platform one — Meta's own rate limits bite well before this —
+#: and exists so a typo cannot turn one viral post into thousands of sends.
+MAX_PER_HOUR_CEILING = 500
+MAX_PRIORITY = 1000
+
+
+def _flow_settings(automation) -> dict:
+    """The rule's guardrails, or the model defaults when there is no rule yet.
+
+    Falling back to the defaults rather than to blanks matters: the modal opens
+    on a flow that has never been saved too, and empty boxes there would read
+    as "no limit" when the limit is in fact 30 an hour.
+    """
+    rule = getattr(automation, "rule", None)
+    if rule is None:
+        return {
+            "name": "",
+            "max_per_hour": AutomationRule._meta.get_field("max_per_hour").default,
+            "once_per_sender_per_post": AutomationRule._meta.get_field("once_per_sender_per_post").default,
+            "priority": AutomationRule._meta.get_field("priority").default,
+        }
+    return {
+        # The rule's name. It is what the automations list shows, so without it
+        # here a flow could only ever carry the one generated at creation —
+        # fine for one automation, useless for telling two apart.
+        "name": rule.name,
+        "max_per_hour": rule.max_per_hour,
+        "once_per_sender_per_post": rule.once_per_sender_per_post,
+        "priority": rule.priority,
+    }
+
+
 def _post_preview(platform_post) -> dict:
     """What the builder shows about the post this flow is attached to.
 
@@ -212,6 +246,12 @@ def flow_builder(request, workspace_id, platform_post_id):
         # Which post this flow answers for — the question the header could not
         # answer before. See ``_post_preview``.
         "post_preview": _post_preview(platform_post),
+        # The guardrails, for the settings modal. Read off the rule when one
+        # exists and from the model's own defaults otherwise, so an unsaved
+        # flow shows what it *would* be rather than blanks.
+        "settings": _flow_settings(automation),
+        "max_per_hour_ceiling": MAX_PER_HOUR_CEILING,
+        "max_priority": MAX_PRIORITY,
         "keyword_mode_choices": _keyword_mode_choices(),
         "can_manage": membership.effective_permissions.get("reply_from_inbox", False),
     }
@@ -297,6 +337,7 @@ def flow_save(request, workspace_id, platform_post_id):
             automation = _create_flow(request, workspace, platform_post)
 
         _apply_compiled(automation.rule, compiled, active=wants_active)
+        _apply_settings(automation.rule, request.POST)
         automation.graph = graph
         if not wants_active and automation.is_armed:
             automation.status = PostAutomation.Status.PAUSED
@@ -383,6 +424,41 @@ def _create_flow(request, workspace, platform_post):
         status=PostAutomation.Status.PENDING,
         created_by=request.user,
     )
+
+
+def _apply_settings(rule, post) -> None:
+    """Write the settings-modal fields onto the rule. Absent keys are left alone.
+
+    **Absent means unchanged, not default.** The canvas saves on every edit and
+    does not always carry the settings; treating a missing key as "reset to 30
+    an hour" would silently undo somebody's limit the next time they moved a
+    node.
+
+    Out-of-range values are clamped rather than refused. These are guardrails,
+    not content: a save rejected over a mistyped limit would lose the flow the
+    author was actually editing, and clamping lands somewhere they can see and
+    correct.
+    """
+    if "max_per_hour" in post:
+        # Zero is meaningful and kept: it pauses one rule's sending while it
+        # still wins matches, which ``forms.clean_max_per_hour`` documents as a
+        # deliberate configuration.
+        with contextlib.suppress(TypeError, ValueError):
+            rule.max_per_hour = max(0, min(MAX_PER_HOUR_CEILING, int(post["max_per_hour"])))
+    if "priority" in post:
+        # Non-negative, matching the model's CheckConstraint — a negative value
+        # would raise at save time and lose the whole flow.
+        with contextlib.suppress(TypeError, ValueError):
+            rule.priority = max(0, min(MAX_PRIORITY, int(post["priority"])))
+    if "once_per_sender_per_post" in post:
+        rule.once_per_sender_per_post = str(post["once_per_sender_per_post"]).lower() in {"1", "true", "on", "yes"}
+    if "name" in post:
+        # Blank is ignored rather than stored: ``name`` is what identifies this
+        # automation in the rules list, and an empty row there is unfindable.
+        name = str(post["name"]).strip()
+        if name:
+            rule.name = name[:200]
+    rule.save(update_fields=["name", "max_per_hour", "priority", "once_per_sender_per_post", "updated_at"])
 
 
 def _apply_compiled(rule, compiled, *, active):

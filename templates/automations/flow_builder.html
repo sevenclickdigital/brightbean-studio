@@ -132,6 +132,22 @@ any zoom level.
         <div class="flex-1"></div>
 
         {% comment %}
+        The guardrails — hourly ceiling, one-reply-per-person, priority — in a
+        modal rather than on the canvas. They are set once and rarely revisited,
+        and a node is where the author's attention is; putting them beside the
+        nodes would make the screen look like there are six decisions to make
+        when there is really one.
+        {% endcomment %}
+        {% if can_manage %}
+        <button type="button" @click="settingsOpen = true"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0"
+                title="{% translate 'Automation settings' %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 008 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 8a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 3.6 1.65 1.65 0 0010 2.09V2a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9c.14.31.4.56.72.68H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            <span class="hidden lg:inline">{% translate "Settings" %}</span>
+        </button>
+        {% endif %}
+
+        {% comment %}
         Tool switch. Space and the middle button also pan, but neither is
         discoverable and neither works on a trackpad-only machine without a
         keyboard reflex — so the mode is also a control you can see.
@@ -516,12 +532,23 @@ any zoom level.
                         {# Condition: one field, one operator, one value. #}
                         <template x-if="node.type === 'condition'">
                             <div class="space-y-1.5">
-                                <select x-model="node.data.field" @mousedown.stop
+                                <select x-model="node.data.field" @change="onConditionField(node)" @mousedown.stop
                                         class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
-                                    <option value="comment_text">{% translate "The comment text" %}</option>
-                                    <option value="sender_name">{% translate "The person's name" %}</option>
+                                    <optgroup label="{% translate 'What they wrote' %}">
+                                        <option value="comment_text">{% translate "The comment text" %}</option>
+                                        <option value="sender_name">{% translate "The person's name" %}</option>
+                                    </optgroup>
+                                    <optgroup label="{% translate 'Who they are' %}">
+                                        <option value="follows_us">{% translate "They follow the account" %}</option>
+                                        <option value="we_follow_them">{% translate "The account follows them" %}</option>
+                                        <option value="is_verified">{% translate "Their profile is verified" %}</option>
+                                        <option value="follower_count">{% translate "Their follower count" %}</option>
+                                    </optgroup>
                                 </select>
+
+                                {# Text fields: the original operators. #}
                                 <select x-model="node.data.operator" @mousedown.stop
+                                        x-show="!isProfileField(node.data.field)"
                                         class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
                                     <option value="contains">{% translate "Contains" %}</option>
                                     <option value="not_contains">{% translate "Does not contain" %}</option>
@@ -529,10 +556,46 @@ any zoom level.
                                     <option value="is_empty">{% translate "Is empty" %}</option>
                                     <option value="is_not_empty">{% translate "Is not empty" %}</option>
                                 </select>
+
+                                {# Yes/no fields need no value box — "follows us: yes" is complete. #}
+                                <select x-model="node.data.operator" @mousedown.stop
+                                        x-show="isBooleanField(node.data.field)"
+                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
+                                    <option value="is_true">{% translate "Yes" %}</option>
+                                    <option value="is_false">{% translate "No" %}</option>
+                                </select>
+
+                                <select x-model="node.data.operator" @mousedown.stop
+                                        x-show="node.data.field === 'follower_count'"
+                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
+                                    <option value="greater_than">{% translate "Is more than" %}</option>
+                                    <option value="less_than">{% translate "Is less than" %}</option>
+                                    <option value="equals">{% translate "Is exactly" %}</option>
+                                </select>
+
                                 <input type="text" x-model="node.data.value" @keydown.stop
-                                       x-show="!['is_empty', 'is_not_empty'].includes(node.data.operator)"
+                                       x-show="!isProfileField(node.data.field) && !['is_empty', 'is_not_empty'].includes(node.data.operator)"
                                        placeholder="{% translate 'Word to look for…' %}"
                                        class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+
+                                <input type="number" x-model="node.data.value" @keydown.stop min="0"
+                                       x-show="node.data.field === 'follower_count'"
+                                       placeholder="1000"
+                                       class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+
+                                {% comment %}
+                                The consent rule, stated where it bites. Meta
+                                only answers profile questions about someone who
+                                has messaged the business, so a check placed
+                                before the first tap is always false — and the
+                                author would read that as the feature being
+                                broken rather than as a platform rule.
+                                {% endcomment %}
+                                <p class="text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 leading-relaxed"
+                                   x-show="isProfileField(node.data.field)">
+                                    {% translate "Put this after a button: the platform only answers once the person has replied to you." %}
+                                </p>
+
                                 <p class="text-[10px] text-stone-400 leading-relaxed">
                                     {% translate "Two outputs: the top port is yes, the bottom is no." %}
                                 </p>
@@ -603,6 +666,89 @@ any zoom level.
             </template>
         </div>
 
+        {% comment %}
+        Settings modal. Inside the canvas so it inherits the shell's stacking,
+        but outside the transformed layers so it is not scaled by the zoom —
+        a dialog that shrank to 40% because the canvas was zoomed out would be
+        unreadable at exactly the moment someone opened it.
+        {% endcomment %}
+        {% if can_manage %}
+        <div x-show="settingsOpen" x-cloak
+             @keydown.escape.window="settingsOpen = false"
+             class="absolute inset-0 z-30 flex items-center justify-center bg-stone-900/20 p-4">
+            <div @click.outside="settingsOpen = false"
+                 class="w-full max-w-sm bg-white rounded-2xl border border-stone-200 shadow-xl p-5 space-y-4">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-stone-900">{% translate "Automation settings" %}</h3>
+                    <button type="button" @click="settingsOpen = false"
+                            class="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                {# What this automation is called in the automations list. #}
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                        {% translate "Name" %}
+                    </label>
+                    <input type="text" x-model="settings.name" maxlength="200"
+                           placeholder="{% translate 'e.g. Send the guide' %}"
+                           class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                    <p class="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                        {% translate "How this automation appears in your list." %}
+                    </p>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                        {% translate "Replies per hour" %}
+                    </label>
+                    <input type="number" min="0" max="{{ max_per_hour_ceiling }}" x-model.number="settings.max_per_hour"
+                           class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                    {# Zero is a real setting, not an empty box — say what it does. #}
+                    <p class="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                        {% translate "A ceiling, so one busy post cannot turn into a flood. Zero stops this flow sending at all." %}
+                    </p>
+                </div>
+
+                <div>
+                    <label class="flex items-start gap-2 cursor-pointer">
+                        <input type="checkbox" x-model="settings.once_per_sender_per_post"
+                               class="mt-0.5 rounded border-stone-300 text-orange-500 focus:ring-orange-200">
+                        <span>
+                            <span class="block text-[13px] text-stone-700">{% translate "One reply per person, per post" %}</span>
+                            <span class="block text-[11px] text-stone-400 leading-relaxed">
+                                {% translate "Someone who comments five times still hears from you once." %}
+                            </span>
+                        </span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                        {% translate "Priority" %}
+                    </label>
+                    <input type="number" min="0" max="{{ max_priority }}" x-model.number="settings.priority"
+                           class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                    <p class="text-[11px] text-stone-400 mt-1 leading-relaxed">
+                        {% translate "When several automations match one comment, the lowest number answers." %}
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <button type="button" @click="settingsOpen = false"
+                            class="px-3 py-1.5 text-[13px] text-stone-500 hover:text-stone-700 transition-colors cursor-pointer">
+                        {% translate "Cancel" %}
+                    </button>
+                    <button type="button" @click="saveSettings()" :disabled="saving"
+                            class="px-3.5 py-1.5 text-[13px] font-medium rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors cursor-pointer disabled:opacity-50">
+                        <span x-text="saving ? '{% translate "Saving…" %}' : '{% translate "Save" %}'"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Add-step palette --------------------------------------------- -->
         {% if can_manage %}
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-2 rounded-2xl bg-white border border-stone-200 shadow-lg"
@@ -634,6 +780,7 @@ any zoom level.
 </div>
 
 {{ graph|json_script:"flow-graph" }}
+{{ settings|json_script:"flow-settings" }}
 
 {% comment %}
 The nonce is required, not decorative: ``CSP_SCRIPT_SRC`` does not include
@@ -708,6 +855,11 @@ function flowBuilder() {
         hoveredEdge: null,
         //: Which trigger nodes have their exclude list revealed, by node id.
         excludeOpen: {},
+        //: The guardrails modal, and the values it edits. Loaded in ``init``
+        //: from the server rather than defaulted here, so an existing rule's
+        //: limits open as they are rather than as the model's defaults.
+        settingsOpen: false,
+        settings: { name: '', max_per_hour: 30, once_per_sender_per_post: true, priority: 0 },
         //: The clicked edge, which shows a labelled Delete button until it is
         //: used or the selection moves elsewhere.
         selectedEdge: null,
@@ -751,6 +903,13 @@ function flowBuilder() {
                 data: n.data || {},
             }));
             this.edges = stored.edges || [];
+
+            const settingsEl = document.getElementById('flow-settings');
+            if (settingsEl) {
+                try {
+                    this.settings = { ...this.settings, ...JSON.parse(settingsEl.textContent) };
+                } catch (e) { /* keep the defaults above */ }
+            }
             this.$nextTick(() => {
                 this.measure();
                 this.fitView();
@@ -846,6 +1005,33 @@ function flowBuilder() {
             const exists = node.data[key].some(k => String(k).toLowerCase() === value.toLowerCase());
             if (!exists) node.data[key].push(value);
             input.value = '';
+        },
+
+        // Condition fields answered by a profile lookup rather than by the
+        // comment. Mirrors ``engine.PROFILE_CONDITION_FIELDS``.
+        isProfileField(field) {
+            return ['follows_us', 'we_follow_them', 'is_verified', 'follower_count'].includes(field);
+        },
+
+        isBooleanField(field) {
+            return ['follows_us', 'we_follow_them', 'is_verified'].includes(field);
+        },
+
+        // Switching field switches which operators make sense, and the one
+        // that was selected usually does not survive the move — "contains" on
+        // a yes/no field would save a condition the engine reads as false
+        // forever. Reset to the first valid operator for the new field.
+        onConditionField(node) {
+            const field = node.data.field;
+            if (this.isBooleanField(field)) {
+                node.data.operator = 'is_true';
+                node.data.value = '';
+            } else if (field === 'follower_count') {
+                node.data.operator = 'greater_than';
+                node.data.value = '';
+            } else {
+                node.data.operator = 'contains';
+            }
         },
 
         // The exclude list starts hidden: it is the less common half, and a
@@ -1339,6 +1525,16 @@ function flowBuilder() {
         },
 
         // --- Persistence -------------------------------------------------
+        // The modal's Save writes the whole flow, not just the settings: the
+        // canvas may have been edited behind the dialog, and a settings-only
+        // endpoint would silently discard those edits on the next full save.
+        // Activation state is preserved — saving limits must not switch a
+        // running flow off.
+        async saveSettings() {
+            await this.save(this.status === 'active');
+            if (!this.error) this.settingsOpen = false;
+        },
+
         async save(activate) {
             this.saving = true;
             this.error = '';
@@ -1346,6 +1542,13 @@ function flowBuilder() {
                 const body = new FormData();
                 body.append('graph', JSON.stringify({ nodes: this.nodes, edges: this.edges }));
                 body.append('activate', activate ? '1' : '0');
+                // Sent on every save so the modal's values survive a later
+                // canvas edit. The server treats an absent key as unchanged,
+                // so sending them is what keeps the two in step.
+                body.append('max_per_hour', String(this.settings.max_per_hour ?? 30));
+                body.append('priority', String(this.settings.priority ?? 0));
+                body.append('once_per_sender_per_post', this.settings.once_per_sender_per_post ? '1' : '0');
+                body.append('name', String(this.settings.name || ''));
                 body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
 
                 const response = await fetch('{% url "automations:flow_save" workspace_id=workspace.id platform_post_id=platform_post.id %}', {

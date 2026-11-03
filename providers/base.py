@@ -306,6 +306,23 @@ class SocialProvider(ABC):
         """
         raise NotImplementedError(f"{self.platform_name} does not support message replies")
 
+    def fetch_user_profile(self, access_token: str, user_id: str) -> dict:
+        """What the platform will tell us about one person, or ``{}``.
+
+        Used by automation flows to branch on who they are talking to — most
+        usefully ``is_user_follow_business``, which is how a flow sends a link
+        only to followers.
+
+        **Returns ``{}`` rather than raising for every refusal**, including a
+        platform that has no such endpoint. The caller is mid-conversation with
+        a real person, and a profile lookup that fails must leave the condition
+        unmet rather than end the conversation. The default is therefore an
+        empty dict and not ``NotImplementedError``: "we cannot know" and "this
+        platform cannot tell us" are the same answer to the question being
+        asked.
+        """
+        return {}
+
     def reply_to_comment(self, access_token: str, comment_id: str, text: str, extra: dict | None = None) -> ReplyResult:
         """Reply to a comment or mention.
 

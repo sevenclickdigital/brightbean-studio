@@ -25,6 +25,7 @@ from .meta_messaging import (
     build_send_payload,
     enabled,
     fetch_instagram_page_messages,
+    fetch_user_profile,
     merge_page_message_subscription,
     meta_subscription_needs_reconnect,
     require_message_id,
@@ -680,6 +681,21 @@ class InstagramProvider(SocialProvider):
             since=since,
             owner_id=ig_user_id,
             owner_handle=str(self.credentials.get("account_handle") or ""),
+        )
+
+
+    def fetch_user_profile(self, access_token: str, user_id: str) -> dict:
+        """Profile fields for one person, or an empty dict. See ``SocialProvider``.
+
+        Meta only answers for someone who has messaged the business, so a
+        commenter who has not yields nothing — see
+        ``meta_messaging.fetch_user_profile``.
+        """
+        return fetch_user_profile(
+            self._request,
+            base_url=BASE_URL,
+            user_id=user_id,
+            access_token=access_token,
         )
 
     def reply_to_comment(self, access_token: str, comment_id: str, text: str, extra: dict | None = None) -> ReplyResult:
