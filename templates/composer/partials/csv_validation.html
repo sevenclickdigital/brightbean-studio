@@ -1,9 +1,10 @@
+{% load i18n %}
 <!-- Step 3: Validation Preview (loaded via HTMX after mapping) -->
 <div class="space-y-6">
     <div class="bg-white rounded-xl border border-stone-200 p-6">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background: var(--primary);">3</div>
-            <h2 class="text-sm font-semibold text-stone-800">Validation Results</h2>
+            <h2 class="text-sm font-semibold text-stone-800">{% translate "Validation Results" %}</h2>
         </div>
 
         <!-- Summary -->
@@ -36,7 +37,7 @@
             {% endfor %}
         </div>
         {% if has_more_errors %}
-        <p class="text-xs text-stone-500 mb-4">Showing first 50 errors. Fix and re-upload for the full list.</p>
+        <p class="text-xs text-stone-500 mb-4">{% translate "Showing first 50 errors. Fix and re-upload for the full list." %}</p>
         {% endif %}
         {% endif %}
 
@@ -54,14 +55,14 @@
                     {% endif %}
                 </div>
                 <button type="submit" class="btn-brand text-sm py-2 px-5">
-                    Confirm Import
+                    {% translate "Confirm Import" %}
                 </button>
             </div>
         </form>
         {% else %}
         <div class="p-4 bg-red-50 rounded-lg text-center">
-            <p class="text-sm font-medium text-red-800">No valid rows to import.</p>
-            <p class="text-xs text-red-600 mt-1">Fix the errors in your CSV and re-upload.</p>
+            <p class="text-sm font-medium text-red-800">{% translate "No valid rows to import." %}</p>
+            <p class="text-xs text-red-600 mt-1">{% translate "Fix the errors in your CSV and re-upload." %}</p>
         </div>
         {% endif %}
     </div>

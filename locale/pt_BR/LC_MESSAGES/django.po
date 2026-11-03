@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:13+0000\n"
+"POT-Creation-Date: 2026-11-03 22:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -368,7 +368,9 @@ msgstr ""
 "Corpo da resposta. Use {sender_name}, {account_name}, {post_url} como "
 "variáveis."
 
-#: apps/inbox/models.py:16
+#: apps/inbox/models.py:16 templates/composer/compose.html:1054
+#: templates/composer/partials/preview_panel.html:212
+#: templates/composer/partials/preview_panel.html:287
 msgid "Comment"
 msgstr "Comentário"
 
@@ -937,7 +939,9 @@ msgstr ""
 #: templates/calendar/partials/event_form.html:77
 #: templates/calendar/partials/publish_approvals.html:87
 #: templates/calendar/queues.html:64 templates/composer/categories.html:45
-#: templates/composer/categories.html:91
+#: templates/composer/categories.html:91 templates/composer/compose.html:1421
+#: templates/composer/compose.html:1916 templates/composer/compose.html:1992
+#: templates/composer/compose.html:2067
 #: templates/composer/create_landing.html:495
 #: templates/composer/create_landing.html:972
 #: templates/composer/create_landing.html:1008
@@ -1312,6 +1316,7 @@ msgstr ""
 #: templates/calendar/calendar.html:370 templates/calendar/calendar.html:397
 #: templates/calendar/partials/_delete_post_modal.html:59
 #: templates/calendar/partials/_post_actions_menu.html:35
+#: templates/composer/compose.html:1458
 #: templates/composer/create_landing.html:914
 #: templates/composer/create_landing.html:988
 #: templates/inbox/saved_replies.html:50
@@ -2222,7 +2227,9 @@ msgstr "Registrar uma ideia de conteúdo"
 msgid "Create Idea"
 msgstr "Criar ideia"
 
-#: templates/base.html:476 templates/composer/create_landing.html:445
+#: templates/base.html:476 templates/composer/compose.html:834
+#: templates/composer/compose.html:1337
+#: templates/composer/create_landing.html:445
 #: templates/composer/create_landing.html:612
 #: templates/composer/create_landing.html:809
 #: templates/media_library/_asset_detail_panel.html:159
@@ -2235,7 +2242,9 @@ msgstr "Tags"
 msgid "Add another file"
 msgstr "Adicionar outro arquivo"
 
-#: templates/base.html:621 templates/composer/create_landing.html:478
+#: templates/base.html:621 templates/composer/compose.html:1403
+#: templates/composer/compose.html:1413
+#: templates/composer/create_landing.html:478
 #: templates/composer/create_landing.html:487
 #: templates/composer/create_landing.html:651
 #: templates/composer/create_landing.html:848
@@ -2315,10 +2324,12 @@ msgid "Publish now?"
 msgstr "Publicar agora?"
 
 #: templates/calendar/partials/_delete_post_modal.html:36
+#: templates/composer/compose.html:2061
 msgid "Delete post?"
 msgstr "Excluir publicação?"
 
 #: templates/calendar/partials/_delete_post_modal.html:37
+#: templates/composer/compose.html:2062
 msgid ""
 "This action cannot be undone. The post and all associated data will be "
 "permanently removed."
@@ -2369,6 +2380,7 @@ msgid "Add Custom Event"
 msgstr "Adicionar evento personalizado"
 
 #: templates/calendar/partials/event_form.html:18
+#: templates/composer/compose.html:441
 #: templates/inbox/partials/_saved_reply_form.html:8
 msgid "Title"
 msgstr "Título"
@@ -2412,6 +2424,7 @@ msgstr "Status"
 #: templates/calendar/partials/list_view.html:14
 #: templates/calendar/partials/publish_drafts.html:15
 #: templates/calendar/partials/publish_sent.html:17
+#: templates/composer/compose.html:464
 msgid "Caption"
 msgstr "Legenda"
 
@@ -2631,7 +2644,8 @@ msgstr "Categoria (opcional)"
 msgid "Any category"
 msgstr "Qualquer categoria"
 
-#: templates/calendar/queues.html:63 templates/composer/create_landing.html:400
+#: templates/calendar/queues.html:63 templates/composer/compose.html:1428
+#: templates/composer/create_landing.html:400
 #: templates/composer/create_landing.html:502
 #: templates/composer/create_landing.html:1015
 #: templates/inbox/partials/_saved_reply_form.html:21
@@ -2685,7 +2699,7 @@ msgstr "Nenhuma categoria ainda"
 msgid "Create categories to organize your posts."
 msgstr "Crie categorias para organizar suas publicações."
 
-#: templates/composer/compose.html:298
+#: templates/composer/compose.html:298 templates/composer/compose.html:1749
 #: templates/composer/create_landing.html:687
 #: templates/composer/create_landing.html:887
 msgid "Preview"
@@ -2698,6 +2712,10 @@ msgstr "Nenhuma conta conectada"
 #: templates/composer/compose.html:363
 msgid "Publishing failed"
 msgstr "Falha na publicação"
+
+#: templates/composer/compose.html:376
+msgid "Open an editable draft copy to fix and re-queue"
+msgstr "Abrir uma cópia editável para corrigir e reagendar"
 
 #: templates/composer/compose.html:377
 msgid "Clone to retry"
@@ -2754,6 +2772,14 @@ msgstr ""
 msgid "Save as Template"
 msgstr "Salvar como modelo"
 
+#: templates/composer/compose.html:477
+msgid "Template name…"
+msgstr "Nome do modelo…"
+
+#: templates/composer/compose.html:479
+msgid "Description (optional)…"
+msgstr "Descrição (opcional)…"
+
 #: templates/composer/compose.html:489
 msgid "Save Template"
 msgstr "Salvar modelo"
@@ -2768,6 +2794,10 @@ msgstr "Usar modelo"
 msgid "Loading templates…"
 msgstr "Carregando modelos…"
 
+#: templates/composer/compose.html:518
+msgid "What would you like to share?"
+msgstr "O que você quer compartilhar?"
+
 #: templates/composer/compose.html:534
 msgid "Drag & drop or"
 msgstr "Arraste e solte ou"
@@ -2776,7 +2806,12 @@ msgstr "Arraste e solte ou"
 msgid "select files"
 msgstr "selecione os arquivos"
 
-#: templates/composer/compose.html:557
+#: templates/composer/compose.html:537 templates/composer/compose.html:1859
+msgid "Search Unsplash"
+msgstr "Buscar no Unsplash"
+
+#: templates/composer/compose.html:557 templates/composer/compose.html:794
+#: templates/composer/compose.html:1790
 msgid "Media Library"
 msgstr "Biblioteca de mídia"
 
@@ -2816,6 +2851,310 @@ msgstr "Selecionar pasta"
 #: templates/composer/compose.html:631
 msgid "Select a board…"
 msgstr "Selecione uma pasta…"
+
+#: templates/composer/compose.html:638
+msgid "Loading boards…"
+msgstr "Carregando pastas…"
+
+#: templates/composer/compose.html:639
+msgid "No boards found. Create a board on Pinterest first."
+msgstr "Nenhuma pasta encontrada. Crie uma pasta no Pinterest primeiro."
+
+#: templates/composer/compose.html:643
+msgid "Destination Link"
+msgstr "Link de destino"
+
+#: templates/composer/compose.html:647
+msgid "https://example.com/your-page"
+msgstr "https://exemplo.com/sua-pagina"
+
+#: templates/composer/compose.html:650
+msgid "Where people go when they click the pin"
+msgstr "Para onde as pessoas vão ao clicar no pin"
+
+#: templates/composer/compose.html:654
+msgid "Tag Products"
+msgstr "Marcar produtos"
+
+#: templates/composer/compose.html:658
+msgid "Product URLs or IDs (comma-separated)"
+msgstr "URLs ou IDs de produtos (separados por vírgula)"
+
+#: templates/composer/compose.html:660
+msgid "Requires a connected product catalog"
+msgstr "Requer um catálogo de produtos conectado"
+
+#: templates/composer/compose.html:672 templates/composer/compose.html:817
+msgid "Advanced"
+msgstr "Avançado"
+
+#: templates/composer/compose.html:682
+msgid "Allow people to comment"
+msgstr "Permitir comentários"
+
+#: templates/composer/compose.html:691
+msgid "Show similar products"
+msgstr "Mostrar produtos semelhantes"
+
+#: templates/composer/compose.html:695
+msgid "Alt Text"
+msgstr "Texto alternativo"
+
+#: templates/composer/compose.html:697
+msgid "Describe this pin for accessibility…"
+msgstr "Descreva este pin para acessibilidade…"
+
+#: templates/composer/compose.html:706
+msgid "Video Cover Image"
+msgstr "Imagem de capa do vídeo"
+
+#: templates/composer/compose.html:734
+#: templates/composer/create_landing.html:689
+#: templates/composer/create_landing.html:889
+#: templates/composer/partials/feeds_tab.html:93
+msgid "Remove"
+msgstr "Remover"
+
+#: templates/composer/compose.html:736
+msgid "Required for video pins. PNG or JPG, same dimensions as video."
+msgstr ""
+"Obrigatória para pins de vídeo. PNG ou JPG, nas mesmas dimensões do vídeo."
+
+#: templates/composer/compose.html:749
+msgid "YouTube"
+msgstr "YouTube"
+
+#: templates/composer/compose.html:753
+msgid "YouTube only publishes videos."
+msgstr "O YouTube só publica vídeos."
+
+#: templates/composer/compose.html:754 templates/composer/compose.html:924
+msgid "Add a video to schedule this post, or deselect the account."
+msgstr "Adicione um vídeo para agendar esta publicação, ou desmarque a conta."
+
+#: templates/composer/compose.html:758
+msgid "Custom Thumbnail"
+msgstr "Miniatura personalizada"
+
+#: templates/composer/compose.html:779
+msgid "Remove thumbnail"
+msgstr "Remover miniatura"
+
+#: templates/composer/compose.html:799
+msgid "Visibility"
+msgstr "Visibilidade"
+
+#: templates/composer/compose.html:802
+msgid "Public"
+msgstr "Pública"
+
+#: templates/composer/compose.html:803
+msgid "Unlisted"
+msgstr "Não listada"
+
+#: templates/composer/compose.html:804
+msgid "Private"
+msgstr "Privada"
+
+#: templates/composer/compose.html:828
+msgid "Made for Kids"
+msgstr "Conteúdo infantil"
+
+#: templates/composer/compose.html:829
+msgid "Required by COPPA - mark if this video is directed at children under 13"
+msgstr ""
+"Exigido pela COPPA — marque se este vídeo é direcionado a menores de 13 anos"
+
+#: templates/composer/compose.html:838
+msgid "vlog, travel, daily"
+msgstr "vlog, viagem, dia a dia"
+
+#: templates/composer/compose.html:840
+msgid "Comma-separated"
+msgstr "Separados por vírgula"
+
+#: templates/composer/compose.html:923
+msgid "TikTok only publishes videos."
+msgstr "O TikTok só publica vídeos."
+
+#: templates/composer/compose.html:929
+msgid "Who can see this post"
+msgstr "Quem pode ver esta publicação"
+
+#: templates/composer/compose.html:994 templates/composer/compose.html:1010
+msgid "Branded content visibility cannot be set to private."
+msgstr "Conteúdo de marca não pode ter visibilidade privada."
+
+#: templates/composer/compose.html:1006
+msgid "Loading account settings…"
+msgstr "Carregando configurações da conta…"
+
+#: templates/composer/compose.html:1008
+msgid ""
+"This TikTok app hasn't passed TikTok's content audit yet — only private "
+"posting (\\"
+msgstr "Este app do TikTok ainda não passou pela auditoria de conteúdo do TikTok — só publicação privada (\\"
+
+
+#: templates/composer/compose.html:1014
+msgid "Cover"
+msgstr "Capa"
+
+#: templates/composer/compose.html:1025 templates/composer/compose.html:1036
+msgid "Reset to default cover"
+msgstr "Voltar para a capa padrão"
+
+#: templates/composer/compose.html:1048
+msgid "Allow users to:"
+msgstr "Permitir que usuários:"
+
+#: templates/composer/compose.html:1060
+msgid "Duet"
+msgstr "Duetem"
+
+#: templates/composer/compose.html:1066
+msgid "Stitch"
+msgstr "Usem Stitch"
+
+#: templates/composer/compose.html:1074
+msgid "Disclose post content"
+msgstr "Divulgar o conteúdo da publicação"
+
+#: templates/composer/compose.html:1075
+msgid "Let others know this post promotes a brand, product or service."
+msgstr "Avise que esta publicação promove uma marca, produto ou serviço."
+
+#: templates/composer/compose.html:1089
+msgid "Your brand"
+msgstr "Sua marca"
+
+#: templates/composer/compose.html:1090
+msgid "You are promoting yourself or your own business."
+msgstr "Você está promovendo a si mesmo ou seu próprio negócio."
+
+#: templates/composer/compose.html:1100
+msgid "Branded content"
+msgstr "Conteúdo de marca"
+
+#: templates/composer/compose.html:1101
+msgid "You are promoting another brand or a third party."
+msgstr "Você está promovendo outra marca ou um terceiro."
+
+#: templates/composer/compose.html:1110
+msgid ""
+"Set visibility to public, friends, or followers to enable branded content."
+msgstr ""
+"Defina a visibilidade como pública, amigos ou seguidores para habilitar "
+"conteúdo de marca."
+
+#: templates/composer/compose.html:1118
+msgid ""
+"You need to indicate if your content promotes yourself, a third party, or "
+"both."
+msgstr ""
+"Você precisa indicar se o conteúdo promove você, um terceiro, ou ambos."
+
+#: templates/composer/compose.html:1129
+msgid "AI-generated content"
+msgstr "Conteúdo gerado por IA"
+
+#: templates/composer/compose.html:1130
+msgid ""
+"Add TikTok's AI-generated label if the post contains AI-generated content."
+msgstr ""
+"Adicione o selo de IA do TikTok se a publicação contiver conteúdo gerado por "
+"IA."
+
+#: templates/composer/compose.html:1141
+msgid "By posting, you agree to TikTok's"
+msgstr "Ao publicar, você concorda com a"
+
+#: templates/composer/compose.html:1143
+msgid "Branded Content Policy"
+msgstr "Política de Conteúdo de Marca"
+
+#: templates/composer/compose.html:1143
+msgid "and"
+msgstr "e"
+
+#: templates/composer/compose.html:1145
+msgid "Music Usage Confirmation"
+msgstr "Confirmação de Uso de Música"
+
+#: templates/composer/compose.html:1149
+msgid ""
+"After you publish, it may take a few minutes for your video to process and "
+"appear on your TikTok profile."
+msgstr "Depois de publicar, pode levar alguns minutos até o vídeo ser processado e aparecer no seu perfil do TikTok."
+
+
+#: templates/composer/compose.html:1177
+msgid "Remove override"
+msgstr "Remover personalização"
+
+#: templates/composer/compose.html:1216
+msgid "Comment automation"
+msgstr "Automação de comentários"
+
+#: templates/composer/compose.html:1256
+msgid "Set up flow"
+msgstr "Configurar fluxo"
+
+#: templates/composer/compose.html:1265
+msgid "First Comment"
+msgstr "Primeiro comentário"
+
+#: templates/composer/compose.html:1268
+msgid "First comment posted after the main post…"
+msgstr "Primeiro comentário publicado após a publicação principal…"
+
+#: templates/composer/compose.html:1279
+msgid "Category"
+msgstr "Categoria"
+
+#: templates/composer/compose.html:1282
+msgid "No category"
+msgstr "Sem categoria"
+
+#: templates/composer/compose.html:1338 templates/composer/compose.html:1441
+msgid "Internal team only"
+msgstr "Somente equipe interna"
+
+#: templates/composer/compose.html:1354
+msgid "Select tags..."
+msgstr "Selecione etiquetas..."
+
+#: templates/composer/compose.html:1367
+#: templates/composer/create_landing.html:623
+#: templates/composer/create_landing.html:820
+msgid "Search or create tag..."
+msgstr "Buscar ou criar etiqueta..."
+
+#: templates/composer/compose.html:1383 templates/composer/compose.html:1391
+#: templates/composer/create_landing.html:643
+#: templates/composer/create_landing.html:840
+msgid "Create \\"
+msgstr "Criar \\"
+
+#: templates/composer/compose.html:1396
+#: templates/composer/create_landing.html:635
+#: templates/composer/create_landing.html:832
+msgid "No tags yet. Type to create one."
+msgstr "Nenhuma etiqueta ainda. Digite para criar uma."
+
+#: templates/composer/compose.html:1417
+#: templates/composer/create_landing.html:491
+#: templates/composer/create_landing.html:1004
+msgid "Tag name..."
+msgstr "Nome da etiqueta..."
+
+#: templates/composer/compose.html:1440
+msgid "Notes"
+msgstr "Notas"
+
+#: templates/composer/compose.html:1445
+msgid "Internal team notes - not visible to clients…"
+msgstr "Notas internas da equipe — não visíveis para clientes…"
 
 #: templates/composer/compose.html:1474
 msgid "Save Draft"
@@ -2900,46 +3239,119 @@ msgstr ""
 msgid "Set Schedule"
 msgstr "Definir agendamento"
 
+#: templates/composer/compose.html:1630
+msgid "Awaiting internal review"
+msgstr "Aguardando revisão interna"
+
+#: templates/composer/compose.html:1635
+msgid "Awaiting client approval"
+msgstr "Aguardando aprovação do cliente"
+
+#: templates/composer/compose.html:1640
+msgid "Changes requested - edit and resubmit"
+msgstr "Alterações solicitadas — edite e reenvie"
+
+#: templates/composer/compose.html:1645
+msgid "Rejected - edit and resubmit or delete"
+msgstr "Rejeitada — edite e reenvie ou exclua"
+
+#: templates/composer/compose.html:1650
+msgid "Approved - saving changes sends it back for re-approval"
+msgstr "Aprovada — salvar alterações a envia de volta para nova aprovação"
+
+#: templates/composer/compose.html:1655
+msgid "On hold - a client paused this; resume it from the approvals queue"
+msgstr "Em espera — um cliente pausou; retome pela fila de aprovações"
+
+#: templates/composer/compose.html:1678
+msgid "Approve"
+msgstr "Aprovar"
+
+#: templates/composer/compose.html:1679
+msgid "Request Changes"
+msgstr "Solicitar alterações"
+
+#: templates/composer/compose.html:1681
+msgid "What needs to change?"
+msgstr "O que precisa mudar?"
+
+#: templates/composer/compose.html:1685
+msgid "Submit"
+msgstr "Enviar"
+
+#: templates/composer/compose.html:1691
+msgid "Approval History"
+msgstr "Histórico de aprovações"
+
+#: templates/composer/compose.html:1707
+#: templates/inbox/partials/_filter_bar.html:38
+msgid "Comments"
+msgstr "Comentários"
+
+#: templates/composer/compose.html:1821
+msgid "Select Thumbnail"
+msgstr "Selecionar miniatura"
+
+#: templates/composer/compose.html:1860
+msgid "Free high-resolution photos &middot; add one or many"
+msgstr "Fotos gratuitas em alta resolução &middot; adicione uma ou várias"
+
+#: templates/composer/compose.html:1872
+msgid "Search free high-resolution photos…"
+msgstr "Buscar fotos gratuitas em alta resolução…"
+
+#: templates/composer/compose.html:1875
+msgid "Search"
+msgstr "Buscar"
+
+#: templates/composer/compose.html:1892
+msgid "No results. Try another search."
+msgstr "Nenhum resultado. Tente outra busca."
+
+#: templates/composer/compose.html:1947
+msgid "Choose thumbnail from video"
+msgstr "Escolher miniatura do vídeo"
+
+#: templates/composer/compose.html:1948
+msgid "Scrub to the frame you want, then grab it"
+msgstr "Avance até o quadro que quiser e capture"
+
+#: templates/composer/compose.html:1988
+msgid "Frame at"
+msgstr "Quadro em"
+
+#: templates/composer/compose.html:2015
+msgid "Post saved"
+msgstr "Publicação salva"
+
 #: templates/composer/create_landing.html:407
+#: templates/composer/partials/kanban_column.html:58
 msgid "New Idea"
 msgstr "Nova ideia"
-
 
 #: templates/composer/create_landing.html:418
 msgid "Ideas"
 msgstr "Ideias"
 
-
 #: templates/composer/create_landing.html:422
 msgid "Templates"
 msgstr "Modelos"
-
 
 #: templates/composer/create_landing.html:426
 msgid "Feeds"
 msgstr "Feeds"
 
-
 #: templates/composer/create_landing.html:455
 msgid "Search tags..."
 msgstr "Buscar etiquetas..."
-
 
 #: templates/composer/create_landing.html:467
 msgid "No tags yet"
 msgstr "Nenhuma etiqueta ainda"
 
-
 #: templates/composer/create_landing.html:470
 msgid "No matching tags"
 msgstr "Nenhuma etiqueta encontrada"
-
-
-#: templates/composer/create_landing.html:491
-#: templates/composer/create_landing.html:1004
-msgid "Tag name..."
-msgstr "Nome da etiqueta..."
-
 
 #: templates/composer/create_landing.html:571
 #: templates/composer/create_landing.html:767
@@ -2947,49 +3359,20 @@ msgstr "Nome da etiqueta..."
 msgid "Close"
 msgstr "Fechar"
 
-
-#: templates/composer/create_landing.html:623
-#: templates/composer/create_landing.html:820
-msgid "Search or create tag..."
-msgstr "Buscar ou criar etiqueta..."
-
-
-#: templates/composer/create_landing.html:635
-#: templates/composer/create_landing.html:832
-msgid "No tags yet. Type to create one."
-msgstr "Nenhuma etiqueta ainda. Digite para criar uma."
-
-
-#: templates/composer/create_landing.html:643
-#: templates/composer/create_landing.html:840
-msgid "Create \\"
-msgstr "Criar \\"
-
-
 #: templates/composer/create_landing.html:675
 #: templates/composer/create_landing.html:874
 msgid "Give your idea a title"
 msgstr "Dê um título à sua ideia"
-
 
 #: templates/composer/create_landing.html:676
 #: templates/composer/create_landing.html:875
 msgid "Let it flow... or"
 msgstr "Deixe fluir... ou"
 
-
-#: templates/composer/create_landing.html:689
-#: templates/composer/create_landing.html:889
-#: templates/composer/partials/feeds_tab.html:93
-msgid "Remove"
-msgstr "Remover"
-
-
 #: templates/composer/create_landing.html:701
 #: templates/composer/create_landing.html:901
 msgid "Drag &amp; drop"
 msgstr "Arraste e solte"
-
 
 #: templates/composer/create_landing.html:703
 #: templates/composer/create_landing.html:903
@@ -3002,37 +3385,26 @@ msgstr "ou"
 msgid "select a file"
 msgstr "selecione um arquivo"
 
-
 #: templates/composer/create_landing.html:713
 msgid "Emoji"
 msgstr "Emoji"
 
-
 #: templates/composer/create_landing.html:722
 msgid "Search emoji..."
 msgstr "Buscar emoji..."
-
-
-#: templates/composer/create_landing.html:733
-msgid "emoji.n"
-msgstr "emoji.n"
-
 
 #: templates/composer/create_landing.html:753
 #: templates/composer/create_landing.html:928
 msgid "Save Idea"
 msgstr "Salvar ideia"
 
-
 #: templates/composer/create_landing.html:784
 msgid "Edit Idea"
 msgstr "Editar ideia"
 
-
 #: templates/composer/create_landing.html:966
 msgid "Delete idea?"
 msgstr "Excluir ideia?"
-
 
 #: templates/composer/create_landing.html:967
 msgid ""
@@ -3046,27 +3418,22 @@ msgstr ""
 msgid "Deleting…"
 msgstr "Excluindo…"
 
-
 #: templates/composer/create_landing.html:1057
 msgid "Copy to clipboard"
 msgstr "Copiar"
-
 
 #: templates/composer/create_landing.html:1072
 msgid "By"
 msgstr "Por"
 
-
 #: templates/composer/create_landing.html:1073
 msgid "Brightbean"
 msgstr "Brightbean"
-
 
 #: templates/composer/create_landing.html:1075
 #: templates/composer/create_landing.html:1082
 msgid "&bull;"
 msgstr "&bull;"
-
 
 #: templates/composer/csv_import.html:9
 msgid "Import from CSV"
@@ -3132,10 +3499,77 @@ msgstr "Nenhum rascunho"
 msgid "Start composing to create your first draft"
 msgstr "Comece a escrever para criar seu primeiro rascunho"
 
+#: templates/composer/partials/choose_from_video_card.html:18
+msgid "Choose from video"
+msgstr "Escolher do vídeo"
+
+#: templates/composer/partials/csv_mapping.html:7
+msgid "Map Columns"
+msgstr "Mapear colunas"
+
+#: templates/composer/partials/csv_mapping.html:15
+msgid ""
+"Match each CSV column to the corresponding post field. Leave unmapped "
+"columns as \\"
+msgstr "Associe cada coluna do CSV ao campo correspondente. Deixe as colunas não mapeadas como \\"
+
+
+#: templates/composer/partials/csv_mapping.html:52
+msgid "- Skip -"
+msgstr "- Ignorar -"
+
+#: templates/composer/partials/csv_mapping.html:63
+msgid "Validate &amp; Preview"
+msgstr "Validar e pré-visualizar"
+
+#: templates/composer/partials/csv_progress.html:12
+msgid "Import Complete"
+msgstr "Importação concluída"
+
+#: templates/composer/partials/csv_progress.html:45
+msgid "View Calendar"
+msgstr "Ver calendário"
+
+#: templates/composer/partials/csv_progress.html:49
+msgid "Import More"
+msgstr "Importar mais"
+
+#: templates/composer/partials/csv_validation.html:7
+msgid "Validation Results"
+msgstr "Resultado da validação"
+
+#: templates/composer/partials/csv_validation.html:40
+msgid "Showing first 50 errors. Fix and re-upload for the full list."
+msgstr ""
+"Mostrando os 50 primeiros erros. Corrija e reenvie para ver a lista completa."
+
+#: templates/composer/partials/csv_validation.html:58
+msgid "Confirm Import"
+msgstr "Confirmar importação"
+
+#: templates/composer/partials/csv_validation.html:64
+msgid "No valid rows to import."
+msgstr "Nenhuma linha válida para importar."
+
+#: templates/composer/partials/csv_validation.html:65
+msgid "Fix the errors in your CSV and re-upload."
+msgstr "Corrija os erros no CSV e reenvie."
+
+#: templates/composer/partials/feed_events_batch.html:34
+msgid "View Entire Post"
+msgstr "Ver publicação inteira"
+
+#: templates/composer/partials/feed_events_batch.html:52
+msgid "No events found for this feed filter."
+msgstr "Nenhum evento encontrado para este filtro."
+
+#: templates/composer/partials/feeds_explore.html:4
+msgid "Explore Feeds"
+msgstr "Explorar feeds"
+
 #: templates/composer/partials/feeds_tab.html:15
 msgid "All feeds"
 msgstr "Todos os feeds"
-
 
 #: templates/composer/partials/feeds_tab.html:31
 #: templates/composer/partials/feeds_tab.html:133
@@ -3143,12 +3577,10 @@ msgstr "Todos os feeds"
 msgid "Add Feed"
 msgstr "Adicionar feed"
 
-
 #: templates/composer/partials/feeds_tab.html:36
 #: templates/composer/partials/feeds_tab.html:138
 msgid "Explore Curated Feeds"
 msgstr "Explorar feeds selecionados"
-
 
 #: templates/composer/partials/feeds_tab.html:80
 #: templates/composer/partials/feeds_tab.html:91
@@ -3156,16 +3588,13 @@ msgstr "Explorar feeds selecionados"
 msgid "Delete Feed"
 msgstr "Excluir feed"
 
-
 #: templates/composer/partials/feeds_tab.html:93
 msgid "from your feeds?"
 msgstr "dos seus feeds?"
 
-
 #: templates/composer/partials/feeds_tab.html:126
 msgid "Add your First Feed"
 msgstr "Adicione seu primeiro feed"
-
 
 #: templates/composer/partials/feeds_tab.html:127
 msgid ""
@@ -3179,31 +3608,44 @@ msgstr ""
 msgid "Add RSS Feed"
 msgstr "Adicionar feed RSS"
 
-
 #: templates/composer/partials/feeds_tab.html:181
 msgid "RSS URL"
 msgstr "URL do RSS"
-
 
 #: templates/composer/partials/feeds_tab.html:186
 msgid "https://example.com/feed"
 msgstr "https://exemplo.com/feed"
 
-
 #: templates/composer/partials/kanban_board.html:12
 msgid "New Group"
 msgstr "Novo grupo"
-
 
 #: templates/composer/partials/kanban_board.html:16
 msgid "Column name..."
 msgstr "Nome da coluna..."
 
-
 #: templates/composer/partials/kanban_board.html:20
 #: templates/social_accounts/partials/_posting_slots_grid.html:116
 msgid "Add"
 msgstr "Adicionar"
+
+#: templates/composer/partials/kanban_column.html:18
+msgid "Add idea"
+msgstr "Adicionar ideia"
+
+#: templates/composer/partials/kanban_column.html:34
+msgid "Delete column"
+msgstr "Excluir coluna"
+
+#: templates/composer/partials/kanban_column.html:38
+msgid "Remove all ideas first"
+msgstr "Remova todas as ideias primeiro"
+
+#: templates/composer/partials/media_picker.html:44
+#: templates/media_library/_asset_card.html:52
+#: templates/media_library/_shared_asset_card.html:34
+msgid "SHARED"
+msgstr "COMPARTILHADA"
 
 #: templates/composer/partials/media_picker.html:57
 msgid "No media yet"
@@ -3217,20 +3659,112 @@ msgstr "Envie arquivos para sua biblioteca de mídia para usá-los aqui"
 msgid "Video thumbnail"
 msgstr "Miniatura do vídeo"
 
+#: templates/composer/partials/preview_panel.html:47
+msgid "Video title…"
+msgstr "Título do vídeo…"
+
+#: templates/composer/partials/preview_panel.html:56
+msgid "Publishing preview"
+msgstr "Prévia da publicação"
+
+#: templates/composer/partials/preview_panel.html:133
+msgid "Write a caption…"
+msgstr "Escreva uma legenda…"
+
+#: templates/composer/partials/preview_panel.html:136
+msgid "View all comments"
+msgstr "Ver todos os comentários"
+
+#: templates/composer/partials/preview_panel.html:138
+#: templates/composer/partials/preview_panel.html:523
+msgid "Just now"
+msgstr "Agora mesmo"
+
+#: templates/composer/partials/preview_panel.html:153
+#: templates/composer/partials/preview_panel.html:233
+msgid "Just now ·"
+msgstr "Agora mesmo ·"
+
+#: templates/composer/partials/preview_panel.html:208
+#: templates/composer/partials/preview_panel.html:286
+msgid "Like"
+msgstr "Curtir"
+
+#: templates/composer/partials/preview_panel.html:216
+msgid "Share"
+msgstr "Compartilhar"
+
+#: templates/composer/partials/preview_panel.html:288
+msgid "Repost"
+msgstr "Repostar"
+
+#: templates/composer/partials/preview_panel.html:289
+#: templates/inbox/partials/_draft_reply_item.html:24
+msgid "Send"
+msgstr "Enviar"
+
+#: templates/composer/partials/preview_panel.html:308
+msgid "Upload a video"
+msgstr "Enviar um vídeo"
+
+#: templates/composer/partials/preview_panel.html:376
+#: templates/inbox/partials/_reply_error.html:10
+msgid "just now"
+msgstr "agora mesmo"
+
+#: templates/composer/partials/preview_panel.html:381
+msgid "Start a thread…"
+msgstr "Iniciar um tópico…"
+
+#: templates/composer/partials/preview_panel.html:447
+msgid "now"
+msgstr "agora"
+
+#: templates/composer/partials/preview_panel.html:452
+msgid "What's up?"
+msgstr "E aí?"
+
+#: templates/composer/partials/preview_panel.html:529
+msgid "No caption yet…"
+msgstr "Ainda sem legenda…"
+
+#: templates/composer/partials/preview_panel.html:568
+msgid "No preview yet"
+msgstr "Ainda sem prévia"
+
+#: templates/composer/partials/preview_panel.html:570
+msgid "Select a platform and start writing to see how your post will look"
+msgstr ""
+"Selecione uma plataforma e comece a escrever para ver como a publicação vai "
+"ficar"
+
 #: templates/composer/partials/template_gallery.html:14
 msgid "Featured templates"
 msgstr "Modelos em destaque"
-
 
 #: templates/composer/partials/template_gallery.html:15
 msgid "Our top picks"
 msgstr "Nossas escolhas"
 
-
 #: templates/composer/partials/template_gallery.html:16
 msgid "Helpful starting points to plan your next post."
 msgstr "Bons pontos de partida para planejar sua próxima publicação."
 
+#: templates/composer/partials/template_picker.html:19
+msgid "No templates yet."
+msgstr "Nenhum modelo ainda."
+
+#: templates/composer/partials/template_picker.html:20
+msgid "Save a post as a template to see it here."
+msgstr "Salve uma publicação como modelo para vê-la aqui."
+
+#: templates/composer/partials/thumbnail_picker.html:40
+msgid "No images available"
+msgstr "Nenhuma imagem disponível"
+
+#: templates/composer/partials/thumbnail_picker.html:41
+msgid "Upload images to your media library to use them as thumbnails"
+msgstr "Envie imagens para a biblioteca de mídia para usá-las como miniaturas"
 
 #: templates/composer/templates_list.html:9
 msgid "Post Templates"
@@ -3311,10 +3845,6 @@ msgstr "A última tentativa falhou: %(error)s"
 msgid "Retry send"
 msgstr "Tentar enviar de novo"
 
-#: templates/inbox/partials/_draft_reply_item.html:24
-msgid "Send"
-msgstr "Enviar"
-
 #: templates/inbox/partials/_draft_reply_item.html:29
 msgid "Discard this draft reply?"
 msgstr "Descartar este rascunho de resposta?"
@@ -3366,10 +3896,6 @@ msgstr "Todas as plataformas"
 #: templates/notifications/history.html:58
 msgid "All types"
 msgstr "Todos os tipos"
-
-#: templates/inbox/partials/_filter_bar.html:38
-msgid "Comments"
-msgstr "Comentários"
 
 #: templates/inbox/partials/_filter_bar.html:39
 msgid "Mentions"
@@ -3480,10 +4006,6 @@ msgstr "Adicionar nota"
 #: templates/inbox/partials/_reply_error.html:9
 msgid "Reply not sent"
 msgstr "Resposta não enviada"
-
-#: templates/inbox/partials/_reply_error.html:10
-msgid "just now"
-msgstr "agora mesmo"
 
 #: templates/inbox/partials/_reply_error.html:13
 #, python-format
@@ -4153,11 +4675,6 @@ msgstr "Escolha um plano"
 msgid "Per-org subscription, billed monthly. Cancel anytime."
 msgstr ""
 "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
-
-#: templates/media_library/_asset_card.html:52
-#: templates/media_library/_shared_asset_card.html:34
-msgid "SHARED"
-msgstr "COMPARTILHADA"
 
 #: templates/media_library/_asset_detail_panel.html:59
 #: templates/media_library/_asset_detail_panel.html:66
@@ -5804,6 +6321,9 @@ msgstr "Participações no workspace"
 #: templates/workspaces/settings.html:223
 msgid "Yes, delete this workspace"
 msgstr "Sim, excluir este workspace"
+
+#~ msgid "emoji.n"
+#~ msgstr "emoji.n"
 
 #~ msgid "Image URL (https://…)"
 #~ msgstr "URL da imagem (https://…)"

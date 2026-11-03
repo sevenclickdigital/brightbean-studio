@@ -1,3 +1,4 @@
+{% load i18n %}
 <div class="kanban-column" data-group-id="{{ col.id }}"
      draggable="true"
      @dragstart="startColumnDrag($event, '{{ col.id }}')"
@@ -14,7 +15,7 @@
         <div class="flex items-center gap-0.5">
             <button @click="showCreateModal = true; createGroupId = '{{ col.id }}'; createSelectedGroup = '{{ col.id }}'"
                     class="w-6 h-6 rounded-md text-stone-500 hover:text-stone-600 hover:bg-white/80 flex items-center justify-center transition-colors cursor-pointer"
-                    title="Add idea">
+                    title="{% translate 'Add idea' %}">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </button>
             <div class="relative" x-data="{ menuOpen: false }">
@@ -30,11 +31,11 @@
                     {% if col.ideas|length == 0 %}
                     <button @click="menuOpen = false; deleteGroup('{{ col.id }}')"
                             class="w-full text-left px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 transition-colors">
-                        Delete column
+                        {% translate "Delete column" %}
                     </button>
                     {% else %}
                     <span class="block px-3 py-1.5 text-xs text-stone-400">
-                        Remove all ideas first
+                        {% translate "Remove all ideas first" %}
                     </span>
                     {% endif %}
                 </div>
@@ -54,6 +55,6 @@
     <button @click="showCreateModal = true; createGroupId = '{{ col.id }}'; createSelectedGroup = '{{ col.id }}'"
             class="new-idea-inline">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        New Idea
+        {% translate "New Idea" %}
     </button>
 </div>

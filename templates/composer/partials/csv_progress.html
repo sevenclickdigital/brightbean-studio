@@ -1,3 +1,4 @@
+{% load i18n %}
 <!-- Step 4: Import Complete (loaded via HTMX after confirm) -->
 <div class="bg-white rounded-xl border border-stone-200 p-8 text-center">
     <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -8,7 +9,7 @@
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
     </div>
 
-    <h2 class="text-lg font-semibold text-stone-900 mb-1">Import Complete</h2>
+    <h2 class="text-lg font-semibold text-stone-900 mb-1">{% translate "Import Complete" %}</h2>
 
     <div class="flex items-center justify-center gap-4 mt-4 mb-6">
         <div class="px-4 py-2 rounded-lg bg-green-50 border border-green-200">
@@ -41,11 +42,11 @@
     <div class="flex items-center justify-center gap-3">
         <a href="{% url 'calendar:calendar' workspace_id=workspace.id %}"
            class="btn-brand text-sm py-2 px-5">
-            View Calendar
+            {% translate "View Calendar" %}
         </a>
         <a href="{% url 'composer:csv_upload' workspace_id=workspace.id %}"
            class="text-sm font-semibold py-2 px-5 rounded-full border border-stone-200 hover:border-stone-300 text-stone-700 hover:text-stone-900 transition-colors">
-            Import More
+            {% translate "Import More" %}
         </a>
     </div>
 </div>
