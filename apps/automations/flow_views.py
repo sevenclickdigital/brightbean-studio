@@ -97,6 +97,67 @@ def _flow_for(platform_post):
     return PostAutomation.objects.filter(platform_post=platform_post).select_related("rule").first()
 
 
+def post_permalink(platform_post) -> str:
+    """A link to the post on the platform, or ``""``.
+
+    Built from ``platform_post_id`` rather than read from a stored
+    ``permalink_url``. The stored one only exists once a comment has arrived
+    carrying it, so a freshly published post would have no link at exactly the
+    moment someone is setting up its automation — and it is platform-supplied
+    data, which is the kind this codebase deliberately does not render as a
+    link elsewhere (see ``actions.render_text``).
+
+    Facebook's id is ``PAGEID_POSTID`` on some edges and bare on others; the
+    bare form is what ``PlatformPost`` stores, and Facebook resolves
+    ``/<id>`` on its own. Instagram has no id-addressable permalink at all
+    without an extra API call, so it returns empty and the UI simply shows no
+    link rather than a broken one.
+    """
+    post_id = (getattr(platform_post, "platform_post_id", "") or "").strip()
+    if not post_id:
+        return ""
+    platform = getattr(platform_post.social_account, "platform", "")
+    if platform == "facebook":
+        return f"https://www.facebook.com/{post_id}"
+    return ""
+
+
+def _post_preview(platform_post) -> dict:
+    """What the builder shows about the post this flow is attached to.
+
+    The builder used to say only "Published post", which leaves the one
+    question an author actually has — *which* post? — unanswered on the screen
+    where they are deciding what it should reply. A thumbnail, the opening of
+    the caption and the publish date are enough to recognise it without
+    leaving the page.
+
+    The thumbnail falls back to the full file when no thumbnail was generated:
+    images get no separate thumbnail in this codebase, so requiring one would
+    show a blank frame for the most common case.
+    """
+    post = platform_post.post
+    caption = (platform_post.platform_specific_caption or post.caption or "").strip()
+
+    thumb = ""
+    attachment = post.media_attachments.select_related("media_asset").first()
+    if attachment is not None:
+        asset = attachment.media_asset
+        if getattr(asset, "thumbnail", None):
+            thumb = asset.thumbnail.url
+        elif getattr(asset, "file", None) and getattr(asset, "media_type", "") in {"image", "gif"}:
+            thumb = asset.file.url
+
+    return {
+        "caption": caption,
+        "snippet": caption[:120],
+        "thumbnail": thumb,
+        "published_at": platform_post.published_at or post.published_at,
+        "permalink": post_permalink(platform_post),
+        "platform_post_id": (platform_post.platform_post_id or "").strip(),
+        "media_count": post.media_attachments.count(),
+    }
+
+
 def _default_rule_name(platform_post) -> str:
     """A name the author can recognise in the account-wide rule list.
 
@@ -148,6 +209,9 @@ def flow_builder(request, workspace_id, platform_post_id):
         "supports_automation": supports_automation(platform_post),
         "is_published": platform_post.status == PlatformPost.Status.PUBLISHED,
         "has_platform_id": bool((platform_post.platform_post_id or "").strip()),
+        # Which post this flow answers for — the question the header could not
+        # answer before. See ``_post_preview``.
+        "post_preview": _post_preview(platform_post),
         "keyword_mode_choices": _keyword_mode_choices(),
         "can_manage": membership.effective_permissions.get("reply_from_inbox", False),
     }
@@ -335,6 +399,7 @@ def _apply_compiled(rule, compiled, *, active):
     available, the same contract as ``views.rule_toggle``.
     """
     rule.include_keywords = compiled.include_keywords
+    rule.exclude_keywords = compiled.exclude_keywords
     rule.top_level_only = compiled.top_level_only
     rule.public_reply_enabled = compiled.public_reply_enabled
     rule.public_reply_mode = compiled.public_reply_mode
@@ -346,6 +411,7 @@ def _apply_compiled(rule, compiled, *, active):
     rule.save(
         update_fields=[
             "include_keywords",
+            "exclude_keywords",
             "top_level_only",
             "public_reply_enabled",
             "public_reply_mode",

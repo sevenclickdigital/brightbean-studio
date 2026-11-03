@@ -54,13 +54,50 @@ any zoom level.
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
 
-        <div class="min-w-0">
-            <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">{% translate "Flow builder" %}</h2>
-            <p class="text-xs text-stone-500 truncate">
-                {{ platform_post.social_account.account_name|default:platform_post.social_account.account_handle }}
-                &middot;
-                {% if is_published %}{% translate "Published post" %}{% else %}{% translate "Not published yet" %}{% endif %}
-            </p>
+        {% comment %}
+        Which post this flow answers for. The header used to say only
+        "Published post", which leaves unanswered the one question an author
+        opening this screen actually has — *which* post? The thumbnail and the
+        caption opening are enough to recognise it without leaving the page.
+        {% endcomment %}
+        <div class="flex items-center gap-2.5 min-w-0">
+            {% if post_preview.thumbnail %}
+            <div class="relative w-9 h-9 rounded-lg overflow-hidden bg-stone-100 shrink-0">
+                <img src="{{ post_preview.thumbnail }}" alt="" class="w-full h-full object-cover">
+                {% if post_preview.media_count > 1 %}
+                <span class="absolute bottom-0 right-0 bg-black/60 text-white text-[8px] font-bold px-1 rounded-tl">
+                    +{{ post_preview.media_count|add:"-1" }}
+                </span>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="w-9 h-9 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+                <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>
+            </div>
+            {% endif %}
+
+            <div class="min-w-0">
+                <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">
+                    {{ post_preview.snippet|default:_("Flow builder") }}
+                </h2>
+                <p class="text-xs text-stone-500 truncate flex items-center gap-1.5">
+                    <span class="w-3.5 h-3.5 inline-flex items-center justify-center shrink-0">
+                        {% include "partials/_platform_icon.html" with platform=platform_post.social_account.platform size="sm" %}
+                    </span>
+                    {{ platform_post.social_account.account_name|default:platform_post.social_account.account_handle }}
+                    &middot;
+                    {% if is_published %}
+                        {% if post_preview.published_at %}
+                            {% blocktranslate with date=post_preview.published_at|date:"d/m/Y" %}Published {{ date }}{% endblocktranslate %}
+                        {% else %}{% translate "Published post" %}{% endif %}
+                    {% else %}{% translate "Not published yet" %}{% endif %}
+                    {% if post_preview.permalink %}
+                    &middot;
+                    <a href="{{ post_preview.permalink }}" target="_blank" rel="noopener noreferrer"
+                       class="text-orange-600 hover:text-orange-700 hover:underline shrink-0">{% translate "View post" %}</a>
+                    {% endif %}
+                </p>
+            </div>
         </div>
 
         <!-- Status pill. Mirrors PostAutomation.status; see the model. -->
@@ -287,31 +324,73 @@ any zoom level.
                                     {% blocktranslate %}Runs when someone comments on <strong class="text-stone-700">this post</strong>.{% endblocktranslate %}
                                 </p>
 
-                                <div class="flex flex-wrap gap-1.5">
-                                    <template x-for="(kw, i) in (node.data.keywords || [])" :key="'kw-' + i">
-                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[11px] text-orange-700">
-                                            <span x-text="kw"></span>
-                                            <button type="button" @click="node.data.keywords.splice(i, 1)"
-                                                    class="text-orange-400 hover:text-orange-600 cursor-pointer">&times;</button>
-                                        </span>
-                                    </template>
+                                {# Include list: what makes the flow fire. #}
+                                <div>
+                                    <p class="text-[10px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                                        {% translate "Comment includes" %}
+                                    </p>
+                                    <div class="flex flex-wrap gap-1.5" x-show="(node.data.keywords || []).length">
+                                        <template x-for="(kw, i) in (node.data.keywords || [])" :key="'kw-' + i">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 border border-orange-200 text-[11px] text-orange-700">
+                                                <span x-text="kw"></span>
+                                                <button type="button" @click="node.data.keywords.splice(i, 1)"
+                                                        class="text-orange-400 hover:text-orange-600 cursor-pointer">&times;</button>
+                                            </span>
+                                        </template>
+                                    </div>
+                                    <input type="text" placeholder="{% translate 'Add a keyword, then press Enter' %}"
+                                           @keydown.enter.prevent="addKeyword(node, $event.target)"
+                                           @keydown.stop
+                                           class="w-full mt-1.5 text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                    <p class="text-[11px] text-stone-400 leading-relaxed mt-1" x-show="!(node.data.keywords || []).length">
+                                        {% blocktranslate %}No keyword means <strong>every</strong> comment on this post fires the flow.{% endblocktranslate %}
+                                    </p>
                                 </div>
 
-                                <input type="text" placeholder="{% translate 'Add a keyword, then press Enter' %}"
-                                       @keydown.enter.prevent="addKeyword(node, $event.target)"
-                                       @keydown.stop
-                                       class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                {% comment %}
+                                Exclude list. The engine has always supported it
+                                (``matching._match_comment`` checks exclude
+                                *before* include, so exclude wins); the canvas
+                                simply never exposed it. It is what makes a broad
+                                include usable — "price" but not "free" — and
+                                without it the only way to carve an exception was
+                                the account-wide rule editor.
+                                {% endcomment %}
+                                <div x-show="showExclude(node) || (node.data.exclude_keywords || []).length">
+                                    <p class="text-[10px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                                        {% translate "But not if it includes" %}
+                                    </p>
+                                    <div class="flex flex-wrap gap-1.5" x-show="(node.data.exclude_keywords || []).length">
+                                        <template x-for="(kw, i) in (node.data.exclude_keywords || [])" :key="'ex-' + i">
+                                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-stone-100 border border-stone-200 text-[11px] text-stone-600">
+                                                <span x-text="kw"></span>
+                                                <button type="button" @click="node.data.exclude_keywords.splice(i, 1)"
+                                                        class="text-stone-400 hover:text-red-500 cursor-pointer">&times;</button>
+                                            </span>
+                                        </template>
+                                    </div>
+                                    <input type="text" placeholder="{% translate 'Word that blocks the flow…' %}"
+                                           @keydown.enter.prevent="addKeyword(node, $event.target, 'exclude_keywords')"
+                                           @keydown.stop
+                                           class="w-full mt-1.5 text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                </div>
+                                <button type="button" @click="revealExclude(node)"
+                                        x-show="!showExclude(node) && !(node.data.exclude_keywords || []).length"
+                                        class="text-[11px] text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+                                    + {% translate "Add words that block the flow" %}
+                                </button>
 
-                                <p class="text-[11px] text-stone-400 leading-relaxed" x-show="!(node.data.keywords || []).length">
-                                    {% blocktranslate %}No keyword means <strong>every</strong> comment on this post fires the flow.{% endblocktranslate %}
-                                </p>
-
-                                <select x-model="node.data.match_mode" @mousedown.stop
-                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500 transition-all">
-                                    {% for value, label in keyword_mode_choices %}
-                                    <option value="{{ value }}">{{ label }}</option>
-                                    {% endfor %}
-                                </select>
+                                <div>
+                                    <p class="text-[10px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">
+                                        {% translate "How to match" %}
+                                    </p>
+                                    <select x-model="node.data.match_mode" @mousedown.stop
+                                            class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500 transition-all">
+                                        {% for value, label in keyword_mode_choices %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
 
                                 <label class="flex items-center gap-2 text-[11px] text-stone-500 cursor-pointer">
                                     <input type="checkbox" x-model="node.data.top_level_only"
@@ -593,6 +672,8 @@ function flowBuilder() {
         //: Index of the edge under the cursor, so it can turn red and advertise
         //: that clicking removes it.
         hoveredEdge: null,
+        //: Which trigger nodes have their exclude list revealed, by node id.
+        excludeOpen: {},
         //: Where the hovered edge's delete affordance sits, in canvas space.
         hoveredEdgePoint: { x: 0, y: 0 },
         //: ``select`` (default) or ``pan``. Select is the default because
@@ -715,15 +796,31 @@ function flowBuilder() {
         },
 
         // --- Editing ----------------------------------------------------
-        addKeyword(node, input) {
+        // ``key`` picks the list: words that fire the flow, or words that block
+        // it. One function because both lists carry identical rules and are read
+        // by the identical code path — see ``flow._keyword_entries``.
+        addKeyword(node, input, key = 'keywords') {
             const value = (input.value || '').trim();
             if (!value) return;
-            if (!node.data.keywords) node.data.keywords = [];
+            if (!node.data[key]) node.data[key] = [];
             // Case-insensitive dedupe, matching ``flow._keyword_entries`` so the
             // chip count the author sees is the keyword count that is saved.
-            const exists = node.data.keywords.some(k => k.toLowerCase() === value.toLowerCase());
-            if (!exists) node.data.keywords.push(value);
+            const exists = node.data[key].some(k => String(k).toLowerCase() === value.toLowerCase());
+            if (!exists) node.data[key].push(value);
             input.value = '';
+        },
+
+        // The exclude list starts hidden: it is the less common half, and a
+        // trigger node that opens with two keyword fields reads as twice the
+        // decision. Revealed per node — a flow may have more than one trigger
+        // drawn even though only the first compiles.
+        showExclude(node) {
+            return !!this.excludeOpen[node.id];
+        },
+
+        revealExclude(node) {
+            if (!node.data.exclude_keywords) node.data.exclude_keywords = [];
+            this.excludeOpen[node.id] = true;
         },
 
         insertToken(node, token) {
@@ -752,7 +849,7 @@ function flowBuilder() {
 
         defaultData(type) {
             if (type === 'trigger_comment') {
-                return { keywords: [], match_mode: 'contains', top_level_only: false };
+                return { keywords: [], exclude_keywords: [], match_mode: 'contains', top_level_only: false };
             }
             if (type === 'condition') {
                 // Seeded with the comparison people reach for first, so the

@@ -83,6 +83,9 @@ class CompiledFlow:
     """
 
     include_keywords: list[dict[str, str]] = field(default_factory=list)
+    #: Keywords that **veto** a match, checked before the include list — see
+    #: ``matching._match_comment``, where exclude deliberately wins.
+    exclude_keywords: list[dict[str, str]] = field(default_factory=list)
     public_reply_enabled: bool = False
     public_reply_mode: str = "static"
     public_reply_texts: list[str] = field(default_factory=list)
@@ -150,7 +153,12 @@ def default_graph() -> dict[str, Any]:
                 "type": "trigger_comment",
                 "x": 80,
                 "y": 160,
-                "data": {"keywords": [], "match_mode": "contains", "top_level_only": False},
+                "data": {
+                    "keywords": [],
+                    "exclude_keywords": [],
+                    "match_mode": "contains",
+                    "top_level_only": False,
+                },
             },
             {
                 "id": "dm",
@@ -191,8 +199,16 @@ def unsupported_nodes(graph: Any) -> list[str]:
     return sorted(found)
 
 
-def _keyword_entries(data: Any) -> list[dict[str, str]]:
-    """The trigger node's keywords, in the ``{"text", "mode"}`` shape rules store.
+def _keyword_entries(data: Any, key: str = "keywords") -> list[dict[str, str]]:
+    """One of the trigger node's keyword lists, in the ``{"text", "mode"}`` shape rules store.
+
+    ``key`` selects the list: ``keywords`` to fire on, ``exclude_keywords`` to
+    veto. Both carry identical rules and are read by the identical code path
+    (``keywords.matches_any``), so they share this function for the reason
+    ``forms.clean_keyword_list`` gives — two copies would drift, and the
+    direction they drift in is "exclude accepts something include rejects",
+    which is how a rule ends up with an exclude list that silently never
+    matches.
 
     The canvas edits keywords as plain strings with one match mode for the whole
     node, because per-keyword match modes are a power-user control that would
@@ -210,7 +226,7 @@ def _keyword_entries(data: Any) -> list[dict[str, str]]:
     mode = data.get("match_mode")
     if not isinstance(mode, str) or not mode:
         mode = "contains"
-    raw = data.get("keywords")
+    raw = data.get(key)
     if not isinstance(raw, list):
         return []
 
@@ -283,6 +299,7 @@ def compile_graph(graph: Any) -> CompiledFlow:
             continue
         data = node.get("data")
         compiled.include_keywords = _keyword_entries(data)
+        compiled.exclude_keywords = _keyword_entries(data, "exclude_keywords")
         if isinstance(data, dict):
             compiled.top_level_only = bool(data.get("top_level_only"))
         # First trigger wins. A second one is a drawing the engine cannot
