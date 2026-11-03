@@ -585,3 +585,63 @@ def flow_delete(request, workspace_id, platform_post_id):
         automation.delete()
         rule.delete()
     return JsonResponse({"ok": True, "deleted": True})
+
+
+# ---------------------------------------------------------------------------
+# Media picker
+# ---------------------------------------------------------------------------
+
+#: How many assets the picker offers at once. The grid is a chooser, not a
+#: browser — the library has its own page for that — and an unbounded list
+#: would send every image a workspace has ever uploaded over one request.
+MEDIA_PAGE_SIZE = 60
+
+
+@login_required
+@require_permission("use_inbox")
+def flow_media(request, workspace_id):
+    """Images from the media library, as JSON, for the card node's picker.
+
+    A card's image used to be a URL the author pasted in. That works and keeps
+    working — a flow may legitimately point at an image hosted anywhere — but
+    it asks someone to leave the builder, find the file, copy a link and come
+    back, for the one asset they almost certainly already uploaded here.
+
+    **Images only.** The node renders a Meta *generic template*, whose
+    ``image_url`` is exactly that; offering a video would produce a card that
+    fails to send with nothing on screen explaining why.
+
+    Returns absolute URLs, because the value is sent to Meta and fetched by
+    Meta's servers — a relative path would resolve against graph.facebook.com
+    and 404. Takes ``use_inbox`` (a read) rather than ``reply_from_inbox``: it
+    lists what the workspace already owns and changes nothing.
+    """
+    workspace = _get_workspace(request, workspace_id)
+
+    from apps.media_library.models import MediaAsset
+
+    assets = (
+        MediaAsset.objects.for_workspace_with_shared(workspace.id, workspace.organization_id)
+        .filter(media_type=MediaAsset.MediaType.IMAGE)
+        .order_by("-created_at")
+    )
+
+    query = (request.GET.get("q") or "").strip()
+    if query:
+        assets = assets.filter(title__icontains=query)
+
+    items = []
+    for asset in assets[:MEDIA_PAGE_SIZE]:
+        if not asset.file:
+            continue
+        items.append(
+            {
+                "id": str(asset.id),
+                "title": asset.title or "",
+                "url": request.build_absolute_uri(asset.file.url),
+                # The grid renders the thumbnail where one exists; the full
+                # file is what gets sent either way.
+                "thumbnail": request.build_absolute_uri(asset.thumbnail.url) if asset.thumbnail else "",
+            }
+        )
+    return JsonResponse({"ok": True, "items": items})

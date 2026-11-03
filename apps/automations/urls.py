@@ -35,6 +35,9 @@ urlpatterns = [
         flow_views.flow_delete,
         name="flow_delete",
     ),
+    # Workspace-scoped rather than per-post: the library belongs to the
+    # workspace, and the picker asks the same question whichever flow is open.
+    path("media/", flow_views.flow_media, name="flow_media"),
     path("", views.rule_list, name="list"),
     path("create/", views.rule_create, name="create"),
     path("<uuid:rule_id>/edit/", views.rule_edit, name="edit"),
