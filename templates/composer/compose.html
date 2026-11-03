@@ -289,7 +289,7 @@
                 class="inline-flex items-center justify-center w-8 h-8 rounded-lg border border-stone-200 text-stone-400 hover:text-stone-700 hover:border-stone-300 hover:bg-stone-50 transition-all duration-150 cursor-pointer">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
         </button>
-        <h1 class="text-base font-semibold text-stone-900" style="letter-spacing: -0.01em;">{% if is_edit %}Edit{% else %}Create{% endif %}</h1>
+        <h1 class="text-base font-semibold text-stone-900" style="letter-spacing: -0.01em;">{% if is_edit %}{% translate "Edit" %}{% else %}{% translate "Create" %}{% endif %}</h1>
         <!-- Preview toggle (mobile only) -->
         <button type="button" @click="showPreviewPanel = true"
                 class="lg:hidden ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-stone-200 text-stone-600 text-xs font-semibold hover:border-stone-300 hover:bg-stone-50 transition-all duration-150 cursor-pointer">
@@ -1459,7 +1459,7 @@
                 <!-- Autosave indicator -->
                 <div id="autosave-status" class="text-xs text-stone-400 mr-auto hidden sm:flex items-center gap-1.5">
                     <span class="w-1.5 h-1.5 rounded-full bg-stone-300" :class="{ 'bg-emerald-400': lastSaved }"></span>
-                    <span x-text="lastSaved ? 'Saved ' + lastSaved : 'Not saved yet'"></span>
+                    <span x-text="lastSaved ? cLabel('saved') + ' ' + lastSaved : cLabel('not-saved')"></span>
                 </div>
                 <div class="mr-auto sm:hidden"></div>
 
@@ -1518,7 +1518,7 @@
                             <!-- Main menu -->
                             <div id="publish-menu" class="p-1.5">
                                 <!-- Next Available -->
-                                <button type="button" data-mode="add_to_queue" data-label="Next available" data-action-label="Add to Queue"
+                                <button type="button" data-mode="add_to_queue" data-label="{% translate 'Next available' %}" data-action-label="{% translate 'Add to Queue' %}"
                                         data-icon="clock"
                                         class="publish-mode-option w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 transition-colors text-left cursor-pointer">
                                     <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1531,7 +1531,7 @@
                                 </button>
 
                                 <!-- Prioritise -->
-                                <button type="button" data-mode="add_to_queue_priority" data-label="Prioritise" data-action-label="Prioritise"
+                                <button type="button" data-mode="add_to_queue_priority" data-label="{% translate 'Prioritise' %}" data-action-label="{% translate 'Prioritise' %}"
                                         data-icon="priority"
                                         class="publish-mode-option w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 transition-colors text-left cursor-pointer">
                                     <div class="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1544,7 +1544,7 @@
                                 </button>
 
                                 <!-- Now -->
-                                <button type="button" data-mode="publish_now" data-label="Now" data-action-label="Publish Now"
+                                <button type="button" data-mode="publish_now" data-label="{% translate 'Now' %}" data-action-label="{% translate 'Publish Now' %}"
                                         data-icon="play"
                                         class="publish-mode-option w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 transition-colors text-left cursor-pointer">
                                     <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -1557,7 +1557,7 @@
                                 </button>
 
                                 <!-- Set Date and Time -->
-                                <button type="button" data-mode="schedule" data-label="Schedule" data-action-label="Schedule Post"
+                                <button type="button" data-mode="schedule" data-label="{% translate 'Schedule' %}" data-action-label="{% translate 'Schedule Post' %}"
                                         data-icon="calendar"
                                         class="publish-mode-option w-full flex items-start gap-3 px-3 py-2.5 rounded-lg hover:bg-stone-50 transition-colors text-left cursor-pointer"
                                         id="publish-schedule-btn">
@@ -2100,7 +2100,37 @@
     setTimeout(function () { window.location.reload(); }, 1100);
   });
 </script>
+{% translate "Saved" as lbl_c_saved %}
+{% translate "Not saved yet" as lbl_c_not_saved %}
+{% translate "Caption" as lbl_c_caption %}
+{% translate "Caption / Description" as lbl_c_caption_desc %}
+{% translate "Title" as lbl_c_title %}
+{% translate "Set date and time" as lbl_c_set_datetime %}
+{% translate "Schedule Post" as lbl_c_schedule_post %}
+{% translate "Schedule" as lbl_c_schedule %}
+{% translate "Publish now" as lbl_c_publish_now %}
+{% translate "Publish" as lbl_c_publish %}
+{{ lbl_c_saved|json_script:"c-saved" }}
+{{ lbl_c_not_saved|json_script:"c-not-saved" }}
+{{ lbl_c_caption|json_script:"c-caption" }}
+{{ lbl_c_caption_desc|json_script:"c-caption-desc" }}
+{{ lbl_c_title|json_script:"c-title" }}
+{{ lbl_c_set_datetime|json_script:"c-set-datetime" }}
+{{ lbl_c_schedule_post|json_script:"c-schedule-post" }}
+{{ lbl_c_schedule|json_script:"c-schedule" }}
+{{ lbl_c_publish_now|json_script:"c-publish-now" }}
+{{ lbl_c_publish|json_script:"c-publish" }}
 {{ selected_account_ids|json_script:"composer-selected-accounts" }}
+<script nonce="{{ request.csp_nonce }}">
+// Reads a label the template translated and left in a json_script tag. Same
+// mechanism as the flow builder: a string written straight into JavaScript is
+// invisible to makemessages, so it can never be translated.
+function cLabel(id) {
+    const node = document.getElementById('c-' + id);
+    return node ? JSON.parse(node.textContent) : '';
+}
+</script>
+
 {{ char_limits|json_script:"composer-char-limits" }}
 {{ automation_targets|json_script:"composer-automation-targets" }}
 {{ platform_extras|json_script:"composer-platform-extras" }}
@@ -2224,11 +2254,11 @@ function composerApp() {
                 .map(c => c.title_label);
             // If multiple platforms need title, use generic "Title"; otherwise use platform-specific label
             if (labels.length === 1) return labels[0];
-            return 'Title';
+            return cLabel('title');
         },
         get captionLabel() {
-            if (this.anyPlatformNeedsTitle) return 'Caption / Description';
-            return 'Caption';
+            if (this.anyPlatformNeedsTitle) return cLabel('caption-desc');
+            return cLabel('caption');
         },
         get anyPlatformSupportsFirstComment() {
             return this.selectedAccounts.some(id => this.charLimits[id]?.supports_first_comment);
@@ -3085,7 +3115,7 @@ function composerApp() {
                 return;
             }
             if (errEl) { errEl.classList.add('hidden'); }
-            setMode('schedule', 'Set date and time', 'Schedule Post', 'calendar');
+            setMode('schedule', cLabel('set-datetime'), cLabel('schedule-post'), 'calendar');
             hidePopover();
         });
     }
@@ -3113,7 +3143,7 @@ function composerApp() {
     var schedDateInput = document.querySelector('input[name="scheduled_date"]');
     var schedTimeInput = document.querySelector('input[name="scheduled_time"]');
     if (schedDateInput && schedDateInput.value && schedTimeInput && schedTimeInput.value && !prefillIsProposed) {
-        setMode('schedule', 'Set date and time', 'Schedule Post', 'calendar');
+        setMode('schedule', cLabel('set-datetime'), cLabel('schedule-post'), 'calendar');
     }
 })();
 </script>

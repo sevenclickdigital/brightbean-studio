@@ -758,36 +758,24 @@
                 </div>
                 {% endfor %}
 
-                <!-- Connect channels (hidden when collapsed) -->
-                {% if sidebar_connectable_platforms %}
-                <div class="sidebar-connect-channels" x-show="!sidebarCollapsed">
-                <div class="sidebar-section-label">{% translate "Connect channels" %}</div>
-                {% for platform_key, platform_label in sidebar_connectable_platforms|slice:":3" %}
-                <a href="{% url 'social_accounts:connect' workspace_id=request.workspace.id %}" class="sidebar-nav-item">
-                    <div class="relative flex-shrink-0">
-                        <div class="w-4 h-4 flex items-center justify-center rounded-lg bg-stone-100">
-                            {% if platform_key == 'youtube' %}
-                            {# Same generic video glyph as the connect page: no YouTube logo at this size (policy III.F.2.a). #}
-                            <svg class="w-3.5 h-3.5 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/></svg>
-                            {% else %}
-                            {% include "partials/_platform_icon.html" with platform=platform_key size="sm" %}
-                            {% endif %}
-                        </div>
-                        <div class="absolute -bottom-1 -right-1 w-2.5 h-2.5 rounded-full bg-orange-500 flex items-center justify-center ring-1 ring-white">
-                            <svg viewBox="0 0 24 24" fill="none" width="6" height="6" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12H19M12 5V19"/></svg>
-                        </div>
-                    </div>
-                    <span class="sidebar-nav-label">{{ platform_label }}</span>
-                </a>
-                {% endfor %}
-                <a href="{% url 'social_accounts:connect' workspace_id=request.workspace.id %}" class="sidebar-nav-item">
+                {% comment %}
+                One way in, directly under the channels it adds to. The list of
+                three suggested platforms above it was a second entry point to
+                the same connect page, so the sidebar offered the same action
+                twice under two different headings — and which three appeared
+                depended on what was already connected, which made the section
+                shift around for no reason the user could see.
+
+                Shown whatever is connected: "add another channel" is as valid
+                with five accounts as with none.
+                {% endcomment %}
+                <a href="{% url 'social_accounts:connect' workspace_id=request.workspace.id %}"
+                   class="sidebar-nav-item mt-1">
                     <div class="w-4 h-4 flex items-center justify-center flex-shrink-0 rounded-lg bg-stone-100">
                         <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     </div>
                     <span class="sidebar-nav-label">{% translate "More channels" %}</span>
                 </a>
-                </div>
-                {% endif %}
                 {% endif %}
                 {% endblock %}
             </nav>

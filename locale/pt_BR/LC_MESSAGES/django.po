@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 22:21+0000\n"
+"POT-Creation-Date: 2026-11-03 22:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -1245,7 +1245,7 @@ msgstr "Não configurado"
 msgid "Automation settings"
 msgstr "Configurações da automação"
 
-#: templates/automations/flow_builder.html:150 templates/base.html:874
+#: templates/automations/flow_builder.html:150 templates/base.html:863
 #: templates/organizations/partials/workspace_card.html:35
 #: templates/settings_manager/index.html:3
 #: templates/settings_manager/index.html:6
@@ -2198,7 +2198,7 @@ msgstr ""
 msgid "No workspaces"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:366 templates/base.html:1440
+#: templates/base.html:366 templates/base.html:1429
 msgid "Create workspace"
 msgstr "Criar workspace"
 
@@ -2254,6 +2254,7 @@ msgstr "Criar nova tag"
 
 #: templates/base.html:651 templates/calendar/calendar.html:8
 #: templates/calendar/calendar.html:369 templates/calendar/calendar.html:397
+#: templates/composer/compose.html:2115
 msgid "Publish"
 msgstr "Publicar"
 
@@ -2279,27 +2280,23 @@ msgstr "Inteligência"
 msgid "Channels"
 msgstr "Canais"
 
-#: templates/base.html:767
-msgid "Connect channels"
-msgstr "Conectar canais"
-
-#: templates/base.html:790
+#: templates/base.html:781
 msgid "More channels"
 msgstr "Mais canais"
 
-#: templates/base.html:857
+#: templates/base.html:846
 msgid "My Organization"
 msgstr "Minha organização"
 
-#: templates/base.html:865
+#: templates/base.html:854
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:891
+#: templates/base.html:880
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:905
+#: templates/base.html:894
 msgid "Log out"
 msgstr "Sair"
 
@@ -2354,6 +2351,7 @@ msgid "Connect a Channel"
 msgstr "Conectar um canal"
 
 #: templates/calendar/partials/_post_actions_menu.html:30
+#: templates/composer/compose.html:293
 #: templates/media_library/_asset_detail_panel.html:44
 #: templates/media_library/_asset_detail_panel.html:51
 #: templates/media_library/_shared_asset_card.html:67
@@ -2380,7 +2378,7 @@ msgid "Add Custom Event"
 msgstr "Adicionar evento personalizado"
 
 #: templates/calendar/partials/event_form.html:18
-#: templates/composer/compose.html:441
+#: templates/composer/compose.html:441 templates/composer/compose.html:2110
 #: templates/inbox/partials/_saved_reply_form.html:8
 msgid "Title"
 msgstr "Título"
@@ -2424,7 +2422,7 @@ msgstr "Status"
 #: templates/calendar/partials/list_view.html:14
 #: templates/calendar/partials/publish_drafts.html:15
 #: templates/calendar/partials/publish_sent.html:17
-#: templates/composer/compose.html:464
+#: templates/composer/compose.html:464 templates/composer/compose.html:2108
 msgid "Caption"
 msgstr "Legenda"
 
@@ -2644,7 +2642,8 @@ msgstr "Categoria (opcional)"
 msgid "Any category"
 msgstr "Qualquer categoria"
 
-#: templates/calendar/queues.html:63 templates/composer/compose.html:1428
+#: templates/calendar/queues.html:63 templates/composer/compose.html:293
+#: templates/composer/compose.html:1428
 #: templates/composer/create_landing.html:400
 #: templates/composer/create_landing.html:502
 #: templates/composer/create_landing.html:1015
@@ -2993,8 +2992,9 @@ msgstr "Carregando configurações da conta…"
 msgid ""
 "This TikTok app hasn't passed TikTok's content audit yet — only private "
 "posting (\\"
-msgstr "Este app do TikTok ainda não passou pela auditoria de conteúdo do TikTok — só publicação privada (\\"
-
+msgstr ""
+"Este app do TikTok ainda não passou pela auditoria de conteúdo do TikTok — "
+"só publicação privada (\\"
 
 #: templates/composer/compose.html:1014
 msgid "Cover"
@@ -3085,8 +3085,9 @@ msgstr "Confirmação de Uso de Música"
 msgid ""
 "After you publish, it may take a few minutes for your video to process and "
 "appear on your TikTok profile."
-msgstr "Depois de publicar, pode levar alguns minutos até o vídeo ser processado e aparecer no seu perfil do TikTok."
-
+msgstr ""
+"Depois de publicar, pode levar alguns minutos até o vídeo ser processado e "
+"aparecer no seu perfil do TikTok."
 
 #: templates/composer/compose.html:1177
 msgid "Remove override"
@@ -3172,11 +3173,11 @@ msgstr "Para aprovação"
 msgid "Resubmit"
 msgstr "Enviar novamente"
 
-#: templates/composer/compose.html:1508
+#: templates/composer/compose.html:1508 templates/composer/compose.html:1524
 msgid "Next available"
 msgstr "Próximo disponível"
 
-#: templates/composer/compose.html:1516
+#: templates/composer/compose.html:1516 templates/composer/compose.html:1524
 msgid "Add to Queue"
 msgstr "Adicionar à fila"
 
@@ -3188,7 +3189,7 @@ msgstr "Próximo disponível"
 msgid "Place in next available slot"
 msgstr "Colocar no próximo horário disponível"
 
-#: templates/composer/compose.html:1544
+#: templates/composer/compose.html:1537 templates/composer/compose.html:1544
 msgid "Prioritise"
 msgstr "Priorizar"
 
@@ -3196,13 +3197,28 @@ msgstr "Priorizar"
 msgid "Add to top of queue"
 msgstr "Adicionar ao topo da fila"
 
-#: templates/composer/compose.html:1557
+#: templates/composer/compose.html:1550 templates/composer/compose.html:1557
 msgid "Now"
 msgstr "Agora"
+
+#: templates/composer/compose.html:1550
+msgid "Publish Now"
+msgstr "Publicar agora"
+
 
 #: templates/composer/compose.html:1558
 msgid "Publish immediately"
 msgstr "Publicar imediatamente"
+
+#: templates/composer/compose.html:1563 templates/composer/compose.html:2113
+msgid "Schedule"
+msgstr "Agendar"
+
+
+#: templates/composer/compose.html:1563 templates/composer/compose.html:1583
+#: templates/composer/compose.html:2112
+msgid "Schedule Post"
+msgstr "Agendar publicação"
 
 #: templates/composer/compose.html:1571
 msgid "Set Date and Time"
@@ -3211,10 +3227,6 @@ msgstr "Definir data e hora"
 #: templates/composer/compose.html:1572
 msgid "Choose a specific time"
 msgstr "Escolher um horário específico"
-
-#: templates/composer/compose.html:1583
-msgid "Schedule Post"
-msgstr "Agendar publicação"
 
 #: templates/composer/compose.html:1592
 msgid "Time"
@@ -3323,6 +3335,31 @@ msgstr "Quadro em"
 #: templates/composer/compose.html:2015
 msgid "Post saved"
 msgstr "Publicação salva"
+
+#: templates/composer/compose.html:2106
+#: templates/intelligence/_billing_contact_saved.html:10
+msgid "Saved"
+msgstr "Salvo"
+
+#: templates/composer/compose.html:2107
+msgid "Not saved yet"
+msgstr "Ainda não salvo"
+
+
+#: templates/composer/compose.html:2109
+msgid "Caption / Description"
+msgstr "Legenda / Descrição"
+
+
+#: templates/composer/compose.html:2111
+msgid "Set date and time"
+msgstr "Definir data e hora"
+
+
+#: templates/composer/compose.html:2114
+msgid "Publish now"
+msgstr "Publicar agora"
+
 
 #: templates/composer/create_landing.html:407
 #: templates/composer/partials/kanban_column.html:58
@@ -3511,8 +3548,9 @@ msgstr "Mapear colunas"
 msgid ""
 "Match each CSV column to the corresponding post field. Leave unmapped "
 "columns as \\"
-msgstr "Associe cada coluna do CSV ao campo correspondente. Deixe as colunas não mapeadas como \\"
-
+msgstr ""
+"Associe cada coluna do CSV ao campo correspondente. Deixe as colunas não "
+"mapeadas como \\"
 
 #: templates/composer/partials/csv_mapping.html:52
 msgid "- Skip -"
@@ -4188,10 +4226,6 @@ msgid "Couldn't save, billing service was unreachable. Please try again."
 msgstr ""
 "Não foi possível salvar: o serviço de cobrança está inacessível. Tente "
 "novamente."
-
-#: templates/intelligence/_billing_contact_saved.html:10
-msgid "Saved"
-msgstr "Salvo"
 
 #: templates/intelligence/_finalizing_completed.html:2
 msgid "Activation complete!"
@@ -5789,6 +5823,29 @@ msgstr "Sim, excluir esta organização"
 msgid "No workspaces yet."
 msgstr "Nenhum workspace ainda."
 
+#: templates/partials/_review_banner.html:22
+msgid "Dismiss"
+msgstr "Dispensar"
+
+
+#: templates/partials/_review_banner.html:30
+msgid "Enjoying BrightBean?"
+msgstr "Gostando do BrightBean?"
+
+
+#: templates/partials/_review_banner.html:31
+msgid ""
+"It's free for everyone. A short review on Trustpilot helps other teams find "
+"us."
+msgstr ""
+"É gratuito para todos. Uma breve avaliação no Trustpilot ajuda outras equipes a nos encontrar."
+
+
+#: templates/partials/_review_banner.html:35
+msgid "Leave a review"
+msgstr "Deixar uma avaliação"
+
+
 #: templates/settings_manager/index.html:7
 msgid "Settings management coming soon."
 msgstr "Gerenciamento de configurações em breve."
@@ -6321,6 +6378,9 @@ msgstr "Participações no workspace"
 #: templates/workspaces/settings.html:223
 msgid "Yes, delete this workspace"
 msgstr "Sim, excluir este workspace"
+
+#~ msgid "Connect channels"
+#~ msgstr "Conectar canais"
 
 #~ msgid "emoji.n"
 #~ msgstr "emoji.n"
