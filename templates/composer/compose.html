@@ -222,12 +222,54 @@
     }
     .media-thumb .retry-btn:hover { background: rgba(0,0,0,0.65); }
 
-    /* Drag to reorder the carousel */
-    .media-thumb[draggable="true"] { cursor: grab; }
-    .media-thumb.dragging { opacity: 0.4; cursor: grabbing; }
-    /* The gap the dragged thumb would land in. */
-    .media-thumb.drop-before { box-shadow: -3px 0 0 0 #F97316; }
-    .media-thumb.drop-after { box-shadow: 3px 0 0 0 #F97316; }
+    /* ── Drag to reorder the carousel ──────────────────────────────── */
+    .media-thumb[data-media-id] {
+        cursor: grab;
+        /* The thumbnail is a drag handle, so the browser must not start a
+           text selection or a pan gesture from it. */
+        touch-action: none;
+        -webkit-user-select: none;
+        user-select: none;
+        transition: transform 180ms cubic-bezier(0.2, 0, 0, 1);
+    }
+    /* Only hint "draggable" once there is an order to change. */
+    #media-list .media-thumb[data-media-id]:only-of-type { cursor: default; }
+
+    /* The lifted thumbnail: out of flow, following the pointer. */
+    .media-thumb.dragging {
+        position: fixed;
+        z-index: 60;
+        cursor: grabbing;
+        pointer-events: none;
+        transition: none;
+        transform: scale(1.06) rotate(1.5deg);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.26);
+        border-color: #F97316;
+    }
+    /* The gap it will drop into. */
+    .media-placeholder {
+        border: 1.5px dashed #FDBA74;
+        background: #FFF7ED;
+        border-radius: 8px;
+        flex: none;
+    }
+    /* While sorting, nothing on the page should look selectable. */
+    body.is-sorting-media { cursor: grabbing; user-select: none; }
+
+    /* Lift the grip and the badge on hover, so the row reads as sortable
+       before the user tries it. */
+    .media-thumb .drag-grip {
+        position: absolute; top: 4px; left: 4px;
+        width: 18px; height: 18px; border-radius: 5px;
+        background: rgba(0,0,0,0.55); color: white;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 150ms ease;
+        pointer-events: none; z-index: 2;
+    }
+    .media-thumb:hover .drag-grip { opacity: 1; }
+    .media-thumb.dragging .drag-grip { opacity: 1; }
+    #media-list .media-thumb:only-of-type .drag-grip { display: none; }
+
     /* Position badge — which slot this image takes in the published carousel. */
     .media-thumb .order-badge {
         position: absolute; bottom: 4px; left: 4px;
@@ -563,10 +605,7 @@
                             carries the result into the save.
                             {% endcomment %}
                             <div id="media-list" class="contents"
-                                 @dragstart="onMediaDragStart($event)"
-                                 @dragover.prevent="onMediaDragOver($event)"
-                                 @drop.prevent="onMediaDrop($event)"
-                                 @dragend="onMediaDragEnd($event)">
+                                 @pointerdown="onMediaPointerDown($event)">
                                 {% if post %}
                                     {% include "composer/partials/media_list.html" %}
                                 {% elif pending_assets %}
@@ -2904,59 +2943,131 @@ function composerApp() {
         uploadUrl: '{% if post %}{% url "composer:upload_media_post" workspace_id=workspace.id post_id=post.id %}{% else %}{% url "composer:upload_media" workspace_id=workspace.id %}{% endif %}',
 
         // --- Carousel reordering -------------------------------------
-        // The thumbnails are dragged into the order the platforms should
-        // publish them in. Dropping rewrites the DOM and the media_order
-        // field; the order reaches the database when the post is saved.
-        draggedThumb: null,
+        // Pointer events rather than HTML5 drag-and-drop: the native API
+        // renders a translucent ghost and moves nothing until the drop, which
+        // reads as broken next to the sortable grids people know. Here the
+        // thumbnail follows the pointer and its neighbours shift live.
+        drag: null,
 
-        onMediaDragStart(event) {
+        onMediaPointerDown(event) {
+            // Left button only, and never from the remove button.
+            if (event.button !== 0 || event.target.closest('.remove-btn')) return;
             const thumb = event.target.closest('.media-thumb');
-            // A file dragged in from the desktop is not a reorder.
             if (!thumb || !thumb.dataset.mediaId) return;
-            this.draggedThumb = thumb;
-            thumb.classList.add('dragging');
-            // Firefox ignores a drag that carries no data.
-            event.dataTransfer.effectAllowed = 'move';
-            event.dataTransfer.setData('text/plain', thumb.dataset.mediaId);
+            const list = document.getElementById('media-list');
+            if (thumb.parentElement !== list) return;
+            // One thumbnail is not a carousel.
+            if (list.querySelectorAll('.media-thumb[data-media-id]').length < 2) return;
+
+            const box = thumb.getBoundingClientRect();
+            const move = (e) => this.onMediaPointerMove(e);
+            const up = (e) => this.onMediaPointerUp(e);
+            this.drag = {
+                thumb,
+                pointerId: event.pointerId,
+                // Where in the thumbnail the pointer grabbed it, so it doesn't
+                // jump to centre on the first move.
+                offsetX: event.clientX - box.left,
+                offsetY: event.clientY - box.top,
+                width: box.width,
+                height: box.height,
+                startX: event.clientX,
+                startY: event.clientY,
+                // Not a drag until the pointer travels; a plain click on the
+                // thumbnail must still behave like a click.
+                active: false,
+                move,
+                up,
+            };
+            // On window, not on the thumbnail: the drag reparents it to the
+            // body, which would strip listeners bound through #media-list.
+            window.addEventListener('pointermove', move);
+            window.addEventListener('pointerup', up);
+            window.addEventListener('pointercancel', up);
         },
 
-        onMediaDragOver(event) {
-            if (!this.draggedThumb) return;
-            event.dataTransfer.dropEffect = 'move';
-            const over = event.target.closest('.media-thumb');
-            this.clearDropHints();
-            if (!over || over === this.draggedThumb) return;
-            // Highlight the side the thumb would land on, so the drop is
-            // predictable before releasing.
-            const box = over.getBoundingClientRect();
-            const after = event.clientX > box.left + box.width / 2;
-            over.classList.add(after ? 'drop-after' : 'drop-before');
-        },
+        onMediaPointerMove(event) {
+            const drag = this.drag;
+            if (!drag || event.pointerId !== drag.pointerId) return;
 
-        onMediaDrop(event) {
-            if (!this.draggedThumb) return;
-            const over = event.target.closest('.media-thumb');
-            this.clearDropHints();
-            if (over && over !== this.draggedThumb) {
-                const box = over.getBoundingClientRect();
-                const after = event.clientX > box.left + box.width / 2;
-                over.parentNode.insertBefore(
-                    this.draggedThumb,
-                    after ? over.nextSibling : over,
-                );
+            if (!drag.active) {
+                const travelled = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY);
+                if (travelled < 4) return;
+                this.beginMediaDrag();
             }
+            event.preventDefault();
+
+            // Move the lifted thumbnail with the pointer.
+            drag.thumb.style.left = (event.clientX - drag.offsetX) + 'px';
+            drag.thumb.style.top = (event.clientY - drag.offsetY) + 'px';
+
+            // Decide which gap it is hovering and slide the others into place.
+            const list = document.getElementById('media-list');
+            const others = Array.from(
+                list.querySelectorAll('.media-thumb[data-media-id]'),
+            );
+            const centre = event.clientX;
+            let before = null;
+            for (const other of others) {
+                const box = other.getBoundingClientRect();
+                if (centre < box.left + box.width / 2) { before = other; break; }
+            }
+            // The placeholder is what actually holds the gap open; moving it
+            // lets the CSS transition animate the neighbours.
+            if (before) {
+                if (drag.placeholder.nextSibling !== before) list.insertBefore(drag.placeholder, before);
+            } else if (list.lastElementChild !== drag.placeholder) {
+                list.appendChild(drag.placeholder);
+            }
+        },
+
+        onMediaPointerUp(event) {
+            const drag = this.drag;
+            if (!drag || event.pointerId !== drag.pointerId) return;
+            window.removeEventListener('pointermove', drag.move);
+            window.removeEventListener('pointerup', drag.up);
+            window.removeEventListener('pointercancel', drag.up);
+            this.drag = null;
+            if (!drag.active) return;
+
+            // Drop the thumbnail into the gap the placeholder was holding.
+            // If an htmx swap re-rendered the row mid-drag the placeholder is
+            // gone; put the thumbnail back at the end rather than losing it.
+            if (drag.placeholder.isConnected) {
+                drag.placeholder.replaceWith(drag.thumb);
+            } else {
+                document.getElementById('media-list').appendChild(drag.thumb);
+            }
+            drag.thumb.classList.remove('dragging');
+            drag.thumb.removeAttribute('style');
+            document.getElementById('media-list').classList.remove('is-sorting');
+            document.body.classList.remove('is-sorting-media');
             this.syncMediaOrder();
         },
 
-        onMediaDragEnd() {
-            if (this.draggedThumb) this.draggedThumb.classList.remove('dragging');
-            this.draggedThumb = null;
-            this.clearDropHints();
-        },
+        beginMediaDrag() {
+            const drag = this.drag;
+            drag.active = true;
+            // A placeholder of the same size stands in for the thumbnail, so
+            // the row keeps its length while the thumbnail floats above it.
+            const placeholder = document.createElement('div');
+            placeholder.className = 'media-thumb media-placeholder';
+            placeholder.style.width = drag.width + 'px';
+            placeholder.style.height = drag.height + 'px';
+            drag.thumb.after(placeholder);
+            drag.placeholder = placeholder;
 
-        clearDropHints() {
-            document.querySelectorAll('.media-thumb.drop-before, .media-thumb.drop-after')
-                .forEach(el => el.classList.remove('drop-before', 'drop-after'));
+            drag.thumb.classList.add('dragging');
+            drag.thumb.style.width = drag.width + 'px';
+            drag.thumb.style.height = drag.height + 'px';
+            // Move it to the body for the duration: position:fixed resolves
+            // against the nearest transformed ancestor, and the composer's
+            // entrance animation briefly supplies one.
+            document.body.appendChild(drag.thumb);
+            document.getElementById('media-list').classList.add('is-sorting');
+            // Suppress text selection and the I-beam cursor page-wide.
+            document.body.classList.add('is-sorting-media');
+            if (window.getSelection) window.getSelection().removeAllRanges();
         },
 
         syncMediaOrder() {
@@ -2993,9 +3104,6 @@ function composerApp() {
         },
 
         handleFileDrop(event) {
-            // A thumbnail dragged onto the dropzone is a reorder that missed,
-            // not an upload — it carries no files.
-            if (this.draggedThumb) return;
             const files = event.dataTransfer.files;
             if (files.length > 0) {
                 this.processFiles(Array.from(files));

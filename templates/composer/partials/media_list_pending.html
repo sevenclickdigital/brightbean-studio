@@ -9,7 +9,7 @@ Nothing is saved yet, so data-media-id is the MediaAsset id — the same id
 the pending-media session list holds, which is what media_order is matched
 against when the post is first created.
 {% endcomment %}
-<div class="media-thumb" draggable="true" data-media-id="{{ asset.id }}">
+<div class="media-thumb" data-media-id="{{ asset.id }}">
     {% if asset.is_video %}
     <video src="{{ asset.file.url }}#t=0.5" data-asset-id="{{ asset.id }}" class="w-full h-full object-cover" muted preload="metadata"></video>
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -24,6 +24,9 @@ against when the post is first created.
         <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
     </div>
     {% endif %}
+    <span class="drag-grip" aria-hidden="true">
+        <svg class="w-2.5 h-2.5" viewBox="0 0 16 16" fill="currentColor"><circle cx="6" cy="3" r="1.3"/><circle cx="10" cy="3" r="1.3"/><circle cx="6" cy="8" r="1.3"/><circle cx="10" cy="8" r="1.3"/><circle cx="6" cy="13" r="1.3"/><circle cx="10" cy="13" r="1.3"/></svg>
+    </span>
     <span class="order-badge">{{ forloop.counter }}</span>
     <button type="button" class="remove-btn"
             hx-post="{% url 'composer:remove_pending_media' workspace_id=workspace.id asset_id=asset.id %}"
