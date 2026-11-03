@@ -49,6 +49,43 @@ class StudioWorker:
         self.stop_requested.set()
         self.wakeup.set()
 
+    def release_own_stale_locks(self) -> int:
+        """Free tasks still locked under *this* process's name. Returns the count.
+
+        A task that is killed mid-run — a deploy, an OOM, a `docker stop` —
+        keeps its lock row, and ``Task.objects.unlocked()`` hides it until
+        ``MAX_RUN_TIME`` expires. That default is 3600s, so one badly-timed
+        deploy silently parks a five-minute job for a full hour. That is exactly
+        how the inbox sync stopped ingesting comments twice in one afternoon,
+        with the worker otherwise healthy and no error anywhere.
+
+        **Scoped to this worker's own name, and only at startup.** The name is
+        the PID (``worker_name``), and in a container the entrypoint is reliably
+        PID 1 — so a row reading ``locked_by="1"`` on a process that has just
+        started and holds nothing is, with certainty, the corpse of the
+        container that preceded this one. That certainty is what makes the
+        unlock safe where lowering ``MAX_RUN_TIME`` globally would not be: the
+        same worker runs the publish cycle, and unlocking a publish task that is
+        genuinely still running risks posting twice (see the note on
+        ``analytics.tasks._RUN_BUDGET``). Here nothing of ours is running yet,
+        so there is no live task to race.
+
+        Rows locked by a *different* name are left alone. On a single-worker
+        deployment there are none; on a multi-worker one they belong to a peer
+        that may well be alive, and reclaiming those is a job for a lease with a
+        heartbeat rather than for a guess made at startup.
+        """
+        released = Task.objects.filter(locked_by=self.worker_name, locked_at__isnull=False).update(
+            locked_by=None, locked_at=None
+        )
+        if released:
+            logger.warning(
+                "Studio worker released %s stale task lock(s) left by a previous process worker_name=%s",
+                released,
+                self.worker_name,
+            )
+        return released
+
     def _claim(self, lane: str) -> Task | None:
         now = timezone.now()
         # Build an unsliced query so lane selection precedes limiting. In
@@ -111,6 +148,17 @@ class StudioWorker:
         logger.info(
             "Studio worker started execution_threads=%s duration_seconds=%s", WORKER_EXECUTION_THREADS, self.duration
         )
+        # Before claiming anything: nothing of ours is running yet, so a lock
+        # bearing our own name can only be a previous process's corpse. See
+        # ``release_own_stale_locks``.
+        try:
+            self.release_own_stale_locks()
+        except OperationalError:
+            # A worker that cannot reach the database here will fail again in
+            # the claim loop below, where the existing retry handling lives.
+            # Blocking startup on this would turn a recoverable blip into a
+            # worker that never comes up.
+            logger.exception("Studio worker could not release stale task locks at startup")
         try:
             while not self.stop_requested.is_set():
                 self.wakeup.clear()

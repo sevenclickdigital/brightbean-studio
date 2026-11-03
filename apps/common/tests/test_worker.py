@@ -285,3 +285,61 @@ def test_command_installs_and_restores_termination_handlers(registry):
 def test_command_rejects_invalid_intervals(registry, options):
     with pytest.raises(CommandError):
         call_command("run_studio_worker", **options)
+
+
+# ---------------------------------------------------------------------------
+# Stale lock recovery
+# ---------------------------------------------------------------------------
+#
+# A task killed mid-run keeps its lock row, and ``Task.objects.unlocked()``
+# hides it until MAX_RUN_TIME (3600s by default) expires. One badly-timed
+# deploy therefore parks a five-minute job for a full hour — which is how the
+# inbox sync twice stopped ingesting comments while the worker looked healthy.
+
+
+def test_startup_releases_locks_left_by_a_previous_process(registry):
+    """The corpse of the container we replaced is cleared, so the task runs again."""
+    worker = StudioWorker(registry=registry)
+    task = queue(registry, "apps.inbox.tasks.run_inbox_sync_cycle", lambda: None)
+    # Exactly the state a SIGKILL mid-run leaves behind: locked under the name
+    # this process also uses, because the container entrypoint is always PID 1.
+    Task.objects.filter(pk=task.pk).update(locked_by=worker.worker_name, locked_at=timezone.now())
+
+    assert worker.release_own_stale_locks() == 1
+
+    task.refresh_from_db()
+    assert task.locked_by is None
+    assert task.locked_at is None
+    # The point of the unlock: the task is claimable again rather than waiting
+    # out MAX_RUN_TIME.
+    assert Task.objects.unlocked(timezone.now()).filter(pk=task.pk).exists()
+
+
+def test_startup_leaves_another_worker_s_locks_alone(registry):
+    """A peer's lock is not ours to reclaim — it may still be running.
+
+    This is the half that keeps the unlock safe. The same worker runs the
+    publish cycle, where unlocking a task that is genuinely in flight risks a
+    second post going out.
+    """
+    worker = StudioWorker(registry=registry)
+    task = queue(registry, PUBLISH, lambda: None)
+    locked_at = timezone.now()
+    Task.objects.filter(pk=task.pk).update(locked_by=f"other-{worker.worker_name}", locked_at=locked_at)
+
+    assert worker.release_own_stale_locks() == 0
+
+    task.refresh_from_db()
+    assert task.locked_by == f"other-{worker.worker_name}"
+    assert task.locked_at == locked_at
+
+
+def test_startup_does_not_touch_unlocked_tasks(registry):
+    """An ordinary queued task is left exactly as it was."""
+    worker = StudioWorker(registry=registry)
+    task = queue(registry, "apps.inbox.tasks.run_inbox_sync_cycle", lambda: None)
+
+    assert worker.release_own_stale_locks() == 0
+
+    task.refresh_from_db()
+    assert task.locked_by is None
