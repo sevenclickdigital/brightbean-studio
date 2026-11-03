@@ -51,13 +51,19 @@ __all__ = [
     "unsupported_nodes",
 ]
 
-#: Node types the v1 engine can carry out. See the module docstring.
-EXECUTABLE_NODE_TYPES = frozenset({"trigger_comment", "reply_comment", "send_dm"})
+#: Node types the engine can carry out.
+#:
+#: ``send_card`` and ``condition`` joined this set when
+#: :mod:`apps.automations.engine` landed; before that the runtime had two reply
+#: channels and no way to sequence or branch. They are executed by the graph
+#: executor rather than by the two-channel path — see ``actions._runs_as_graph``
+#: for which flows take which route.
+EXECUTABLE_NODE_TYPES = frozenset({"trigger_comment", "reply_comment", "send_dm", "send_card", "condition"})
 
 #: Node types the editor can draw but the engine cannot run yet. Listed rather
 #: than inferred so the editor can label each one with why it is inert, and so a
 #: typo in a node type is distinguishable from a known-future node.
-KNOWN_INERT_NODE_TYPES = frozenset({"send_button", "add_tag", "delay", "condition"})
+KNOWN_INERT_NODE_TYPES = frozenset({"add_tag", "delay"})
 
 #: Caps mirroring ``apps.automations.forms``. The compiled output goes through
 #: that form's cleaners, which enforce these for real; applying them here too
@@ -230,6 +236,18 @@ def _keyword_entries(data: Any) -> list[dict[str, str]]:
     return entries
 
 
+def _has_buttons(node: dict[str, Any]) -> bool:
+    """Whether this node carries at least one button."""
+    data = node.get("data")
+    return isinstance(data, dict) and bool(data.get("buttons"))
+
+
+def _has_image(node: dict[str, Any]) -> bool:
+    """Whether this node carries a card image."""
+    data = node.get("data")
+    return isinstance(data, dict) and bool(data.get("image_url"))
+
+
 def _node_text(node: dict[str, Any]) -> str:
     """One message node's body, trimmed. Empty means the author left it blank."""
     data = node.get("data")
@@ -281,10 +299,15 @@ def compile_graph(graph: Any) -> CompiledFlow:
                 public_texts.append(text)
             else:
                 blank_nodes += 1
-        elif node["type"] == "send_dm":
+        elif node["type"] in {"send_dm", "send_card"}:
             text = _node_text(node)
             if text:
                 private_texts.append(text)
+            elif _has_buttons(node) or _has_image(node):
+                # A card with an image and buttons but no caption is a complete
+                # message, not a blank step — counting it as empty would warn
+                # the author about a node that works.
+                private_texts.append(" ")
             else:
                 blank_nodes += 1
 
@@ -313,6 +336,30 @@ def compile_graph(graph: Any) -> CompiledFlow:
         blank_nodes=blank_nodes,
     )
     return compiled
+
+
+def _is_sequential(nodes: list[dict[str, Any]]) -> bool:
+    """Whether this drawing is one the graph executor runs step by step.
+
+    The editor's half of ``actions._runs_as_graph``, asked of an unsaved
+    drawing rather than a saved rule. The two must agree about which engine a
+    flow uses, because the answer changes what the author is told: a sequential
+    flow sends its messages in order, a two-channel one picks one at random.
+
+    Restated rather than imported for the same reason ``rule_can_act`` is —
+    that function reads a persisted rule and this one reads a graph — and the
+    cost of a disagreement is only a warning that is wrong, never a send.
+    """
+    message_nodes = 0
+    for node in nodes:
+        node_type = node.get("type")
+        if node_type in {"condition", "send_card"}:
+            return True
+        if node_type in {"send_dm", "reply_comment"}:
+            message_nodes += 1
+            if _has_buttons(node):
+                return True
+    return message_nodes > 2
 
 
 def _warnings(
@@ -347,9 +394,16 @@ def _warnings(
     elif triggers > 1:
         warnings.append("Only the first trigger is used; the others are ignored.")
 
-    if public_count > 1:
+    # The "picked at random" wording only applies to the two-channel path. A
+    # flow the graph executor runs sends its messages in order, following the
+    # edges, so telling its author they are randomised would describe the
+    # opposite of what happens. ``actions._runs_as_graph`` owns that decision;
+    # this mirrors its question rather than importing it, because that function
+    # reads a saved rule and this one has only the drawing.
+    sequential = _is_sequential(nodes)
+    if public_count > 1 and not sequential:
         warnings.append(f"The {public_count} comment replies are sent one at a time, picked at random.")
-    if private_count > 1:
+    if private_count > 1 and not sequential:
         warnings.append(f"The {private_count} direct messages are sent one at a time, picked at random.")
     if blank_nodes:
         warnings.append(f"{blank_nodes} message step(s) are empty and were skipped.")

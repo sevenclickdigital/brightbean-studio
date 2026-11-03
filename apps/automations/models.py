@@ -266,6 +266,96 @@ class PostAutomation(models.Model):
         return bool(self.armed_post_id)
 
 
+class FlowRun(models.Model):
+    """One person's journey through one flow — the state a button click resumes.
+
+    A flow that only replies and DMs needs no state: it fires both halves and is
+    done. A flow with a **button** does, because the two halves of that
+    conversation are separated by the person deciding to tap. When the postback
+    arrives it carries nothing but an opaque payload and a sender id, so
+    "which flow, which step, for whom" has to have been written down first.
+    This row is that record.
+
+    **Keyed by ``(social_account, sender_key)``, not by conversation.** Meta's
+    thread id is absent from a private reply — the thread does not exist until
+    the reply opens it — so there is no conversation to key on at the moment the
+    run starts. The person is the stable identity across the comment that
+    triggered the flow and the DM thread it opens.
+
+    **One live run per person per account.** A second trigger while a run is
+    waiting replaces it rather than racing it: two runs would both answer the
+    next tap, and the person would receive the rest of two flows interleaved.
+    The uniqueness is partial on ``is_waiting`` so finished runs accumulate as
+    history without blocking the next one.
+
+    ``sender_key`` is hashed by the same ``guards._bounded`` the log uses, for
+    the same reason — a bounded column with no prefix to collide on.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey(
+        "workspaces.Workspace",
+        on_delete=models.CASCADE,
+        related_name="flow_runs",
+    )
+    social_account = models.ForeignKey(
+        "social_accounts.SocialAccount",
+        on_delete=models.CASCADE,
+        related_name="flow_runs",
+    )
+    # SET_NULL rather than CASCADE: a run that is mid-conversation when its rule
+    # is deleted must not vanish, or the next tap resumes nothing and the person
+    # is left mid-sentence with no record of why.
+    rule = models.ForeignKey(
+        AutomationRule,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="runs",
+    )
+
+    sender_key = models.CharField(max_length=200, db_index=True)
+    #: The platform id to address the next message to. Captured when the thread
+    #: opens, because a private reply addresses a *comment* and only the
+    #: postback that follows carries a usable sender id.
+    recipient_id = models.CharField(max_length=255, blank=True, default="")
+    #: The comment that started this run, so a resumed step can still private-
+    #: reply if the thread never opened.
+    comment_id = models.CharField(max_length=255, blank=True, default="")
+
+    #: Node id the flow is parked on, waiting for a tap. Blank once finished.
+    awaiting_node_id = models.CharField(max_length=100, blank=True, default="")
+    #: False once the run has nothing left to wait for. Drives the partial
+    #: unique index — see the class docstring.
+    is_waiting = models.BooleanField(default=True)
+    #: Node ids already executed, newest last. Bounds a cyclic graph: a node
+    #: that has already run is not run again within one run.
+    visited_node_ids = models.JSONField(default=list, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    objects = WorkspaceScopedManager()
+
+    class Meta:
+        db_table = "automation_flow_run"
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["social_account", "sender_key"],
+                condition=models.Q(is_waiting=True),
+                name="autom_run_one_live_per_sender",
+            ),
+        ]
+        indexes = [
+            # The postback lookup: "is this person mid-flow on this account?"
+            models.Index(fields=["social_account", "sender_key", "is_waiting"], name="autom_run_lookup"),
+        ]
+
+    def __str__(self) -> str:
+        state = f"waiting at {self.awaiting_node_id}" if self.is_waiting else "finished"
+        return f"Flow run ({state})"
+
+
 class AutomationLog(models.Model):
     """One comment this workspace has already acted on, plus why.
 

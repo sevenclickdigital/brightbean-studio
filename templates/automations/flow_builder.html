@@ -255,19 +255,106 @@ any zoom level.
                         </template>
 
                         <!-- Message nodes: public reply and DM share one editor -->
-                        <template x-if="node.type === 'reply_comment' || node.type === 'send_dm'">
+                        <template x-if="node.type === 'reply_comment' || node.type === 'send_dm' || node.type === 'send_card'">
                             <div class="space-y-1.5">
+                                {# A card leads with its image: that is what the person sees first. #}
+                                <template x-if="node.type === 'send_card'">
+                                    <input type="text" x-model="node.data.image_url" @keydown.stop
+                                           placeholder="{% translate 'Image URL (https://…)' %}"
+                                           class="w-full text-[12px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                </template>
+
                                 <textarea x-model="node.data.text" rows="3" @keydown.stop
                                           {# Django renders the attribute before Alpine evaluates it, so the #}
                                           {# tag resolves server-side and Alpine receives the translated text. #}
                                           :placeholder="node.type === 'send_dm'
                                               ? '{% translate "The DM this person receives…" %}'
-                                              : '{% translate "The public reply under their comment…" %}'"
+                                              : (node.type === 'send_card'
+                                                  ? '{% translate "The card title…" %}'
+                                                  : '{% translate "The public reply under their comment…" %}')"
                                           class="w-full text-[13px] px-2.5 py-2 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all resize-none"></textarea>
                                 <p class="text-[10px] text-stone-400">
                                     <button type="button" @click="insertToken(node, '{sender_name}')" class="hover:text-orange-500 cursor-pointer underline decoration-dotted">{sender_name}</button>
                                     &middot;
                                     <button type="button" @click="insertToken(node, '{account_name}')" class="hover:text-orange-500 cursor-pointer underline decoration-dotted">{account_name}</button>
+                                </p>
+
+                                {% comment %}
+                                Buttons. Only on DM-side nodes: a public comment
+                                has no buttons on any Meta surface, so offering
+                                them under a comment reply would draw a control
+                                that cannot be delivered.
+                                {% endcomment %}
+                                <template x-if="node.type !== 'reply_comment'">
+                                    <div class="space-y-1.5 pt-1">
+                                        <template x-for="(btn, bi) in (node.data.buttons || [])" :key="'btn-' + bi">
+                                            <div class="rounded-lg border border-stone-200 bg-stone-50 p-2 space-y-1.5">
+                                                <div class="flex items-center gap-1.5">
+                                                    <select x-model="btn.type" @mousedown.stop
+                                                            class="text-[11px] px-1.5 py-1 rounded border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
+                                                        <option value="url">{% translate "Open a link" %}</option>
+                                                        <option value="reply">{% translate "Continue the flow" %}</option>
+                                                    </select>
+                                                    <button type="button" @click="node.data.buttons.splice(bi, 1)"
+                                                            class="ml-auto text-stone-300 hover:text-red-500 transition-colors cursor-pointer">
+                                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                                    </button>
+                                                </div>
+                                                <input type="text" x-model="btn.title" @keydown.stop maxlength="20"
+                                                       placeholder="{% translate 'Button label (max 20)' %}"
+                                                       class="w-full text-[12px] px-2 py-1 rounded border border-stone-200 outline-none focus:border-orange-500">
+                                                <template x-if="btn.type === 'url'">
+                                                    <input type="text" x-model="btn.url" @keydown.stop
+                                                           placeholder="https://…"
+                                                           class="w-full text-[12px] px-2 py-1 rounded border border-stone-200 outline-none focus:border-orange-500">
+                                                </template>
+                                                {% comment %}
+                                                A reply button continues the flow,
+                                                so it needs its own outgoing edge.
+                                                Saying so here is what stops an
+                                                author wiring a button that leads
+                                                nowhere and looks broken to the
+                                                person who taps it.
+                                                {% endcomment %}
+                                                <template x-if="btn.type === 'reply'">
+                                                    <p class="text-[10px] text-stone-400 leading-relaxed">
+                                                        {% translate "Connect this node to the next step — that's where the flow goes when they tap." %}
+                                                    </p>
+                                                </template>
+                                            </div>
+                                        </template>
+                                        <button type="button" @click="addButton(node)"
+                                                x-show="(node.data.buttons || []).length < 3"
+                                                class="w-full text-[11px] py-1 rounded-lg border border-dashed border-stone-300 text-stone-400 hover:text-stone-600 hover:border-stone-400 transition-colors cursor-pointer">
+                                            + {% translate "Button" %}
+                                        </button>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        {# Condition: one field, one operator, one value. #}
+                        <template x-if="node.type === 'condition'">
+                            <div class="space-y-1.5">
+                                <select x-model="node.data.field" @mousedown.stop
+                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
+                                    <option value="comment_text">{% translate "The comment text" %}</option>
+                                    <option value="sender_name">{% translate "The person's name" %}</option>
+                                </select>
+                                <select x-model="node.data.operator" @mousedown.stop
+                                        class="w-full text-xs px-2.5 py-1.5 rounded-lg border border-stone-200 bg-white text-stone-600 outline-none focus:border-orange-500">
+                                    <option value="contains">{% translate "Contains" %}</option>
+                                    <option value="not_contains">{% translate "Does not contain" %}</option>
+                                    <option value="equals">{% translate "Is exactly" %}</option>
+                                    <option value="is_empty">{% translate "Is empty" %}</option>
+                                    <option value="is_not_empty">{% translate "Is not empty" %}</option>
+                                </select>
+                                <input type="text" x-model="node.data.value" @keydown.stop
+                                       x-show="!['is_empty', 'is_not_empty'].includes(node.data.operator)"
+                                       placeholder="{% translate 'Word to look for…' %}"
+                                       class="w-full text-[13px] px-2.5 py-1.5 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                <p class="text-[10px] text-stone-400 leading-relaxed">
+                                    {% translate "Two outputs: the top port is yes, the bottom is no." %}
                                 </p>
                             </div>
                         </template>
@@ -280,9 +367,43 @@ any zoom level.
                         </template>
                     </div>
 
-                    <!-- Ports. The right one starts a link, the left one receives it. -->
-                    <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-orange-500 cursor-crosshair transition-colors"
-                         @mousedown.stop="startLink(node, $event)"></div>
+                    {% comment %}
+                    Ports. A condition has two outputs rather than one, and the
+                    branch each carries is what ``engine._next_node_id`` reads
+                    to choose a path — so the port the author drags from is the
+                    whole of how a branch gets wired. Labelled, because two
+                    identical circles would make "which one is yes" a guess.
+                    {% endcomment %}
+                    <template x-if="node.type === 'condition'">
+                        <div>
+                            <div class="absolute -right-2 top-1/3 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-green-400 hover:border-green-600 cursor-crosshair transition-colors"
+                                 @mousedown.stop="startLink(node, $event, 'true')"></div>
+                            <span class="absolute -right-9 top-1/3 -translate-y-1/2 text-[9px] font-semibold text-green-600">{% translate "YES" %}</span>
+                            <div class="absolute -right-2 top-2/3 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-stone-500 cursor-crosshair transition-colors"
+                                 @mousedown.stop="startLink(node, $event, 'false')"></div>
+                            <span class="absolute -right-8 top-2/3 -translate-y-1/2 text-[9px] font-semibold text-stone-400">{% translate "NO" %}</span>
+                        </div>
+                    </template>
+
+                    {% comment %}
+                    A reply button continues the flow down its own edge, so a
+                    node carrying them gets one output port per button — the
+                    index is the branch label ``engine`` resumes by.
+                    {% endcomment %}
+                    <template x-if="node.type !== 'condition' && replyButtonCount(node) > 0">
+                        <div>
+                            <template x-for="(btn, bi) in replyButtons(node)" :key="'port-' + bi">
+                                <div class="absolute -right-2 w-4 h-4 rounded-full bg-white border-2 border-orange-300 hover:border-orange-500 cursor-crosshair transition-colors"
+                                     :style="`top: ${(bi + 1) * 100 / (replyButtonCount(node) + 1)}%; transform: translateY(-50%);`"
+                                     @mousedown.stop="startLink(node, $event, String(btn.index))"></div>
+                            </template>
+                        </div>
+                    </template>
+
+                    <template x-if="node.type !== 'condition' && replyButtonCount(node) === 0">
+                        <div class="absolute -right-2 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-white border-2 border-stone-300 hover:border-orange-500 cursor-crosshair transition-colors"
+                             @mousedown.stop="startLink(node, $event)"></div>
+                    </template>
                     {% comment %}
                     No ``.stop`` on this one. Stopping propagation here keeps
                     the event from reaching the window-level ``mouseup``, which
@@ -313,6 +434,16 @@ any zoom level.
                 <svg class="w-4 h-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
                 {% translate "Send a DM" %}
             </button>
+            <button type="button" @click="addNode('send_card')"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
+                <svg class="w-4 h-4 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>
+                {% translate "Card with image" %}
+            </button>
+            <button type="button" @click="addNode('condition')"
+                    class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[13px] text-stone-600 hover:bg-stone-100 transition-colors cursor-pointer">
+                <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9v1a5 5 0 01-5 5H9"/></svg>
+                {% translate "Condition" %}
+            </button>
         </div>
         {% endif %}
     </div>
@@ -342,6 +473,9 @@ as data. json_script escapes for a JS context, which is where they land.
 {% translate "Then send" as lbl_then_send %}
 {% translate "Direct message" as lbl_dm_title %}
 {% translate "Step" as lbl_step %}
+{% translate "Card with image" as lbl_card_title %}
+{% translate "Only if" as lbl_only_if %}
+{% translate "Condition" as lbl_cond_title %}
 {% translate "The flow could not be saved." as lbl_save_failed %}
 {% translate "The flow could not be saved. Check your connection and try again." as lbl_save_failed_net %}
 {% translate "The flow could not be changed." as lbl_change_failed %}
@@ -353,6 +487,9 @@ as data. json_script escapes for a JS context, which is where they land.
 {{ lbl_then_send|json_script:"fb-then-send" }}
 {{ lbl_dm_title|json_script:"fb-dm-title" }}
 {{ lbl_step|json_script:"fb-step" }}
+{{ lbl_card_title|json_script:"fb-card-title" }}
+{{ lbl_only_if|json_script:"fb-only-if" }}
+{{ lbl_cond_title|json_script:"fb-cond-title" }}
 {{ lbl_save_failed|json_script:"fb-save-failed" }}
 {{ lbl_save_failed_net|json_script:"fb-save-failed-net" }}
 {{ lbl_change_failed|json_script:"fb-change-failed" }}
@@ -379,6 +516,9 @@ function flowBuilder() {
         dragging: null,
         panning: false,
         linking: null,
+        //: Which output port a link is being dragged from — "true"/"false" on a
+        //: condition, a button index on a message node, "" everywhere else.
+        linkingBranch: '',
         origin: { x: 0, y: 0 },
         cursor: { x: 0, y: 0 },
 
@@ -466,6 +606,20 @@ function flowBuilder() {
                     label: 'text-orange-600',
                     icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
                 },
+                send_card: {
+                    kicker: fbLabel('then-send'),
+                    title: fbLabel('card-title'),
+                    chip: 'bg-violet-50 text-violet-600',
+                    label: 'text-violet-600',
+                    icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 15l5-5 4 4 3-3 6 6"/></svg>',
+                },
+                condition: {
+                    kicker: fbLabel('only-if'),
+                    title: fbLabel('cond-title'),
+                    chip: 'bg-teal-50 text-teal-600',
+                    label: 'text-teal-600',
+                    icon: '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9v1a5 5 0 01-5 5H9"/></svg>',
+                },
             };
             return map[type] || {
                 kicker: fbLabel('step'),
@@ -502,9 +656,7 @@ function flowBuilder() {
                 type,
                 x: right + 340,
                 y: 160,
-                data: type === 'trigger_comment'
-                    ? { keywords: [], match_mode: 'contains', top_level_only: false }
-                    : { text: '' },
+                data: this.defaultData(type),
             };
             this.nodes.push(node);
             // Auto-connect from the last node, because an unconnected node is
@@ -514,23 +666,75 @@ function flowBuilder() {
             this.selected = id;
         },
 
+        defaultData(type) {
+            if (type === 'trigger_comment') {
+                return { keywords: [], match_mode: 'contains', top_level_only: false };
+            }
+            if (type === 'condition') {
+                // Seeded with the comparison people reach for first, so the
+                // node is usable the moment it lands.
+                return { field: 'comment_text', operator: 'contains', value: '' };
+            }
+            if (type === 'send_card') {
+                return { text: '', image_url: '', buttons: [] };
+            }
+            return { text: '', buttons: [] };
+        },
+
+        addButton(node) {
+            if (!node.data.buttons) node.data.buttons = [];
+            // Meta refuses a template with more than three; the palette hides
+            // the add button at that point, and this is the backstop.
+            if (node.data.buttons.length >= 3) return;
+            node.data.buttons.push({ type: 'url', title: '', url: '' });
+        },
+
         removeNode(id) {
             this.nodes = this.nodes.filter(n => n.id !== id);
             this.edges = this.edges.filter(e => e.from !== id && e.to !== id);
             if (this.selected === id) this.selected = null;
         },
 
+        // --- Buttons that branch ----------------------------------------
+        // A reply button continues the flow; a link button hands off to the
+        // browser and ends it. Only the first kind needs an output port, and
+        // the original index is carried along because that index is the branch
+        // label the engine resumes by — filtering would renumber them and send
+        // taps down the wrong edge.
+        replyButtons(node) {
+            const all = (node.data && node.data.buttons) || [];
+            return all
+                .map((btn, index) => ({ ...btn, index }))
+                .filter(btn => btn.type === 'reply');
+        },
+
+        replyButtonCount(node) {
+            return this.replyButtons(node).length;
+        },
+
         // --- Linking ----------------------------------------------------
-        startLink(node, event) {
+        startLink(node, event, branch = '') {
             this.linking = node.id;
+            // Which output port this drag left from. Stored separately from
+            // ``linking`` so the edge it creates carries the label; an empty
+            // string is the single unlabelled output every other node has.
+            this.linkingBranch = branch;
             this.cursor = this.toCanvas(event);
         },
 
         finishLink(node) {
             if (!this.linking || this.linking === node.id) { this.linking = null; return; }
-            const exists = this.edges.some(e => e.from === this.linking && e.to === node.id);
-            if (!exists) this.edges.push({ from: this.linking, to: node.id });
+            const branch = this.linkingBranch || '';
+            // One edge per (source, branch): re-dragging an output moves it
+            // rather than adding a second target, because a branch with two
+            // destinations has no defined meaning — the engine takes the first
+            // and the author never sees why the other is dead.
+            this.edges = this.edges.filter(e => !(e.from === this.linking && (e.branch || '') === branch));
+            const edge = { from: this.linking, to: node.id };
+            if (branch) edge.branch = branch;
+            this.edges.push(edge);
             this.linking = null;
+            this.linkingBranch = '';
         },
 
         // --- Dragging and panning --------------------------------------
@@ -673,14 +877,31 @@ function flowBuilder() {
             return paths.join('');
         },
 
+        // Where on a node's right edge a given branch's port sits, as a
+        // fraction of its height. Mirrors the port positions in the markup;
+        // the two must agree or lines leave from beside the circle they
+        // appear to start at.
+        portOffset(node, branch) {
+            if (node.type === 'condition') {
+                return branch === 'false' ? 2 / 3 : 1 / 3;
+            }
+            const replies = this.replyButtons(node);
+            if (replies.length) {
+                const slot = replies.findIndex(b => String(b.index) === String(branch));
+                if (slot >= 0) return (slot + 1) / (replies.length + 1);
+            }
+            return 0.5;
+        },
+
         edgePath(edge, nodes = this.nodes, heights = this.heights) {
             const from = nodes.find(n => n.id === edge.from);
             const to = nodes.find(n => n.id === edge.to);
             // A dangling edge — one whose node was deleted — draws nothing
             // rather than throwing, so one stale entry cannot blank the canvas.
             if (!from || !to) return '';
+            const fromH = heights[from.id] || this.NODE_H;
             return this.curve(
-                from.x + this.NODE_W, from.y + (heights[from.id] || this.NODE_H) / 2,
+                from.x + this.NODE_W, from.y + fromH * this.portOffset(from, edge.branch || ''),
                 to.x, to.y + (heights[to.id] || this.NODE_H) / 2,
             );
         },
@@ -688,8 +909,11 @@ function flowBuilder() {
         pendingPath(linking = this.linking, cursor = this.cursor, nodes = this.nodes, heights = this.heights) {
             const from = nodes.find(n => n.id === linking);
             if (!from) return '';
+            // Leaves the same port the drag started from, so the dashed line
+            // and the circle under the cursor agree.
+            const fromH = heights[from.id] || this.NODE_H;
             return this.curve(
-                from.x + this.NODE_W, from.y + (heights[from.id] || this.NODE_H) / 2,
+                from.x + this.NODE_W, from.y + fromH * this.portOffset(from, this.linkingBranch || ''),
                 cursor.x, cursor.y,
             );
         },

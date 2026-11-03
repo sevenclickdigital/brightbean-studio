@@ -649,7 +649,16 @@ class InstagramLoginProvider(SocialProvider):
             )
 
         validate_instagram_text(text, platform=self.platform_name)
-        payload = build_send_payload(igsid, text, human_agent=human_agent, comment_id=private_reply_comment_id)
+        # See the note in ``facebook.py``: buttons travel on ``extra`` so the
+        # providers that cannot render them need not mention them at all.
+        payload = build_send_payload(
+            igsid,
+            text,
+            human_agent=human_agent,
+            comment_id=private_reply_comment_id,
+            buttons=(extra or {}).get("buttons"),
+            image_url=(extra or {}).get("image_url", ""),
+        )
 
         resp = self._request(
             "POST",

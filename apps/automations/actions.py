@@ -315,9 +315,120 @@ def _run(message_id: str) -> None:
     # failure of either must not touch the other.
     details: list[str] = []
     public_sent = _send_public_half(message, rule, row, details)
-    private_sent = _send_private_half(message, rule, row, details)
+
+    # Step 8 has two shapes, and which one runs is decided by the flow itself.
+    #
+    # A flow that is a straight line — trigger, reply, DM — is sent by the v1
+    # path below: one claim, one DM, done, with the guards and the audit trail
+    # that path already carries. A flow with buttons, cards, conditions or a
+    # chain of messages cannot be: it is a conversation that pauses for a tap,
+    # so it needs persisted state and a resumable walk
+    # (:mod:`apps.automations.engine`).
+    #
+    # The v1 path is kept rather than replaced because it is the shape most
+    # flows have and the one proven in production; routing every flow through
+    # the executor would put a state machine behind a send that does not need
+    # one.
+    private_sent = False
+    if _runs_as_graph(rule):
+        private_sent = _start_graph_run(message, rule, details)
+    else:
+        private_sent = _send_private_half(message, rule, row, details)
 
     _finalise(row, sent=public_sent or private_sent, details=details)
+
+
+def _runs_as_graph(rule: AutomationRule) -> bool:
+    """Whether this rule's flow needs the graph executor rather than the v1 path.
+
+    True when the drawn graph holds anything the two-channel shape cannot
+    express: a button, a card, a condition, or more than one message after the
+    trigger. Decided from the stored graph rather than from a flag on the rule,
+    so the answer cannot fall out of step with what the author actually drew.
+
+    A rule with no flow attached — one written by hand in the rules list — is
+    always False. Those have no graph at all.
+    """
+    flow = getattr(rule, "post_automation", None)
+    graph = getattr(flow, "graph", None)
+    if not isinstance(graph, dict):
+        return False
+    nodes = graph.get("nodes")
+    if not isinstance(nodes, list):
+        return False
+
+    message_nodes = 0
+    for node in nodes:
+        if not isinstance(node, dict):
+            continue
+        node_type = node.get("type")
+        if node_type in {"condition", "send_card"}:
+            return True
+        if node_type in {"send_dm", "reply_comment"}:
+            message_nodes += 1
+            data = node.get("data")
+            if isinstance(data, dict) and data.get("buttons"):
+                return True
+    return message_nodes > 2
+
+
+def _start_graph_run(message: InboxMessage, rule: AutomationRule, details: list[str]) -> bool:
+    """Hand this comment to the graph executor. Returns whether the walk began.
+
+    The executor owns delivery from here, including its own failure handling,
+    so this function only reports whether a run started — ``_finalise`` records
+    that the automation acted, and the run's own progress lives on
+    ``FlowRun``.
+    """
+    account = message.social_account
+    if account.platform not in PRIVATE_REPLY_PLATFORMS:
+        details.append(f"Flows are not available on {account.platform}; nothing was sent.")
+        return False
+
+    flow = rule.post_automation
+    graph = flow.graph if isinstance(flow.graph, dict) else {}
+    start = _first_step_id(graph)
+    if not start:
+        details.append("This flow has no step after its trigger.")
+        return False
+
+    from apps.automations.engine import start_run
+
+    try:
+        run = start_run(message, rule, graph, start)
+    except Exception as exc:
+        logger.warning(
+            "Flow run could not start: message=%s rule=%s error_type=%s",
+            message.pk,
+            rule.pk,
+            type(exc).__name__,
+        )
+        details.append("The flow could not be started.")
+        return False
+    if run is None:
+        details.append("A flow is already running for this person.")
+        return False
+    return True
+
+
+def _first_step_id(graph: dict) -> str:
+    """The node a run starts at: whatever the trigger points to.
+
+    The trigger itself is not executed — it is the condition that got us here,
+    not a step — so the walk begins at its first outgoing edge. A graph with no
+    trigger falls back to the first message node, which is the forgiving reading
+    of a flow drawn by an older editor or edited by hand.
+    """
+    from apps.automations.engine import _next_node_id, _nodes_by_id
+
+    nodes = _nodes_by_id(graph)
+    for node_id, node in nodes.items():
+        if node.get("type") == "trigger_comment":
+            return _next_node_id(graph, node_id)
+    for node_id, node in nodes.items():
+        if node.get("type") in {"send_dm", "reply_comment", "send_card"}:
+            return node_id
+    return ""
 
 
 # ---------------------------------------------------------------------------

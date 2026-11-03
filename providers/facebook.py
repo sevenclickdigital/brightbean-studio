@@ -1095,7 +1095,19 @@ class FacebookProvider(SocialProvider):
             )
 
         page_id = self.credentials.get("page_id", "me")
-        payload = build_send_payload(psid, text, human_agent=human_agent, comment_id=private_reply_comment_id)
+        # Buttons and card image ride on ``extra`` rather than on the signature:
+        # ``reply_to_message`` is implemented by every provider, and most have
+        # no concept of a button. Keeping them out of the interface means the
+        # platforms that cannot do this are not obliged to declare that they
+        # ignore it. ``build_send_payload`` drops anything unusable.
+        payload = build_send_payload(
+            psid,
+            text,
+            human_agent=human_agent,
+            comment_id=private_reply_comment_id,
+            buttons=(extra or {}).get("buttons"),
+            image_url=(extra or {}).get("image_url", ""),
+        )
 
         resp = self._request(
             "POST",

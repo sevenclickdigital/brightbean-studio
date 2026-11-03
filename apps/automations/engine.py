@@ -1,0 +1,538 @@
+"""The graph executor: walk a flow's nodes, sending as it goes, parking on taps.
+
+This is what :mod:`apps.automations.actions` is not. That module runs the v1
+shape — one public reply, one DM, both fired at once and then done — and it
+stays, because that shape has guards and an audit trail built around it and most
+flows never leave it.
+
+This module runs the *graph*: it starts at the trigger, follows edges, and sends
+one node at a time. The difference that forces a separate module is **time**. A
+flow with a button is not one operation with two halves; it is a conversation
+that pauses for as long as the person takes to tap, which may be never. So:
+
+* Progress is **persisted** between steps (:class:`~apps.automations.models.FlowRun`),
+  because the process that sends step 2 is a different process, minutes or days
+  later, woken by a webhook rather than by the comment.
+* Execution is **resumable** from a node id, because a postback carries nothing
+  else.
+* A run **ends** — explicitly, at a node with no outgoing edge — so a parked run
+  is distinguishable from a finished one.
+
+**The walk is bounded three ways**, and each bound exists because the graph is
+author-drawn and nothing validates it as a DAG:
+
+1. ``visited`` — a node already executed in this run is not executed again, so a
+   cycle terminates instead of messaging someone forever.
+2. :data:`MAX_STEPS_PER_WAKE` — one wake sends at most this many messages, so a
+   long chain cannot become a flood that reads as spam and gets the account
+   rate-limited.
+3. The run is abandoned on the first send failure, rather than continuing. A
+   flow whose step 2 failed should not deliver step 3 as though the person had
+   seen step 2.
+
+**Nothing here raises.** Every caller is a webhook handler or a queue worker,
+and the same reasoning as ``services.on_inbox_message_created`` applies: losing
+the customer's message is strictly worse than failing to automate a reply to it.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any
+
+from django.db import IntegrityError, transaction
+from django.utils import timezone
+
+from apps.automations.models import AutomationRule, FlowRun
+
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "MAX_STEPS_PER_WAKE",
+    "POSTBACK_PREFIX",
+    "parse_postback",
+    "resume_from_postback",
+    "start_run",
+]
+
+#: Messages one wake may send before parking. See the module docstring.
+#:
+#: Five is the number of consecutive messages a person can receive without it
+#: reading as a flood — the reference flows in this space send two or three.
+MAX_STEPS_PER_WAKE = 5
+
+#: Marks a postback payload as ours. Meta hands the payload back verbatim, and
+#: the same webhook receives payloads from any other integration the Page has
+#: ever had, plus Meta's own ``GET_STARTED``. A payload that is not ours must be
+#: ignored rather than parsed into a node id that happens to collide.
+POSTBACK_PREFIX = "bbflow"
+
+
+def build_postback(run_id: Any, node_id: str) -> str:
+    """The opaque payload a postback button carries.
+
+    ``bbflow:<run>:<node>``. The run id makes the payload single-use in
+    practice — a tap on a button from a run that has been superseded resolves to
+    a row that is no longer waiting, and is declined — and the node id says
+    where to continue. Meta caps the payload at 1000 characters, which two UUIDs
+    and a prefix are nowhere near.
+
+    **The payload is not a secret and is not trusted.** It arrives from the
+    network and names a row; :func:`resume_from_postback` re-reads that row and
+    re-checks that it belongs to the account the webhook was delivered for.
+    """
+    return f"{POSTBACK_PREFIX}:{run_id}:{node_id}"
+
+
+def parse_postback(payload: Any) -> tuple[str, str] | None:
+    """Split one of our payloads into ``(run_id, node_id)``, or ``None``.
+
+    ``None`` for anything that is not ours — another integration's payload,
+    Meta's ``GET_STARTED``, a truncated string. The caller treats that as "this
+    postback is not a flow step", which is the common case on a Page that has
+    other automations attached.
+    """
+    if not isinstance(payload, str):
+        return None
+    parts = payload.split(":", 2)
+    if len(parts) != 3 or parts[0] != POSTBACK_PREFIX:
+        return None
+    run_id, node_id = parts[1].strip(), parts[2].strip()
+    if not run_id or not node_id:
+        return None
+    return run_id, node_id
+
+
+# ---------------------------------------------------------------------------
+# Graph helpers
+# ---------------------------------------------------------------------------
+
+
+def _nodes_by_id(graph: Any) -> dict[str, dict]:
+    """Every well-formed node, keyed by id.
+
+    Tolerant for the reason given in ``flow._nodes``: the graph is a JSONField
+    written by a browser, so a malformed entry is a front-end bug and the right
+    response is to run what is readable rather than refuse the whole flow.
+    """
+    if not isinstance(graph, dict):
+        return {}
+    nodes = graph.get("nodes")
+    if not isinstance(nodes, list):
+        return {}
+    return {
+        node["id"]: node
+        for node in nodes
+        if isinstance(node, dict) and isinstance(node.get("id"), str) and isinstance(node.get("type"), str)
+    }
+
+
+def _next_node_id(graph: Any, node_id: str, *, branch: str = "") -> str:
+    """Which node follows ``node_id``, or ``""`` at the end of the flow.
+
+    ``branch`` selects an edge by its label, which is how a condition node picks
+    between its two outputs (``"true"`` / ``"false"``). An unlabelled edge is
+    the default and matches any branch, so a condition whose author only wired
+    one output still goes somewhere instead of silently ending the flow.
+    """
+    if not isinstance(graph, dict):
+        return ""
+    edges = graph.get("edges")
+    if not isinstance(edges, list):
+        return ""
+
+    fallback = ""
+    for edge in edges:
+        if not isinstance(edge, dict) or edge.get("from") != node_id:
+            continue
+        target = edge.get("to")
+        if not isinstance(target, str) or not target:
+            continue
+        label = edge.get("branch") or ""
+        if branch and label == branch:
+            return target
+        if not label and not fallback:
+            fallback = target
+    return fallback
+
+
+# ---------------------------------------------------------------------------
+# Condition nodes
+# ---------------------------------------------------------------------------
+
+
+def evaluate_condition(node: dict, context: dict) -> bool:
+    """Whether a condition node takes its ``true`` branch.
+
+    The comparison is deliberately small: one field, one operator, one value.
+    A flow author is not writing an expression language, and every operator
+    added here is one more thing that can silently mean something other than
+    what it looks like.
+
+    ``field`` names something about the person or what they wrote
+    (``comment_text``, ``sender_name``); unknown fields read as empty, so a
+    typo makes the condition false rather than raising mid-conversation.
+    Matching is casefolded because the author typed a word, not a pattern.
+    """
+    data = node.get("data")
+    if not isinstance(data, dict):
+        return False
+
+    field = data.get("field") if isinstance(data.get("field"), str) else "comment_text"
+    actual = str(context.get(field, "") or "").casefold()
+    expected = data.get("value")
+    expected = expected.casefold().strip() if isinstance(expected, str) else ""
+    operator = data.get("operator") if isinstance(data.get("operator"), str) else "contains"
+
+    if operator == "contains":
+        return bool(expected) and expected in actual
+    if operator == "not_contains":
+        # True on an empty needle: "does not contain nothing" is vacuously the
+        # author's intent to let everything through, and the alternative — a
+        # half-filled condition silently blocking every person — is worse.
+        return not expected or expected not in actual
+    if operator == "equals":
+        return actual == expected
+    if operator == "is_empty":
+        return not actual.strip()
+    if operator == "is_not_empty":
+        return bool(actual.strip())
+    # An unrecognised operator takes the false branch rather than the true one:
+    # the false branch is the one that does less.
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Sending one node
+# ---------------------------------------------------------------------------
+
+
+def _render(text: Any, context: dict) -> str:
+    """Substitute ``{sender_name}`` / ``{account_name}`` in a node's text.
+
+    Same literal-replacement mechanism as ``actions.render_text``, and
+    deliberately the same placeholders — a member who learned them in the
+    composer must be able to type them into a flow node. Reused via import so
+    there is one definition, not two that drift.
+    """
+    from apps.automations.actions import render_text
+
+    if not isinstance(text, str) or not text:
+        return ""
+    message = context.get("message")
+    if message is None:
+        return text
+    return render_text(text, message)
+
+
+def _node_buttons(node: dict, run: FlowRun, context: dict) -> list[dict]:
+    """A message node's buttons, with postback payloads bound to this run.
+
+    A ``reply`` button's payload is generated here rather than stored on the
+    node, because it has to name *this run* — the same node sends a different
+    payload to every person who reaches it. ``build_postback`` points it at the
+    button's own node, and the resume picks up from the edge leaving that
+    button.
+    """
+    data = node.get("data")
+    if not isinstance(data, dict):
+        return []
+    raw = data.get("buttons")
+    if not isinstance(raw, list):
+        return []
+
+    built: list[dict] = []
+    for index, entry in enumerate(raw):
+        if not isinstance(entry, dict):
+            continue
+        title = _render(entry.get("title"), context)
+        if not title.strip():
+            continue
+        kind = entry.get("type")
+        if kind == "url":
+            url = entry.get("url")
+            if isinstance(url, str) and url.strip():
+                built.append({"type": "web_url", "title": title, "url": url.strip()})
+        elif kind == "reply":
+            # Indexed so two reply buttons on one node resume down different
+            # edges — the index is the branch label the edge carries.
+            built.append(
+                {
+                    "type": "postback",
+                    "title": title,
+                    "payload": build_postback(run.pk, f"{node['id']}#{index}"),
+                }
+            )
+    return built
+
+
+def _send_node(node: dict, run: FlowRun, context: dict) -> bool:
+    """Deliver one message node. Returns whether it went out.
+
+    Routed straight at the provider rather than through ``inbox.services``, for
+    the reason spelled out in ``actions._send_private_half``: that module routes
+    on ``message_type`` and would turn a DM into a public comment. The dispatch
+    is the same three calls it makes — resolve credentials, get provider,
+    ``reply_to_message`` — with buttons riding on ``extra``.
+
+    **Addressing changes after the first message.** The opening message of a run
+    is a *private reply* to the comment, because the person has never messaged
+    the account and has no PSID/IGSID to address. Every later message in the
+    same run addresses the person directly, using the id their tap revealed.
+    Sending the second message as another private reply would be refused —
+    Meta allows one per comment.
+    """
+    from apps.publisher.engine import _resolve_publish_credentials
+    from providers import get_provider
+
+    account = run.social_account
+    data = node.get("data") if isinstance(node.get("data"), dict) else {}
+    text = _render(data.get("text"), context)
+    buttons = _node_buttons(node, run, context)
+    image_url = data.get("image_url") if isinstance(data.get("image_url"), str) else ""
+
+    if not text and not buttons and not image_url:
+        # An empty node is skipped rather than failed: it is a step the author
+        # added and has not filled in, and the rest of the flow still works.
+        return True
+
+    extra: dict[str, Any] = {}
+    if buttons:
+        extra["buttons"] = buttons
+    if image_url:
+        extra["image_url"] = image_url
+
+    if run.recipient_id:
+        extra["sender_id"] = run.recipient_id
+    elif run.comment_id:
+        extra["private_reply_to_comment_id"] = run.comment_id
+    else:
+        logger.warning("Flow run %s has nobody to address; stopping.", run.pk)
+        return False
+
+    provider = get_provider(account.platform, _resolve_publish_credentials(account))
+    provider.reply_to_message(
+        access_token=account.oauth_access_token,
+        message_id=run.comment_id or run.recipient_id,
+        text=text,
+        extra=extra,
+        # Never HUMAN_AGENT — an automated message must not claim a person is
+        # answering. Same reasoning as ``actions._dispatch_private_reply``.
+        human_agent=False,
+    )
+    return True
+
+
+# ---------------------------------------------------------------------------
+# The walk
+# ---------------------------------------------------------------------------
+
+
+def _advance(run: FlowRun, graph: Any, start_node_id: str, context: dict) -> None:
+    """Walk from ``start_node_id`` until the flow waits, ends, or hits a bound.
+
+    The loop is the whole module. Each turn: look the node up, do what its type
+    says, then decide where to go — and the three bounds in the module docstring
+    are what guarantee it stops.
+    """
+    nodes = _nodes_by_id(graph)
+    visited = list(run.visited_node_ids or [])
+    node_id = start_node_id
+    sent = 0
+
+    while node_id:
+        if node_id in visited:
+            logger.info("Flow run %s revisited node %s; stopping to break the cycle.", run.pk, node_id)
+            break
+        node = nodes.get(node_id)
+        if node is None:
+            # The author deleted this node after the run parked on it. Ending is
+            # the honest outcome: there is no step to deliver.
+            logger.info("Flow run %s points at missing node %s; ending.", run.pk, node_id)
+            break
+
+        visited.append(node_id)
+        node_type = node.get("type")
+
+        if node_type == "condition":
+            branch = "true" if evaluate_condition(node, context) else "false"
+            node_id = _next_node_id(graph, node_id, branch=branch)
+            continue
+
+        if node_type in {"send_dm", "reply_comment", "send_card"}:
+            if sent >= MAX_STEPS_PER_WAKE:
+                logger.info("Flow run %s hit the per-wake message ceiling; parking.", run.pk)
+                break
+            try:
+                delivered = _send_node(node, run, context)
+            except Exception as exc:
+                # Type only, never ``str(exc)``: a provider error echoes the
+                # request back, which contains author and platform text.
+                logger.warning(
+                    "Flow run %s failed to send node %s error_type=%s",
+                    run.pk,
+                    node_id,
+                    type(exc).__name__,
+                )
+                delivered = False
+            if not delivered:
+                break
+            sent += 1
+
+            # A node carrying reply buttons ends the wake: the next step is the
+            # person's to take, and the run parks until their tap arrives.
+            if any(b.get("type") == "postback" for b in _node_buttons(node, run, context)):
+                run.awaiting_node_id = node_id
+                run.is_waiting = True
+                run.visited_node_ids = visited
+                run.save(update_fields=["awaiting_node_id", "is_waiting", "visited_node_ids", "updated_at"])
+                return
+
+            node_id = _next_node_id(graph, node_id)
+            continue
+
+        # Trigger nodes and anything unrecognised: pass straight through. An
+        # unknown type is a node a newer editor drew and this deploy cannot run;
+        # skipping it keeps the rest of the flow working rather than stranding
+        # the person at a step that will never execute.
+        node_id = _next_node_id(graph, node_id)
+
+    # Fell out of the loop: nothing left to wait for.
+    run.awaiting_node_id = ""
+    run.is_waiting = False
+    run.visited_node_ids = visited
+    run.save(update_fields=["awaiting_node_id", "is_waiting", "visited_node_ids", "updated_at"])
+
+
+# ---------------------------------------------------------------------------
+# Entry points
+# ---------------------------------------------------------------------------
+
+
+def _context_for(message) -> dict:
+    """What a condition may read and a placeholder may substitute."""
+    return {
+        "message": message,
+        "comment_text": getattr(message, "body", "") or "",
+        "sender_name": getattr(message, "sender_name", "") or "",
+    }
+
+
+def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> FlowRun | None:
+    """Begin a graph walk for one comment. Returns the run, or ``None``.
+
+    Called by :mod:`apps.automations.actions` once a rule has won the match and
+    its guards have been taken — so the once-per-sender-per-post and hourly
+    limits are already spent by the time this runs, and this function adds no
+    guards of its own.
+
+    **A new run supersedes the person's previous one.** The partial unique
+    index allows exactly one waiting run per person per account, so starting a
+    second while the first is parked would raise. Rather than refuse the new
+    comment, the old run is closed: the person has acted again, and answering
+    their *current* comment matters more than keeping them parked on a button
+    they did not tap.
+    """
+    from apps.automations.guards import _bounded
+
+    sender_id = (getattr(message, "sender_handle", "") or "").strip()
+    if not sender_id:
+        logger.debug("Flow start skipped: inbox message %s has no sender.", getattr(message, "pk", None))
+        return None
+
+    sender_key = _bounded(sender_id)
+    account = message.social_account
+
+    try:
+        with transaction.atomic():
+            # Close the previous run first, in the same transaction that opens
+            # this one, so the unique index never sees two waiting rows.
+            FlowRun.objects.filter(
+                social_account=account,
+                sender_key=sender_key,
+                is_waiting=True,
+            ).update(is_waiting=False, awaiting_node_id="", updated_at=timezone.now())
+
+            run = FlowRun.objects.create(
+                workspace=message.workspace,
+                social_account=account,
+                rule=rule,
+                sender_key=sender_key,
+                comment_id=message.platform_message_id,
+                # Unknown until the person replies: a private reply addresses
+                # the comment, and the thread it opens is what reveals the id.
+                recipient_id="",
+                awaiting_node_id=start_node_id,
+                is_waiting=True,
+            )
+    except IntegrityError:
+        # Lost the race to a concurrent trigger for the same person. The winner
+        # is answering them; a second run would interleave with it.
+        logger.info("Flow start declined: a run already exists for this sender on account %s", account.pk)
+        return None
+
+    _advance(run, graph, start_node_id, _context_for(message))
+    return run
+
+
+def resume_from_postback(account, sender_id: str, payload: str) -> bool:
+    """Continue a parked run after the person tapped a button. Returns whether it ran.
+
+    ``False`` covers every "not ours / nothing to do" case — a payload from
+    another integration, a run that has finished, a tap on a superseded run's
+    button — and none of those is an error.
+
+    **Three things are re-checked, because the payload came from the network.**
+    That the payload is ours (:func:`parse_postback`), that the run it names
+    belongs to *this* account (a run id is a UUID, and without this check one
+    account's webhook could advance another's run), and that the run is still
+    waiting at the node the payload claims. The last is what makes a tap
+    single-use: tapping the same button twice resumes nothing the second time.
+    """
+    parsed = parse_postback(payload)
+    if parsed is None:
+        return False
+    run_id, node_ref = parsed
+
+    # ``node#index`` — the index selects which of the node's buttons was tapped,
+    # and so which labelled edge to leave by.
+    node_id, _, button_index = node_ref.partition("#")
+
+    run = (
+        FlowRun.objects.filter(pk=run_id, social_account=account, is_waiting=True)
+        .select_related("social_account", "rule")
+        .first()
+    )
+    if run is None:
+        logger.debug("Postback ignored: no waiting run %s on account %s", run_id, account.pk)
+        return False
+    if run.awaiting_node_id != node_id:
+        # A tap on an earlier message's button after the flow has moved on.
+        logger.debug("Postback ignored: run %s is parked at %s, not %s", run.pk, run.awaiting_node_id, node_id)
+        return False
+
+    flow = getattr(run.rule, "post_automation", None)
+    if flow is None:
+        logger.info("Flow run %s has no flow to resume; closing.", run.pk)
+        run.is_waiting = False
+        run.awaiting_node_id = ""
+        run.save(update_fields=["is_waiting", "awaiting_node_id", "updated_at"])
+        return False
+
+    # The tap is what reveals a directly-addressable id for this person. Stored
+    # so every later message in the run goes to them rather than as another
+    # private reply, which Meta allows only once per comment.
+    if sender_id and run.recipient_id != sender_id:
+        run.recipient_id = sender_id
+        run.save(update_fields=["recipient_id", "updated_at"])
+
+    next_id = _next_node_id(flow.graph, node_id, branch=button_index)
+    if not next_id:
+        run.is_waiting = False
+        run.awaiting_node_id = ""
+        run.save(update_fields=["is_waiting", "awaiting_node_id", "updated_at"])
+        return False
+
+    # The parked node is already in ``visited``; the walk continues past it.
+    _advance(run, flow.graph, next_id, {"message": None, "comment_text": "", "sender_name": ""})
+    return True

@@ -286,8 +286,84 @@ def resolve_private_reply_comment_id(extra: dict | None) -> str:
     return str(value or "")
 
 
+#: Buttons Meta accepts on a ``button`` template, by our own type name.
+#:
+#: Only these two, and the restriction is the platform's rather than ours.
+#: ``web_url`` opens a link; ``postback`` sends the payload back to the webhook.
+#: Instagram's Send API rejects the other Messenger button types (call, login,
+#: game_play) outright, and a flow that rendered differently per platform would
+#: be a flow whose author cannot predict what their audience sees.
+BUTTON_TYPES = frozenset({"web_url", "postback"})
+
+#: Meta's own ceiling on a button template. Exceeding it fails the whole send,
+#: so the extras are dropped rather than allowed to cost the message.
+MAX_BUTTONS = 3
+
+#: Longest a button's visible label may be before Meta refuses it.
+MAX_BUTTON_TITLE = 20
+
+
+def build_buttons(buttons) -> list[dict]:
+    """Normalise a flow's button list into Send API button objects.
+
+    Returns ``[]`` for anything unusable, which the caller reads as "send this
+    as plain text". That is the important failure mode: a malformed button must
+    cost the *button*, never the message, because the message is what the
+    person is waiting for.
+
+    Each entry is ``{"type", "title", "url"|"payload"}``. A ``web_url`` button
+    with no URL and a ``postback`` with no payload are both dropped — the first
+    would render a button that does nothing, the second one whose click the
+    webhook cannot route.
+
+    Titles are truncated rather than rejected: Meta refuses the whole send over
+    a long label, and losing a 25-character label's tail is better than losing
+    the message it was attached to.
+    """
+    if not isinstance(buttons, list | tuple):
+        return []
+    built: list[dict] = []
+    for entry in buttons:
+        if not isinstance(entry, dict):
+            continue
+        kind = entry.get("type")
+        if kind not in BUTTON_TYPES:
+            continue
+        title = entry.get("title")
+        if not isinstance(title, str) or not title.strip():
+            continue
+        title = title.strip()[:MAX_BUTTON_TITLE]
+
+        if kind == "web_url":
+            url = entry.get("url")
+            if not isinstance(url, str) or not url.strip():
+                continue
+            # Scheme-checked here rather than trusted: this value reaches a
+            # person's browser, and a ``javascript:`` URL in a message the
+            # *account* appears to have sent is the account's problem.
+            url = url.strip()
+            if not url.lower().startswith(("http://", "https://")):
+                continue
+            built.append({"type": "web_url", "title": title, "url": url})
+        else:
+            payload = entry.get("payload")
+            if not isinstance(payload, str) or not payload.strip():
+                continue
+            built.append({"type": "postback", "title": title, "payload": payload.strip()})
+
+        if len(built) >= MAX_BUTTONS:
+            break
+    return built
+
+
 def build_send_payload(
-    recipient_id: str = "", text: str = "", *, human_agent: bool = False, comment_id: str = ""
+    recipient_id: str = "",
+    text: str = "",
+    *,
+    human_agent: bool = False,
+    comment_id: str = "",
+    buttons=None,
+    image_url: str = "",
 ) -> dict:
     """Build a Send API request body.
 
@@ -304,15 +380,55 @@ def build_send_payload(
     whenever ``comment_id`` is set. HUMAN_AGENT asserts that a *person* is
     answering outside the 24-hour window; an automated private reply is the
     opposite claim, and Meta may reject or penalize the Page for making it.
+
+    ``buttons`` promotes the body from a plain text message to a **button
+    template**, and ``image_url`` to a **generic template** (a card: image,
+    title, buttons). The three shapes are mutually exclusive in the API, so the
+    choice is made here, once, rather than by each provider. Buttons that do not
+    survive :func:`build_buttons` are dropped and the message degrades to plain
+    text — see that function for why losing the button must not cost the
+    message.
     """
     # Padrão de brightbean-chat apps/channels/providers/instagram.py (AGPL-3.0).
     recipient = {"comment_id": comment_id} if comment_id else {"id": recipient_id}
     # Forced rather than merely unset so no caller can smuggle the tag in with a
     # comment_id — the guard has to hold at the single place the body is built.
     human_agent = human_agent and not comment_id
+
+    built = build_buttons(buttons)
+    if image_url and built:
+        # Generic template: the only shape that carries an image *and* buttons.
+        # ``text`` becomes the card's title, which is what the person reads.
+        message: dict = {
+            "attachment": {
+                "type": "template",
+                "payload": {
+                    "template_type": "generic",
+                    "elements": [
+                        {
+                            "title": (text or " ")[:80],
+                            "image_url": image_url,
+                            "buttons": built,
+                        }
+                    ],
+                },
+            }
+        }
+    elif built:
+        message = {
+            "attachment": {
+                "type": "template",
+                "payload": {"template_type": "button", "text": text or " ", "buttons": built},
+            }
+        }
+    elif image_url:
+        message = {"attachment": {"type": "image", "payload": {"url": image_url, "is_reusable": True}}}
+    else:
+        message = {"text": text}
+
     payload: dict = {
         "recipient": recipient,
-        "message": {"text": text},
+        "message": message,
         "messaging_type": "MESSAGE_TAG" if human_agent else "RESPONSE",
     }
     if human_agent:

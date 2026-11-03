@@ -394,8 +394,60 @@ def _upsert_instagram_mention(account, value: dict):
 
 
 @transaction.atomic
+def _handle_flow_postback(account, messaging: dict) -> bool:
+    """Resume a parked automation flow when someone taps a button.
+
+    Returns whether this event was a flow step, so the caller can stop rather
+    than also filing it as an inbox message.
+
+    A tap arrives in one of two shapes depending on the button and the platform:
+    ``postback`` for a button template, ``message.quick_reply`` for a quick
+    reply. Both carry nothing but an opaque payload, which is why
+    ``engine.build_postback`` puts the run and node ids inside it.
+
+    **Not filed in the inbox.** A tap is the person operating a flow, not a
+    message they wrote: a row saying "Me envie o link" would start an SLA clock
+    on an answer the flow is already sending, and show the team a customer
+    question that does not exist.
+
+    Never raises — the caller is a live webhook, and an exception here would
+    unwind the whole delivery and cost the *other* events in the same batch.
+    """
+    payload = (messaging.get("postback") or {}).get("payload")
+    if not payload:
+        payload = ((messaging.get("message") or {}).get("quick_reply") or {}).get("payload")
+    if not payload:
+        return False
+
+    from apps.automations.engine import parse_postback, resume_from_postback
+
+    if parse_postback(payload) is None:
+        # Another integration's payload, or Meta's own GET_STARTED. Not ours to
+        # consume — fall through so it is handled as a normal event.
+        return False
+
+    sender_id = str((messaging.get("sender") or {}).get("id") or "")
+    try:
+        resume_from_postback(account, sender_id, payload)
+    except Exception:
+        # Only our own ids reach the log; the payload is ours but the rest of
+        # the event is attacker-influenced.
+        logger.exception("Could not resume an automation flow for account %s", account.id)
+    # Consumed either way: a tap we recognised but could not act on is still not
+    # an inbox message.
+    return True
+
+
 def _handle_facebook_messaging(account, messaging: dict):
     """Handle a Facebook/Instagram messaging event (DM)."""
+    # Before anything else: a button tap is a flow step, not a DM. Checked here
+    # rather than after the ``mid`` guard below because a ``postback`` event
+    # carries no ``mid`` at all and would otherwise be dropped silently.
+    if _is_own_activity(account, messaging.get("sender") or {}):
+        return
+    if _handle_flow_postback(account, messaging):
+        return
+
     message_data = messaging.get("message", {})
     mid = message_data.get("mid")
     if not mid:

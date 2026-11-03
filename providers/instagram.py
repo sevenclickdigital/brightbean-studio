@@ -645,7 +645,15 @@ class InstagramProvider(SocialProvider):
             "POST",
             f"{BASE_URL}/{page_id}/messages",
             access_token=access_token,
-            json=build_send_payload(recipient_id, text, human_agent=human_agent, comment_id=private_reply_comment_id),
+            # Buttons on ``extra`` — see the note in ``facebook.py``.
+            json=build_send_payload(
+                recipient_id,
+                text,
+                human_agent=human_agent,
+                comment_id=private_reply_comment_id,
+                buttons=(extra or {}).get("buttons"),
+                image_url=(extra or {}).get("image_url", ""),
+            ),
         ).json()
         return ReplyResult(platform_message_id=require_message_id(data, platform=self.platform_name), extra=data)
 
