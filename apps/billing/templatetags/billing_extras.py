@@ -40,6 +40,28 @@ def brl(cents):
 
 
 @register.filter
+def brl_input(amount):
+    """A reais ``Decimal`` as the value of a masked currency field.
+
+    Distinct from :func:`brl` in what it takes and why. ``brl`` formats
+    integer *cents* for display; this formats a reais ``Decimal``
+    (``services.price_input_value``) for an ``<input>`` the operator will
+    edit and post back — so it must round-trip through
+    ``services.parse_price_value``, which is the only reason it exists
+    rather than reusing ``brl``.
+
+    Grouped and localised, matching the mask the field applies as the
+    operator types: a first paint that reads "1234.56" and then snaps to
+    "1.234,56" on the first keystroke looks broken.
+    """
+    try:
+        value = Decimal(str(amount))
+    except (TypeError, ValueError, ArithmeticError):
+        return ""
+    return number_format(value, decimal_pos=2, use_l10n=True, force_grouping=True)
+
+
+@register.filter
 def gb(num_bytes):
     """Bytes as a short decimal-GB label, e.g. 10000000000 → ``10``.
 

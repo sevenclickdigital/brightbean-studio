@@ -107,6 +107,15 @@ decorated with ``_staff_required`` (apps/billing/views.py). The
                     <span class="sidebar-nav-label">{% translate "Plan and prices" %}</span>
                 </a>
 
+                {# Between prices and the access log because it reads #}
+                {# downward from policy to instances to audit: what we #}
+                {# charge, who is on it, who touched an account. #}
+                <a href="{% url 'billing_staff:subscriptions' %}"
+                   class="sidebar-nav-item mb-1 {% if admin_active == 'subscriptions' %}active{% endif %}">
+                    <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                    <span class="sidebar-nav-label">{% translate "Subscriptions" %}</span>
+                </a>
+
                 <a href="{% url 'billing_staff:impersonation_log' %}"
                    class="sidebar-nav-item mb-1 {% if admin_active == 'impersonations' %}active{% endif %}">
                     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>

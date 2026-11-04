@@ -12,14 +12,19 @@ bytes.
 from __future__ import annotations
 
 import uuid
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 
 from django.conf import settings
+from django.core.cache import cache
 from django.db import models, transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.billing.models import (
     BillingEvent,
     OrganizationBillingProfile,
+    ProductPrice,
+    ProductPriceChange,
     WorkspaceAddon,
     WorkspaceSubscription,
 )
@@ -27,16 +32,105 @@ from apps.billing.models import (
 # ---------------------------------------------------------------------------
 # Price list
 # ---------------------------------------------------------------------------
+# Three figures, each readable from one function, and those three
+# functions are the only place in the codebase that asks what something
+# costs. That is what lets the price list move from settings into the
+# database without touching a single call site.
+#
+# Resolution order, per figure: the ``ProductPrice`` row if one exists,
+# otherwise the deployment setting. Absence — not a sentinel value — is
+# what means "nobody has set this", so a fresh installation charges the
+# configured default and the default is preserved rather than copied into
+# the database by a migration.
+
+#: Which setting backs each key when no row has been written. The mapping
+#: lives here rather than on the model so the model stays free of
+#: deployment concerns and this module keeps the whole fallback rule in
+#: one readable place.
+_PRICE_FALLBACK_SETTINGS = {
+    ProductPrice.Key.WORKSPACE_PRICE_CENTS: "BILLING_WORKSPACE_PRICE_CENTS",
+    ProductPrice.Key.BASE_STORAGE_BYTES: "BILLING_WORKSPACE_BASE_STORAGE_BYTES",
+    ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS: "BILLING_STORAGE_PRICE_PER_GB_CENTS",
+}
+
+#: Hard ceilings, per key, on what an operator may save. Not opinions
+#: about the business: they are the "absurd input" guard. R$ 100.000,00 a
+#: month per workspace and R$ 10.000,00 a GB are both far past anything
+#: this product would charge, and 100 TB of included disk is past what it
+#: could serve — so a value above them is a typo (a price pasted with its
+#: cents twice, a byte figure typed into a GB field) rather than a
+#: decision, and refusing is kinder than writing it.
+PRICE_MAX_VALUES = {
+    ProductPrice.Key.WORKSPACE_PRICE_CENTS: 10_000_000,
+    ProductPrice.Key.BASE_STORAGE_BYTES: 100 * 1_000_000_000_000,
+    ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS: 1_000_000,
+}
+
+#: Cached because the three readers run in a loop on the customers screen
+#: (once per workspace per account) and on every storage check. The TTL is
+#: a backstop only: ``set_price`` invalidates on write, so a stale figure
+#: can outlive the truth by at most this long and only if an invalidation
+#: is missed entirely.
+_PRICE_CACHE_SECONDS = 300
+
+#: Sentinel stored in the cache for "there is no row for this key", so a
+#: fresh installation (the normal state) does not re-query on every read
+#: just because the honest answer is absence. ``None`` cannot be used —
+#: ``cache.get`` returns it for a miss.
+_PRICE_ABSENT = -1
+
+
+def _price_cache_key(key):
+    return f"billing:product_price:{key}"
+
+
+def _configured_price(key):
+    """The stored value for ``key``, or None when nobody has set one.
+
+    None is the whole point: it is what sends the caller to the
+    deployment setting, and it is distinguishable from a stored 0 — which
+    is a legitimate price (a figure the owner has deliberately zeroed)
+    and must not silently fall back to 5000.
+    """
+    cache_key = _price_cache_key(key)
+    cached = cache.get(cache_key)
+    if cached is not None:
+        return None if cached == _PRICE_ABSENT else int(cached)
+
+    row = ProductPrice.objects.filter(key=key).only("value").first()
+    value = None if row is None else int(row.value)
+    cache.set(cache_key, _PRICE_ABSENT if value is None else value, _PRICE_CACHE_SECONDS)
+    return value
+
+
+def _resolved_price(key):
+    """``key``'s effective value: the stored row, else the setting."""
+    value = _configured_price(key)
+    if value is not None:
+        return value
+    return int(getattr(settings, _PRICE_FALLBACK_SETTINGS[key]))
+
+
+def invalidate_price_cache(key=None):
+    """Drop the cached price list, or one key of it.
+
+    Deleting rather than rewriting, for the same reason the storage-usage
+    cache does: the next reader pays for one query, and a correct read is
+    worth more than a saved one on a figure that changes a few times a
+    year.
+    """
+    keys = [key] if key is not None else list(_PRICE_FALLBACK_SETTINGS)
+    cache.delete_many([_price_cache_key(k) for k in keys])
 
 
 def workspace_price_cents():
     """List price of one workspace per month, in cents."""
-    return settings.BILLING_WORKSPACE_PRICE_CENTS
+    return _resolved_price(ProductPrice.Key.WORKSPACE_PRICE_CENTS)
 
 
 def base_storage_bytes():
     """Disk included with every workspace, in bytes."""
-    return settings.BILLING_WORKSPACE_BASE_STORAGE_BYTES
+    return _resolved_price(ProductPrice.Key.BASE_STORAGE_BYTES)
 
 
 def storage_price_per_gb_cents():
@@ -46,7 +140,295 @@ def storage_price_per_gb_cents():
     own ``unit_price_cents``, so changing this value never re-prices an
     add-on already sold.
     """
-    return settings.BILLING_STORAGE_PRICE_PER_GB_CENTS
+    return _resolved_price(ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS)
+
+
+def price_list():
+    """Every figure the operator can edit, with where it came from.
+
+    One query for the lot, so the screen does not do three. ``source`` is
+    reported because "R$ 50,00 because nobody has decided yet" and
+    "R$ 50,00 because the owner chose it" are different facts, and the
+    screen should not present the first as the second.
+    """
+    rows = {row.key: row for row in ProductPrice.objects.select_related("updated_by")}
+    entries = {}
+    for key, setting_name in _PRICE_FALLBACK_SETTINGS.items():
+        row = rows.get(key)
+        entries[key] = {
+            "key": key,
+            "value": int(row.value) if row else int(getattr(settings, setting_name)),
+            "is_configured": row is not None,
+            "updated_at": row.updated_at if row else None,
+            "updated_by": row.updated_by if row else None,
+            "default_value": int(getattr(settings, setting_name)),
+        }
+    return entries
+
+
+# The refusal wording, per key and per reason. Written out per key rather
+# than built from a generic template because each figure has its own unit
+# and the unit is most of the content of the message. Lazy so the module
+# imports before the translations are active; resolved when the message is
+# handed to ``messages.error``.
+#
+# Aliased ``_`` and not something more descriptive: ``xgettext`` only
+# recognises the conventional names, so an alias like ``_lazy`` extracts
+# nothing and every message below would render in English forever.
+#
+# Every money message talks in reais, never in cents: cents are how this
+# app STORES money, and the operator is not writing the storage layer. The
+# screen asks for R$ 50,00 and so does the refusal.
+_PRICE_MESSAGES = {
+    ProductPrice.Key.WORKSPACE_PRICE_CENTS: {
+        "required": _("Enter the price per workspace, in reais."),
+        "not_a_number": _("The price per workspace is not a valid amount. Enter it as 50,00."),
+        "negative": _("The price per workspace cannot be negative. Use 0 to charge nothing."),
+        "too_precise": _("The price per workspace cannot have fractions of a cent. Use at most two decimals."),
+        "too_large": _("That price per workspace is too high to be intentional. Check the amount."),
+    },
+    ProductPrice.Key.BASE_STORAGE_BYTES: {
+        "required": _("Enter how much disk is included, in GB."),
+        "not_a_number": _("The included disk must be a whole number of GB."),
+        "negative": _("The included disk cannot be negative. Use 0 to include none."),
+        "too_precise": _("The included disk must be a whole number of GB."),
+        "too_large": _("That amount of included disk is too high to be intentional. Check the value, in GB."),
+    },
+    ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS: {
+        "required": _("Enter the price per extra GB, in reais."),
+        "not_a_number": _("The price per extra GB is not a valid amount. Enter it as 2,00."),
+        "negative": _("The price per extra GB cannot be negative. Use 0 to give extra disk away."),
+        "too_precise": _("The price per extra GB cannot have fractions of a cent. Use at most two decimals."),
+        "too_large": _("That price per extra GB is too high to be intentional. Check the amount."),
+    },
+}
+
+
+class PriceValidationError(ValueError):
+    """An operator-supplied price that must not be written.
+
+    A dedicated exception rather than returning None so a caller cannot
+    accidentally treat "refused" as "unchanged", and so the message that
+    reaches the operator is written once, next to the rule it breaks.
+    """
+
+
+#: The unit each figure is TYPED in, as opposed to the unit it is stored
+#: in. Both differ from storage, and for the same reason: nobody types ten
+#: zeroes for ten gigabytes, and nobody thinks about a price in cents.
+#:
+#: Money is stored in cents and disk in bytes — the convention this whole
+#: app holds and which does not change here. The conversion happens in
+#: ``parse_price_value``, in the same function that produces the error
+#: message, so the unit the operator was asked for and the unit the
+#: refusal names can never disagree.
+_INPUT_UNIT_CURRENCY = "currency"
+_INPUT_UNIT_GB = "gb"
+
+_PRICE_INPUT_UNITS = {
+    ProductPrice.Key.WORKSPACE_PRICE_CENTS: _INPUT_UNIT_CURRENCY,
+    ProductPrice.Key.BASE_STORAGE_BYTES: _INPUT_UNIT_GB,
+    ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS: _INPUT_UNIT_CURRENCY,
+}
+
+#: Everything a currency field may contain besides the digits and the
+#: decimal mark. Stripped rather than refused because a person typing into
+#: a masked field produces all of it: the mask itself writes "R$" and the
+#: thousands dots, and a paste from a spreadsheet brings a non-breaking
+#: space along.
+_CURRENCY_NOISE = str.maketrans({"R": None, "$": None, " ": None, " ": None, " ": None})
+
+#: Two decimals, rounded half-up, which is the rounding a person expects
+#: of money and not the banker's rounding ``Decimal`` defaults to.
+_CENTS_EXPONENT = Decimal("0.01")
+
+#: Magnitude past which a parsed amount is refused before any arithmetic
+#: touches it. Exists for a mechanical reason, not a business one:
+#: ``Decimal("1e400").quantize(Decimal("0.01"))`` raises InvalidOperation
+#: rather than returning a number, so an exponent typed into the field
+#: would be a 500 instead of a message. Comfortably above every per-key
+#: ceiling in ``PRICE_MAX_VALUES``, which is what actually decides
+#: "too high to be intentional".
+_CURRENCY_PARSE_CEILING = Decimal(10) ** 15
+
+
+def _parse_currency_to_cents(text, messages_for_key):
+    """``text`` as an integer number of cents, pt-BR conventions.
+
+    Accepts everything a person naturally types into a currency field:
+    ``50``, ``50,00``, ``R$ 50,00``, ``1.234,56``, and — tolerated
+    because a keyboard's numeric pad produces it and a paste from an
+    English spreadsheet does too — ``50.00``.
+
+    ``Decimal`` throughout, never ``float``: ``float("0.07") * 100`` is
+    7.000000000000001, and ``int()`` of that is 7 only by luck of which
+    direction the error went. On money the luck is not acceptable.
+
+    The comma/dot ambiguity is resolved by position, not by guessing: a
+    comma is always the decimal mark (pt-BR), so any dot in a string
+    containing a comma is a thousands separator. With no comma, a single
+    dot followed by one or two digits is read as a decimal mark — which
+    is what makes ``50.00`` work — and anything else is thousands.
+    """
+    cleaned = text.translate(_CURRENCY_NOISE)
+    if not cleaned:
+        raise PriceValidationError(messages_for_key["required"])
+
+    if "," in cleaned:
+        # pt-BR: comma decides, so every dot is a thousands separator.
+        cleaned = cleaned.replace(".", "").replace(",", ".")
+    elif cleaned.count(".") == 1:
+        whole, _, fraction = cleaned.partition(".")
+        # "50.00" is R$ 50,00; "1.234" is R$ 1.234,00. Decided by the
+        # length of the group after the dot, which is the only signal
+        # there is — and the one a human reading it would use.
+        if len(fraction) == 3 and whole:
+            cleaned = whole + fraction
+    elif cleaned.count(".") > 1:
+        cleaned = cleaned.replace(".", "")
+
+    try:
+        amount = Decimal(cleaned)
+    except InvalidOperation:
+        raise PriceValidationError(messages_for_key["not_a_number"]) from None
+    # Decimal accepts "NaN" and "Infinity" without complaint, and both
+    # would sail past the comparisons below.
+    if not amount.is_finite():
+        raise PriceValidationError(messages_for_key["not_a_number"])
+    if amount < 0:
+        raise PriceValidationError(messages_for_key["negative"])
+    # Bounded BEFORE quantizing, and this ordering is load-bearing:
+    # ``Decimal("1e400").quantize(...)`` raises InvalidOperation rather
+    # than returning a number, so a precision check placed first turns a
+    # typo into a 500. The ceiling is re-checked in stored units by the
+    # caller; this one only has to keep the arithmetic below in range.
+    if amount > _CURRENCY_PARSE_CEILING:
+        raise PriceValidationError(messages_for_key["too_large"])
+    # Refused rather than rounded: "0,005" is somebody who meant
+    # something, and silently charging them 0 or 1 cent is guessing at
+    # which. Compared against the quantized value, which is what makes a
+    # third decimal visible at all.
+    quantized = amount.quantize(_CENTS_EXPONENT, rounding=ROUND_HALF_UP)
+    if amount != quantized:
+        raise PriceValidationError(messages_for_key["too_precise"])
+
+    return int(quantized * 100)
+
+
+def _parse_gb_to_bytes(text, messages_for_key):
+    """``text`` as an integer number of bytes from a whole-GB figure.
+
+    Whole GB only: the plan is quoted in gigabytes and a fractional one
+    has never been sold, so "10,5" is far more likely a typo than an
+    intent to include 10.5 GB.
+    """
+    try:
+        value = int(text)
+    except (TypeError, ValueError):
+        raise PriceValidationError(messages_for_key["not_a_number"]) from None
+    if value < 0:
+        raise PriceValidationError(messages_for_key["negative"])
+    return value * WorkspaceAddon.BYTES_PER_GB
+
+
+def parse_price_value(key, raw):
+    """A validated stored-unit integer for ``key`` from raw form input.
+
+    Every refusal is a message the operator can act on — the point is
+    that bad input never reaches the database and never becomes a 500.
+    Empty, non-numeric, negative, over-precise and absurd are all refused
+    here, so the view has no validation of its own to get wrong.
+
+    The bound is checked after conversion, against ``PRICE_MAX_VALUES``,
+    which is in stored units — so one ceiling covers the figure however
+    it was typed.
+    """
+    messages_for_key = _PRICE_MESSAGES[key]
+    text = "" if raw is None else str(raw).strip()
+    if not text:
+        raise PriceValidationError(messages_for_key["required"])
+
+    if _PRICE_INPUT_UNITS[key] == _INPUT_UNIT_CURRENCY:
+        value = _parse_currency_to_cents(text, messages_for_key)
+    else:
+        value = _parse_gb_to_bytes(text, messages_for_key)
+
+    if value > PRICE_MAX_VALUES[key]:
+        raise PriceValidationError(messages_for_key["too_large"])
+    return value
+
+
+def price_input_value(key, stored_value):
+    """``stored_value`` back in the unit the form asks for.
+
+    The inverse of :func:`parse_price_value`, so a field redisplays what
+    the operator typed rather than the cents or bytes it was stored as.
+
+    Money comes back as a ``Decimal`` with two places, which the template
+    then renders through the locale — a string built here would hardcode
+    one locale's decimal mark into the value the form posts back.
+    """
+    stored_value = int(stored_value)
+    if _PRICE_INPUT_UNITS[key] == _INPUT_UNIT_CURRENCY:
+        return (Decimal(stored_value) / 100).quantize(_CENTS_EXPONENT)
+    # Exact: the only way to write this key is through the whole-GB field.
+    return stored_value // WorkspaceAddon.BYTES_PER_GB
+
+
+def set_price(key, value, *, changed_by=None):
+    """Write one list price and record who changed it from what.
+
+    The row and its history entry are written in one transaction: a price
+    that moved with no trail, or a trail for a price that did not move,
+    are both worse than the edit failing. Returns ``(price, change)``,
+    with ``change`` None when the value was already what was asked for —
+    a resubmitted form is then idempotent instead of filling the history
+    with no-ops.
+
+    Nothing already sold is touched, and nothing here could touch it:
+    every ``WorkspaceSubscription`` and ``WorkspaceAddon`` carries its own
+    price column, written once at contracting time. That invariant is the
+    reason this function exists at all rather than an UPDATE across the
+    sold rows.
+    """
+    if key not in _PRICE_FALLBACK_SETTINGS:
+        raise PriceValidationError("Unknown price key.")
+    value = int(value)
+
+    with transaction.atomic():
+        row = ProductPrice.objects.select_for_update().filter(key=key).first()
+        previous = None if row is None else int(row.value)
+        if previous == value:
+            return row, None
+
+        if row is None:
+            row = ProductPrice(key=key)
+        row.value = value
+        row.updated_by = changed_by
+        row.save()
+
+        change = ProductPriceChange.objects.create(
+            key=key,
+            previous_value=previous,
+            new_value=value,
+            changed_by=changed_by,
+            changed_by_email=getattr(changed_by, "email", "") or "",
+        )
+
+    # After the commit, so a reader that races the write cannot repopulate
+    # the cache from the pre-commit snapshot and then be invalidated.
+    invalidate_price_cache(key)
+    return row, change
+
+
+def recent_price_changes(limit=20):
+    """The latest edits to the price list, newest first.
+
+    A window rather than pagination: the question the screen asks is
+    "what moved recently, and who moved it", and price edits are rare
+    enough that a fixed window answers it for years.
+    """
+    return list(ProductPriceChange.objects.select_related("changed_by")[:limit])
 
 
 # ---------------------------------------------------------------------------

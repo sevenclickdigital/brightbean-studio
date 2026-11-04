@@ -9,6 +9,8 @@ URL surface:
 - ``/workspace/<workspace_id>/billing/storage/``          : POST, buys GB
 - ``/billing/staff/``                                     : customers
 - ``/billing/staff/plans/``                               : plan and prices
+- ``/billing/staff/plans/prices/``                        : POST, list prices
+- ``/billing/staff/subscriptions/``                       : subscriptions
 - ``/billing/staff/impersonations/``                      : access log
 - ``/billing/staff/courtesy/<target_workspace_id>/``      : POST, comp toggle
 - ``/billing/staff/quota/<org_id>/``                      : POST, org quota
@@ -53,7 +55,7 @@ from apps.accounts import impersonation
 from apps.accounts.models import ImpersonationSession, User
 from apps.billing import contracting, services
 from apps.billing.gateways.asaas import AsaasError, AsaasNotConfigured
-from apps.billing.models import WorkspaceAddon, WorkspaceSubscription
+from apps.billing.models import BillingEvent, ProductPrice, WorkspaceAddon, WorkspaceSubscription
 from apps.billing.storage_usage import storage_status
 from apps.members.models import OrgMembership, WorkspaceMembership
 from apps.organizations.models import Organization
@@ -342,7 +344,7 @@ def contract_storage(request, workspace_id):
 # ---------------------------------------------------------------------------
 # Administrative area (operator only)
 # ---------------------------------------------------------------------------
-# Three screens, split by the question each one answers, instead of the
+# Four screens, split by the question each one answers, instead of the
 # single page this used to be:
 #
 # - Customers      : "who is paying, who is comped, who is out of disk" —
@@ -356,12 +358,21 @@ def contract_storage(request, workspace_id):
 #                    index for exactly this question since impersonation
 #                    shipped, and no screen to ask it from.
 #
-# The split is by *question*, not by entity: a plans screen that could be
-# edited would need a pricing model (list prices are settings today, and
-# every sold row snapshots its own price), so it is read-only and says
-# so. Mixing it into the customer list, which is what the old subtitle
-# did, meant the product owner could not see the price list without
-# loading every organization's billing rows.
+# - Subscriptions  : "what does each individual contract look like, and
+#                    what has the provider actually told us about money" —
+#                    the per-row view the two screens above cannot give,
+#                    one being per account and the other per figure.
+#
+# The split is by *question*, not by entity. Mixing the price list into
+# the customer list, which is what the old subtitle did, meant the product
+# owner could not see it without loading every organization's billing
+# rows.
+#
+# Plan and prices is editable as of ``staff_update_prices``. It used to
+# say it could not be, on the grounds that list prices lived in settings
+# and every sold row snapshots its own price — the second half of which is
+# precisely why editing is safe, and is now the thing the screen is
+# careful to say. The first half is what ``billing.ProductPrice`` fixes.
 
 
 def _is_billing_staff(request):
@@ -601,21 +612,28 @@ def _may_deactivate(operator, target):
 @_staff_required
 @require_GET
 def staff_plans(request):
-    """The configured plan: what a workspace costs and what it includes.
+    """The plan: what a workspace costs, what it includes, and a form to
+    change it.
 
-    Read-only, and the page says so. The list prices are deployment
-    settings (``BILLING_*`` in config/settings/base.py) and every sold
-    subscription or add-on row snapshots the price it was sold at, so an
-    editable field here would either need a pricing model that does not
-    exist or would silently fail to change any existing customer's bill —
-    the worse of the two outcomes, because it would look like it worked.
+    Editable as of this change, which is a reversal of what this screen
+    said before — and the reversal is safe for exactly the reason the old
+    docstring gave for refusing: every sold ``WorkspaceSubscription`` and
+    ``WorkspaceAddon`` snapshots the price it was sold at. So an edit here
+    moves the *list* price and nothing else, which is what the product
+    owner wants (he has not even set the per-GB price yet) and is the one
+    behaviour the form must be honest about on screen.
 
-    Counts come from the same services the customer-facing billing page
-    reads, so "12 paying workspaces" here and the sum of the rows on the
-    customers screen cannot disagree.
+    The figures now come from ``services.price_list()`` — the database row
+    when one exists, the ``BILLING_*`` setting when none does — read
+    through the same three functions the customer-facing page reads, so
+    the operator cannot be shown a price nobody is charged.
+
+    Counts come from those same services, so "12 paying workspaces" here
+    and the sum of the rows on the customers screen cannot disagree.
     """
     subscriptions = WorkspaceSubscription.objects.all()
     addons = WorkspaceAddon.objects.filter(kind=WorkspaceAddon.Kind.EXTRA_STORAGE)
+    prices = services.price_list()
 
     return render(
         request,
@@ -624,6 +642,30 @@ def staff_plans(request):
             "workspace_price_cents": services.workspace_price_cents(),
             "storage_price_per_gb_cents": services.storage_price_per_gb_cents(),
             "base_storage_bytes": services.base_storage_bytes(),
+            # The editable form's own view of the same three figures,
+            # each already in the unit its field asks for: reais for the
+            # money ones, whole GB for disk. Converted here rather than
+            # in the template — a template that divides by 100 is how a
+            # price gets rendered as "50.0".
+            #
+            # Named for the unit the operator sees, not the unit stored,
+            # so a field cannot be wired to the wrong one by accident.
+            "prices": prices,
+            "price_form": {
+                "workspace_price_brl": services.price_input_value(
+                    ProductPrice.Key.WORKSPACE_PRICE_CENTS,
+                    prices[ProductPrice.Key.WORKSPACE_PRICE_CENTS]["value"],
+                ),
+                "base_storage_gb": services.price_input_value(
+                    ProductPrice.Key.BASE_STORAGE_BYTES,
+                    prices[ProductPrice.Key.BASE_STORAGE_BYTES]["value"],
+                ),
+                "storage_price_per_gb_brl": services.price_input_value(
+                    ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS,
+                    prices[ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS]["value"],
+                ),
+            },
+            "price_changes": services.recent_price_changes(),
             "storage_quota_enabled": getattr(settings, "BILLING_STORAGE_QUOTA_ENABLED", False),
             # Expected states, not an incident — see the module docstring.
             "gateway_configured": bool(getattr(settings, "ASAAS_API_KEY", "")),
@@ -643,6 +685,290 @@ def staff_plans(request):
                 or 0,
             },
             "admin_active": "plans",
+        },
+    )
+
+
+# The three fields the form posts, each paired with the ``ProductPrice``
+# key it writes. A tuple rather than three named reads so a field added
+# later cannot be validated but not saved, or saved but not audited.
+#
+# Every name states the unit the OPERATOR types, which is not the unit
+# stored: ``_brl`` fields take reais ("R$ 50,00", "50", "1.234,56") and
+# ``_gb`` takes whole gigabytes. ``services.parse_price_value`` converts
+# to the stored cents and bytes. Naming them for the typed unit is what
+# keeps a field from being wired to the wrong converter — and asking an
+# operator for cents, which the first version of this screen did, exposes
+# the storage layer to somebody who thinks in reais.
+_PRICE_FIELDS = (
+    ("workspace_price_brl", ProductPrice.Key.WORKSPACE_PRICE_CENTS),
+    ("base_storage_gb", ProductPrice.Key.BASE_STORAGE_BYTES),
+    ("storage_price_per_gb_brl", ProductPrice.Key.STORAGE_PRICE_PER_GB_CENTS),
+)
+
+
+@_staff_required
+@require_POST
+def staff_update_prices(request):
+    """Change the product's list prices.
+
+    Validate-all-then-write, deliberately: the three figures are one
+    decision ("this is the plan"), and writing the two that parsed while
+    refusing the third would leave the price list in a state the operator
+    never chose — a workspace price raised and the disk it includes still
+    at the old figure. So a single bad field refuses the whole submission
+    and nothing is written.
+
+    What this endpoint can and cannot reach is the point of the whole
+    feature: it writes ``ProductPrice`` rows, which are read only when
+    something is *contracted*. Every subscription and add-on already sold
+    carries its own price column and is not touched here — not by this
+    view, not by ``services.set_price``, and not by any UPDATE either one
+    runs. A customer's bill can only change by contracting something new.
+
+    Behind ``_staff_required`` like every other write in this area, which
+    also closes it during an impersonated session: a price changed from
+    inside a customer's session would be recorded against the customer's
+    identity in the trail, which is worse than no trail.
+    """
+    parsed = []
+    for field, key in _PRICE_FIELDS:
+        try:
+            parsed.append((key, services.parse_price_value(key, request.POST.get(field))))
+        except services.PriceValidationError as exc:
+            messages.error(request, str(exc))
+            # Nothing written — see the docstring. The operator's other
+            # two values are still in the form they posted from.
+            return redirect("billing_staff:plans")
+
+    changed = []
+    for key, value in parsed:
+        _price, change = services.set_price(key, value, changed_by=request.user)
+        if change is not None:
+            changed.append(key)
+
+    if not changed:
+        messages.info(request, _("The prices were already those values, so nothing changed."))
+        return redirect("billing_staff:plans")
+
+    # Logged as well as recorded in ProductPriceChange: the trail is the
+    # record of truth, and the log line is what correlates a price move
+    # with whatever else happened in that deploy's logs.
+    logger.warning(
+        "Operator %s changed %s list price(s): %s",
+        request.user.email,
+        len(changed),
+        ", ".join(str(key) for key in changed),
+    )
+    messages.success(
+        request,
+        _(
+            "Prices updated. Only subscriptions and add-ons contracted from now on use the new values — "
+            "nobody who already bought is re-priced."
+        ),
+    )
+    return redirect("billing_staff:plans")
+
+
+# ---------------------------------------------------------------------------
+# Subscriptions and billing
+# ---------------------------------------------------------------------------
+# The fourth screen. The question it answers that no other screen does:
+# "what does each individual subscription look like, and what has the
+# provider actually told us about money".
+#
+# Customers is per *account* and is the comparative view with the actions
+# on it. Plan and prices is per *figure* and counts states in aggregate
+# ("2 awaiting first payment"), which is useless for finding *which* two.
+# This one is per subscription row, and per gateway event.
+#
+# The hard line it holds, stated on screen as well as here: **contracted
+# is not received.** The recurring total below is the sum of what active
+# subscriptions are priced at — money we have agreed to bill. What has
+# actually been collected is only knowable from the provider, and with no
+# Asaas credentials on this installation the honest answer is that
+# nothing has. Presenting the first number as the second would be the one
+# mistake on this screen worse than showing no number at all.
+
+#: Statuses the filter offers, in the order an operator wants them: the
+#: ones needing a decision first. ``""`` means no filter.
+SUBSCRIPTION_FILTERS = (
+    "",
+    WorkspaceSubscription.Status.PAST_DUE,
+    WorkspaceSubscription.Status.PENDING,
+    WorkspaceSubscription.Status.ACTIVE,
+    WorkspaceSubscription.Status.COURTESY,
+    WorkspaceSubscription.Status.CANCELED,
+)
+
+#: How many gateway events the financial history shows. Same reasoning as
+#: the impersonation log's cap: a recency question, and the cap is what
+#: keeps the page off a full-table scan once the provider is live and
+#: sending an event per payment per month per workspace.
+BILLING_EVENT_LIMIT = 100
+
+
+def _event_amount_cents(payload):
+    """The amount an Asaas event reports, in cents, or None.
+
+    Extracted ONLY from ``payment.value``, which is the charge's gross
+    amount and the one money field Asaas documents on every payment
+    event. Deliberately not ``netValue`` (gross minus their fee — a
+    different question than "what was this customer billed") and
+    deliberately not inferred from the local subscription's price, which
+    would be us reporting our own list price back as if the provider had
+    confirmed it.
+
+    Returns None rather than 0 whenever the field is absent, non-numeric,
+    or the event has no payment object at all — a subscription event, say.
+    None renders as "—" on screen; 0 would read as a free charge.
+
+    Floats are accepted here because the provider sends them (Asaas emits
+    ``"value": 50.0``) and converted to cents with rounding, which is
+    exact for the two-decimal amounts it actually sends. This is the only
+    place in the app that converts a float into cents, and it is doing so
+    because the number arrives from outside in that shape.
+    """
+    payment = payload.get("payment") if isinstance(payload, dict) else None
+    if not isinstance(payment, dict):
+        return None
+    raw = payment.get("value")
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        return int(round(float(raw) * 100))
+    except (TypeError, ValueError):
+        return None
+
+
+@_staff_required
+@require_GET
+def staff_subscriptions(request):
+    """Every subscription, one per row, plus what the provider has said.
+
+    Three things on one screen because they are three views of the same
+    money and splitting them would mean the operator cross-referencing
+    two tabs to answer "is this account paying":
+
+    1. The totals, with contracted and received kept visibly apart.
+    2. One row per ``WorkspaceSubscription`` — account, workspace,
+       status, monthly charge including add-ons, period end, add-on
+       presence. Filterable by status, because "find the past-due ones"
+       is the reason to open this screen at all.
+    3. The gateway's own event log, which is the only truthful source for
+       what was billed and collected.
+
+    An unrecognised ``status`` in the query string is ignored rather than
+    refused: it arrives from a hand-edited URL or a stale bookmark, and
+    the useful answer to that is the unfiltered list, not a 400.
+    """
+    status_filter = request.GET.get("status", "")
+    if status_filter not in SUBSCRIPTION_FILTERS:
+        status_filter = ""
+
+    subscriptions = (
+        WorkspaceSubscription.objects.select_related("workspace", "workspace__organization")
+        .prefetch_related(
+            Prefetch(
+                "workspace__billing_addons",
+                queryset=WorkspaceAddon.objects.filter(status=WorkspaceAddon.Status.ACTIVE),
+                to_attr="active_addons",
+            )
+        )
+        .order_by("workspace__organization__name", "workspace__name")
+    )
+    if status_filter:
+        subscriptions = subscriptions.filter(status=status_filter)
+
+    rows = []
+    for sub in subscriptions:
+        addons = sub.workspace.active_addons
+        rows.append(
+            {
+                "subscription": sub,
+                "workspace": sub.workspace,
+                "organization": sub.workspace.organization,
+                # Through the subscription's own property, so this screen
+                # and the customer's billing page cannot show different
+                # monthly figures for the same workspace.
+                "monthly_total_cents": sub.monthly_total_cents,
+                "active_addon_count": len(addons),
+                "active_addon_gb": sum(
+                    addon.quantity for addon in addons if addon.kind == WorkspaceAddon.Kind.EXTRA_STORAGE
+                ),
+            }
+        )
+
+    # Totals computed over EVERY subscription, never over the filtered
+    # queryset: a total that moves when the operator filters the list is
+    # not a total, and "R$ 0,00 overdue" while filtered to Active would
+    # be read as nobody being overdue.
+    all_subs = WorkspaceSubscription.objects.select_related("workspace")
+    contracted_cents = 0
+    exempt_cents = 0
+    past_due_cents = 0
+    for sub in all_subs:
+        if sub.status == WorkspaceSubscription.Status.ACTIVE:
+            contracted_cents += sub.monthly_total_cents
+        elif sub.status == WorkspaceSubscription.Status.COURTESY:
+            # What the comp costs us, which is what the owner wants to
+            # know about a courtesy — so priced at the row's own
+            # price_cents rather than through ``monthly_total_cents``,
+            # which correctly returns 0 for a courtesy row.
+            exempt_cents += sub.price_cents + services.addons_monthly_cents(sub.workspace_id)
+        elif sub.status == WorkspaceSubscription.Status.PAST_DUE:
+            past_due_cents += sub.monthly_total_cents
+
+    events = list(
+        BillingEvent.objects.select_related(
+            "subscription",
+            "subscription__workspace",
+            "subscription__workspace__organization",
+            "addon",
+            "addon__workspace",
+            "addon__workspace__organization",
+        )[:BILLING_EVENT_LIMIT]
+    )
+    event_rows = []
+    for event in events:
+        # The workspace is known only when the webhook matched the event
+        # to a local row. An event it could not place is still shown —
+        # that is exactly the row somebody will need to explain — with no
+        # account against it rather than a guessed one.
+        linked = event.subscription or event.addon
+        workspace = getattr(linked, "workspace", None)
+        event_rows.append(
+            {
+                "event": event,
+                "workspace": workspace,
+                "organization": getattr(workspace, "organization", None),
+                "amount_cents": _event_amount_cents(event.payload),
+            }
+        )
+
+    return render(
+        request,
+        "billing/staff_subscriptions.html",
+        {
+            "rows": rows,
+            "status_filter": status_filter,
+            "status_choices": WorkspaceSubscription.Status.choices,
+            "subscription_count": len(rows),
+            "total_subscription_count": all_subs.count(),
+            "totals": {
+                "contracted_cents": contracted_cents,
+                "exempt_cents": exempt_cents,
+                "past_due_cents": past_due_cents,
+            },
+            "event_rows": event_rows,
+            "event_limit": BILLING_EVENT_LIMIT,
+            "event_count": BillingEvent.objects.count(),
+            # Drives the empty state's explanation. With no credentials
+            # there are no payment events because none can have arrived —
+            # which is a configuration fact, not a sign of customers not
+            # paying, and the screen has to say which.
+            "gateway_configured": bool(getattr(settings, "ASAAS_API_KEY", "")),
+            "admin_active": "subscriptions",
         },
     )
 

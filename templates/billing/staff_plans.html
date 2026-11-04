@@ -1,19 +1,25 @@
 {% extends "layouts/admin_shell.html" %}
 {% load i18n billing_extras %}
 {% comment %}
-Plan and prices: what the deployment is configured to charge, and how
-many workspaces are in each subscription state.
+Plan and prices: what the product charges, editable here, and how many
+workspaces are in each subscription state.
 
-Read-only, and it says so on screen rather than only in the view's
-docstring. The figures are deployment settings and every sold row
-snapshots its own price (apps/billing/services), so an input here would
-be a control that changes nothing anyone is paying — the most expensive
-kind of wrong, because it looks like it worked.
+This screen used to be read-only and to say so, on the grounds that the
+figures were deployment settings and every sold row snapshots its own
+price. The second half of that is exactly why editing is SAFE and is now
+the thing the screen says out loud, in three places: the section
+subtitle, the note under the form, and the success message. The first
+half is what billing.ProductPrice fixes — a row when somebody has set
+one, the BILLING_* setting when nobody has.
 
-Until now these numbers existed only in config/settings/base.py and as a
-one-line subtitle on the customers screen, which meant the product owner
-could not see the price list without loading every organization's
-billing rows.
+The form is deliberately one submit for all three figures: they are one
+decision ("this is the plan"), and a per-field save button is how a
+workspace price gets raised while the disk it includes stays at the old
+number.
+
+Disk is asked for in GB and stored in bytes. The conversion is in
+services.parse_price_value, not here — a template that multiplies is how
+a plan ends up at 10 MB.
 {% endcomment %}
 
 {% block title %}{% translate "Plan and prices" %} - {% translate "Administration" %} - Brightbean{% endblock %}
@@ -32,45 +38,142 @@ billing rows.
 {% block content %}
 <div class="max-w-4xl space-y-6">
 
-  {# ── The price list ── #}
+  {# ── The price list, editable ── #}
   <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
     <div class="px-5 py-4 border-b border-stone-100">
-      <h2 class="text-base font-semibold text-stone-900">{% translate "Configured prices" %}</h2>
+      <h2 class="text-base font-semibold text-stone-900">{% translate "Prices" %}</h2>
       <p class="text-xs text-stone-500 mt-0.5">
-        {% translate "List prices, read only when a subscription or an add-on is contracted. Raising one never re-prices a customer who already bought." %}
+        {% translate "List prices, read only when a subscription or an add-on is contracted. Changing one never re-prices a customer who already bought." %}
       </p>
     </div>
 
-    <dl class="divide-y divide-stone-100">
-      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
-        <div>
-          <dt class="text-sm font-medium text-stone-900">{% translate "Price per workspace" %}</dt>
+    <form method="post" action="{% url 'billing_staff:update_prices' %}" class="divide-y divide-stone-100">
+      {% csrf_token %}
+
+      {% comment %}
+      Money fields are in REAIS, masked. The database still stores
+      integer cents — that convention does not change — but the
+      conversion is the backend's job (services.parse_price_value, with
+      Decimal, never float). Asking an operator for "5000" exposes the
+      storage layer to somebody who thinks in R$ 50,00, which is what the
+      first version of this screen did wrong.
+
+      type="text" and not type="number": a number input refuses to hold
+      a masked value and fights the comma on a pt-BR keyboard. inputmode
+      still brings up the numeric keypad on a phone.
+      {% endcomment %}
+      <div class="px-5 py-4 flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0">
+          <label for="workspace_price_brl" class="block text-sm font-medium text-stone-900">
+            {% translate "Price per workspace" %}
+          </label>
           {# "not exempt" rather than "not a courtesy": the same reading #}
           {# that made the quota field on Customers look like #}
           {# provisioning applies to the word "courtesy" on its own. #}
-          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Billed monthly, for each workspace that is not exempt from charges." %}</dd>
+          <p class="text-xs text-stone-500 mt-0.5">{% translate "Billed monthly, for each workspace that is not exempt from charges." %}</p>
+          {% with entry=prices.workspace_price_cents %}
+          {% if entry.is_configured %}
+          <p class="text-[11px] text-stone-400 mt-1">
+            {% if entry.updated_by %}
+            {% blocktranslate with who=entry.updated_by.email when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}
+            {% else %}
+            {% blocktranslate with when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed on {{ when }}.{% endblocktranslate %}
+            {% endif %}
+          </p>
+          {% else %}
+          <p class="text-[11px] text-stone-400 mt-1">{% translate "Nobody has set this yet — it is the value this installation was deployed with." %}</p>
+          {% endif %}
+          {% endwith %}
         </div>
-        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">R$ {{ workspace_price_cents|brl }}</div>
+        <div class="whitespace-nowrap">
+          <div class="relative" x-data="brlField()">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-500 pointer-events-none">R$</span>
+            <input type="text" id="workspace_price_brl" name="workspace_price_brl"
+                   inputmode="decimal" required autocomplete="off"
+                   value="{{ price_form.workspace_price_brl|brl_input }}"
+                   x-on:input="format($el)" x-on:blur="settle($el)"
+                   class="form-input-styled w-36 tabular-nums text-right pl-9">
+          </div>
+        </div>
       </div>
 
-      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
-        <div>
-          <dt class="text-sm font-medium text-stone-900">{% translate "Disk included" %}</dt>
-          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Space every workspace gets with its subscription." %}</dd>
+      {# GB, not bytes: nobody types ten zeroes, and a byte field is how #}
+      {# somebody ships a 10 MB plan. Converted in services. #}
+      <div class="px-5 py-4 flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0">
+          <label for="base_storage_gb" class="block text-sm font-medium text-stone-900">
+            {% translate "Disk included" %}
+          </label>
+          <p class="text-xs text-stone-500 mt-0.5">{% translate "Space every workspace gets with its subscription." %}</p>
+          {% with entry=prices.base_storage_bytes %}
+          {% if entry.is_configured %}
+          <p class="text-[11px] text-stone-400 mt-1">
+            {% if entry.updated_by %}
+            {% blocktranslate with who=entry.updated_by.email when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}
+            {% else %}
+            {% blocktranslate with when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed on {{ when }}.{% endblocktranslate %}
+            {% endif %}
+          </p>
+          {% else %}
+          <p class="text-[11px] text-stone-400 mt-1">{% translate "Nobody has set this yet — it is the value this installation was deployed with." %}</p>
+          {% endif %}
+          {% endwith %}
         </div>
-        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">
-          {% blocktranslate with amount=base_storage_bytes|gb %}{{ amount }} GB{% endblocktranslate %}
+        <div class="flex items-center gap-2 whitespace-nowrap">
+          <input type="number" id="base_storage_gb" name="base_storage_gb"
+                 min="0" step="1" required value="{{ price_form.base_storage_gb }}"
+                 class="form-input-styled w-32 tabular-nums text-right">
+          <span class="text-xs text-stone-500">{% translate "GB" %}</span>
         </div>
       </div>
 
-      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
-        <div>
-          <dt class="text-sm font-medium text-stone-900">{% translate "Price per extra GB" %}</dt>
-          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Add-on price, charged monthly on top of the workspace." %}</dd>
+      <div class="px-5 py-4 flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0">
+          <label for="storage_price_per_gb_brl" class="block text-sm font-medium text-stone-900">
+            {% translate "Price per extra GB" %}
+          </label>
+          <p class="text-xs text-stone-500 mt-0.5">{% translate "Add-on price, charged monthly on top of the workspace." %}</p>
+          {% with entry=prices.storage_price_per_gb_cents %}
+          {% if entry.is_configured %}
+          <p class="text-[11px] text-stone-400 mt-1">
+            {% if entry.updated_by %}
+            {% blocktranslate with who=entry.updated_by.email when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed by {{ who }} on {{ when }}.{% endblocktranslate %}
+            {% else %}
+            {% blocktranslate with when=entry.updated_at|date:"SHORT_DATETIME_FORMAT" %}Last changed on {{ when }}.{% endblocktranslate %}
+            {% endif %}
+          </p>
+          {% else %}
+          {# The one price the product owner has explicitly not decided #}
+          {# yet, which is the reason this form exists at all. #}
+          <p class="text-[11px] text-amber-700 mt-1">{% translate "Not decided yet — the deployed value is a stand-in so the add-on flow works end to end." %}</p>
+          {% endif %}
+          {% endwith %}
         </div>
-        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">R$ {{ storage_price_per_gb_cents|brl }}</div>
+        <div class="whitespace-nowrap">
+          <div class="relative" x-data="brlField()">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-stone-500 pointer-events-none">R$</span>
+            <input type="text" id="storage_price_per_gb_brl" name="storage_price_per_gb_brl"
+                   inputmode="decimal" required autocomplete="off"
+                   value="{{ price_form.storage_price_per_gb_brl|brl_input }}"
+                   x-on:input="format($el)" x-on:blur="settle($el)"
+                   class="form-input-styled w-36 tabular-nums text-right pl-9">
+          </div>
+        </div>
       </div>
 
+      <div class="px-5 py-4 bg-stone-50 flex flex-wrap items-center justify-between gap-3">
+        <p class="text-xs text-stone-500 max-w-xl">
+          {% translate "Changing a price affects only subscriptions and add-ons contracted afterwards. Everyone who already bought keeps the price they bought at — nobody is re-priced." %}
+        </p>
+        <button type="submit"
+                class="px-3 py-2 text-xs font-semibold text-white rounded-lg transition-colors cursor-pointer"
+                style="background: var(--primary);">
+          {% translate "Save prices" %}
+        </button>
+      </div>
+    </form>
+
+    <dl class="divide-y divide-stone-100 border-t border-stone-100">
       <div class="px-5 py-4 flex items-baseline justify-between gap-4">
         <div>
           <dt class="text-sm font-medium text-stone-900">{% translate "Disk limit enforced" %}</dt>
@@ -120,10 +223,64 @@ billing rows.
       </div>
     </dl>
 
+    {# Scoped to the two rows above it now, not to the prices: those ARE #}
+    {# set on this screen. Saying otherwise under an editable form would #}
+    {# be the screen contradicting itself. #}
     <p class="px-5 py-3 bg-stone-50 border-t border-stone-100 text-xs text-stone-500">
-      {% translate "These values are set on the installation, not on this screen. Changing one affects only subscriptions contracted afterwards." %}
+      {% translate "These last two are set on the installation, not on this screen." %}
     </p>
   </section>
+
+  {# ── Who changed a price, and what it was before ── #}
+  {% comment %}
+  A price change is a business decision, so the trail is part of the
+  screen rather than something only the database knows. Shown here and
+  not only as "last changed by" beside each field because the question
+  six months from now is "when did the per-GB price become this, and
+  what was it before" — which needs the previous value, and that lives
+  only in ProductPriceChange.
+
+  A missing previous value means there was no row before: the figure came
+  from the installation's setting until this edit. Rendered as such
+  rather than as the setting's number, which nobody had chosen.
+  {% endcomment %}
+  {% if price_changes %}
+  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+    <div class="px-5 py-4 border-b border-stone-100">
+      <h2 class="text-base font-semibold text-stone-900">{% translate "Price history" %}</h2>
+      <p class="text-xs text-stone-500 mt-0.5">
+        {% translate "The most recent changes to the list above. Nothing here changed anyone's existing bill." %}
+      </p>
+    </div>
+    <ul class="divide-y divide-stone-100">
+      {% for change in price_changes %}
+      <li class="px-5 py-3 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+        <div class="min-w-0">
+          <p class="text-sm text-stone-900">{{ change.get_key_display }}</p>
+          <p class="text-xs text-stone-500 tabular-nums">
+            {# ``is_first_setting`` rather than testing previous_value #}
+            {# here: templates have no None literal, and truthiness would #}
+            {# read a stored 0 — a real previous price — as "there was #}
+            {# none". See the model property. #}
+            {% if change.is_first_setting %}
+            {% blocktranslate with value=change.new_value %}Set to {{ value }}, from the installation's own value.{% endblocktranslate %}
+            {% else %}
+            {% blocktranslate with old=change.previous_value value=change.new_value %}{{ old }} to {{ value }}{% endblocktranslate %}
+            {% endif %}
+          </p>
+        </div>
+        <div class="text-xs text-stone-500 whitespace-nowrap">
+          {% if change.changed_by_email %}
+          {% blocktranslate with who=change.changed_by_email when=change.created_at|date:"SHORT_DATETIME_FORMAT" %}{{ who }} on {{ when }}{% endblocktranslate %}
+          {% else %}
+          {{ change.created_at|date:"SHORT_DATETIME_FORMAT" }}
+          {% endif %}
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
 
   {# ── What is actually subscribed, in the plan's own terms ── #}
   <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
@@ -178,4 +335,52 @@ billing rows.
   </section>
 
 </div>
+{% endblock %}
+
+{% block extra_body %}
+{% comment %}
+The currency mask. Deliberately small and dependency-free rather than a
+masking library: it has one job, and the backend does not trust its
+output anyway — services.parse_price_value re-parses whatever arrives,
+so a browser with JavaScript off posts "50" or "50,00" by hand and is
+accepted on exactly the same terms. The mask is a convenience, never the
+validation.
+
+Registered on alpine:init because Alpine is loaded with `defer`, so this
+inline script runs first and the component has to be waiting for it.
+
+pt-BR formatting is hardcoded here, unlike everywhere else in this
+project, because the field it masks is the one the operator types money
+into and this administration area is Brazilian-operator-only. The
+backend parser accepts both conventions regardless, which is what keeps
+that from being a trap.
+{% endcomment %}
+<script>
+  document.addEventListener('alpine:init', () => {
+    Alpine.data('brlField', () => ({
+      // Reformats from the digits alone, so the caret cannot end up
+      // stranded between a dot the mask just inserted and the digit it
+      // was typed after. Always trails the value, which is where
+      // somebody typing an amount expects it.
+      format(el) {
+        const digits = el.value.replace(/\D/g, '');
+        if (!digits) { el.value = ''; return; }
+        // Capped so a held-down key cannot build a number long enough to
+        // lose precision in the formatter; the backend refuses anything
+        // this large anyway.
+        const value = parseInt(digits.slice(0, 12), 10) / 100;
+        el.value = value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      },
+      // An empty field on blur goes back to 0,00 rather than staying
+      // blank: the form requires all three values, and a blank that
+      // only fails on submit is worse than a visible zero the operator
+      // can overwrite.
+      settle(el) {
+        if (!el.value.trim()) {
+          el.value = (0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+      },
+    }));
+  });
+</script>
 {% endblock %}

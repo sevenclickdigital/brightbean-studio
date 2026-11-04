@@ -1,7 +1,7 @@
 """The isolated administrative area: who reaches it, and what it survives.
 
-Three screens behind ``_staff_required`` — Customers (the old single
-console), Plan and prices, Access log — rendered in
+Four screens behind ``_staff_required`` — Customers (the old single
+console), Plan and prices, Subscriptions, Access log — rendered in
 ``templates/layouts/admin_shell.html`` instead of ``base.html``.
 
 What is asserted here is behaviour, permission outcome and context
@@ -85,6 +85,7 @@ def customer(db, org, workspace):
 ADMIN_SCREENS = (
     "billing_staff:staff_console",
     "billing_staff:plans",
+    "billing_staff:subscriptions",
     "billing_staff:impersonation_log",
 )
 
@@ -147,7 +148,7 @@ class TestImpersonatedSessionIsLockedOut:
     """``is_operator`` is False during a takeover, and must stay that way.
 
     The rule is in apps/accounts/impersonation; what this covers is that
-    the two screens added alongside the console inherited it, rather than
+    the screens added alongside the console inherited it, rather than
     each re-deciding and one of them getting it wrong.
     """
 
@@ -397,9 +398,9 @@ class TestTheAreaIsIsolatedFromTheProduct:
 
         response = client.get(reverse(name))
 
-        assert response.context["admin_active"] in {"accounts", "plans", "impersonations"}
+        assert response.context["admin_active"] in {"accounts", "plans", "subscriptions", "impersonations"}
 
-    def test_the_three_screens_are_distinct_entries(self, client, operator):
+    def test_the_screens_are_distinct_entries(self, client, operator):
         """Two screens sharing an ``admin_active`` would highlight both."""
         client.force_login(operator)
 
@@ -472,9 +473,15 @@ class TestPlansScreen:
         assert counts["active"] == 0
 
     def test_changes_nothing(self, client, operator, workspace):
-        """Read-only by construction: GET-only, and the screen offers no
-        form. Asserted because a later edit that adds one would silently
-        be writing list prices no existing row reads."""
+        """Loading the screen writes nothing, and the screen itself is
+        GET-only.
+
+        The price form does exist now, but it posts to its own endpoint
+        (``billing_staff:update_prices``, covered in
+        test_product_prices.py) precisely so this stays true: a GET of
+        the plans page — a prefetch, a crawler, an operator refreshing —
+        must not be able to move a price.
+        """
         services.ensure_subscription(workspace)
         client.force_login(operator)
 

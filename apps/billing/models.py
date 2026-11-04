@@ -527,3 +527,132 @@ class OrganizationBillingProfile(models.Model):
         if self.courtesy_expires_on is None:
             return None
         return (self.courtesy_expires_on - timezone.localdate()).days
+
+
+# ---------------------------------------------------------------------------
+# ProductPrice, the editable price list
+# ---------------------------------------------------------------------------
+
+
+class ProductPrice(models.Model):
+    """One row per editable figure on the product's price list.
+
+    Why a table in *this* app and not ``settings_manager``: ``OrgSetting``
+    and ``WorkspaceSetting`` are both scoped to a tenant, and the price
+    list is the opposite of tenant-scoped — it is the product's own
+    number, one per installation. Storing it under an organization would
+    either need a fake "house" organization or would let one customer's
+    row decide what another is quoted.
+
+    Why key/value and not a one-row table with three columns: the
+    roadmap's next add-ons (AI text/image/video) each arrive as another
+    list price, and a column per price means a migration per price on the
+    table the operator's screen reads. A key is a data change.
+
+    Why ``value`` is a ``PositiveBigIntegerField`` and not JSON: every
+    figure on this list is a non-negative integer in a documented unit
+    (cents for money, bytes for disk — the convention this whole app
+    holds). A JSON column would accept ``"50,00"`` and a float, which is
+    precisely the garbage this is meant to refuse.
+
+    **A row here is a list price and nothing else.** It is read when a
+    subscription or an add-on is contracted, and the resulting row keeps
+    its own ``price_cents`` / ``base_storage_bytes`` / ``unit_price_cents``.
+    Editing a row here therefore cannot re-price anything already sold —
+    see ``apps.billing.services`` for the read path and
+    ``ProductPriceChange`` for who changed what.
+
+    Absence is meaningful: no row means "nobody has set this", and the
+    reader falls back to the deployment setting. That is what keeps a
+    fresh installation working and preserves the configured default
+    instead of baking a copy of it into the database at migrate time.
+    """
+
+    class Key(models.TextChoices):
+        # Values are the public identifiers: they appear in form fields
+        # and in the cache key, so they are chosen to read as units.
+        WORKSPACE_PRICE_CENTS = "workspace_price_cents", _("Price per workspace (cents)")
+        BASE_STORAGE_BYTES = "base_storage_bytes", _("Disk included (bytes)")
+        STORAGE_PRICE_PER_GB_CENTS = "storage_price_per_gb_cents", _("Price per extra GB (cents)")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    key = models.CharField(max_length=64, choices=Key.choices, unique=True)
+    value = models.PositiveBigIntegerField()
+
+    # Who last moved this number, kept denormalized on the row so the
+    # screen can say "last changed by X" without walking the history.
+    # The history is still the record of truth — see ProductPriceChange.
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="updated_billing_prices",
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "billing_product_price"
+
+    def __str__(self):
+        return f"ProductPrice({self.key}={self.value})"
+
+
+class ProductPriceChange(models.Model):
+    """Append-only record of one edit to the price list.
+
+    Separate from ``ProductPrice`` because the two answer different
+    questions and have different lifetimes: the price row is "what do we
+    charge now" and is overwritten, while this is "who decided to charge
+    that, when, and what did it replace" and is never rewritten. Folding
+    the history into the price row would mean one row per price *per
+    edit* and a screen that has to work out which one is current.
+
+    ``previous_value`` is nullable, and NULL means "there was no row
+    before" — the first edit of a figure that until then came from the
+    deployment setting. Recording the setting's value there instead would
+    claim the operator changed a number somebody had set, which nobody
+    had.
+
+    ``changed_by`` is SET_NULL rather than CASCADE: a deleted operator
+    account must not take the record of their pricing decisions with it.
+    ``changed_by_email`` keeps the identification readable after that.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    key = models.CharField(max_length=64, choices=ProductPrice.Key.choices, db_index=True)
+    previous_value = models.PositiveBigIntegerField(null=True, blank=True)
+    new_value = models.PositiveBigIntegerField()
+
+    changed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="billing_price_changes",
+    )
+    # Snapshotted so the trail still names a human after the account is
+    # gone. The same reason every sold row snapshots its price.
+    changed_by_email = models.CharField(max_length=255, blank=True, default="")
+
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        db_table = "billing_product_price_change"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"ProductPriceChange({self.key}, {self.previous_value}→{self.new_value})"
+
+    @property
+    def is_first_setting(self):
+        """True when this edit replaced no stored row, only a default.
+
+        A property rather than ``{% if change.previous_value == None %}``
+        in the template: Django templates have no None literal, and the
+        alternatives (``|default_if_none`` on a number, truthiness) both
+        treat a stored 0 — a real previous price — as "there was none".
+        """
+        return self.previous_value is None

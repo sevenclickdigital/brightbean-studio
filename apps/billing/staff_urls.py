@@ -31,6 +31,13 @@ urlpatterns = [
     # the existing tests use.
     path("", views.staff_console, name="staff_console"),
     path("plans/", views.staff_plans, name="plans"),
+    # The price-list form posts here rather than back to ``plans/``: the
+    # screen is a GET-only read of the whole plan plus a form, and keeping
+    # the write on its own path is what lets ``plans/`` stay
+    # ``require_GET`` — so a crawler or a prefetch cannot reach the write
+    # at all.
+    path("plans/prices/", views.staff_update_prices, name="update_prices"),
+    path("subscriptions/", views.staff_subscriptions, name="subscriptions"),
     path("impersonations/", views.staff_impersonation_log, name="impersonation_log"),
     path("courtesy/<uuid:target_workspace_id>/", views.staff_toggle_courtesy, name="toggle_courtesy"),
     path("quota/<uuid:org_id>/", views.staff_set_courtesy_quota, name="set_courtesy_quota"),

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 12:50+0000\n"
+"POT-Creation-Date: 2026-11-04 13:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -174,22 +174,26 @@ msgstr "Brightbean Studio — %(gb)s GB de armazenamento extra para %(name)s"
 #: apps/billing/models.py:68 apps/billing/models.py:218
 #: apps/composer/models.py:477 apps/composer/models.py:830
 #: templates/automations/log.html:71 templates/billing/staff_console.html:125
+#: templates/billing/staff_subscriptions.html:148
 msgid "Pending"
 msgstr "Pendente"
 
 #: apps/billing/models.py:69 apps/billing/models.py:219
 #: templates/billing/staff_console.html:121
+#: templates/billing/staff_subscriptions.html:144
 #: templates/intelligence/billing_settings.html:52
 msgid "Active"
 msgstr "Ativa"
 
 #: apps/billing/models.py:70 templates/billing/staff_console.html:123
+#: templates/billing/staff_subscriptions.html:146
 msgid "Past due"
 msgstr "Inadimplente"
 
 #: apps/billing/models.py:71 apps/billing/models.py:220
 #: templates/billing/staff_console.html:124
-#: templates/billing/staff_plans.html:168
+#: templates/billing/staff_plans.html:327
+#: templates/billing/staff_subscriptions.html:147
 msgid "Canceled"
 msgstr "Cancelada"
 
@@ -227,6 +231,83 @@ msgstr "Ignorado"
 msgid "Failed"
 msgstr "Falhou"
 
+#: apps/billing/models.py:574
+msgid "Price per workspace (cents)"
+msgstr "Preço por workspace (centavos)"
+
+#: apps/billing/models.py:575
+msgid "Disk included (bytes)"
+msgstr "Disco incluído (bytes)"
+
+#: apps/billing/models.py:576
+msgid "Price per extra GB (cents)"
+msgstr "Preço por GB extra (centavos)"
+
+#: apps/billing/services.py:184
+msgid "Enter the price per workspace, in reais."
+msgstr "Informe o preço por workspace, em reais."
+
+#: apps/billing/services.py:185
+msgid "The price per workspace is not a valid amount. Enter it as 50,00."
+msgstr "O preço por workspace não é um valor válido. Informe no formato 50,00."
+
+#: apps/billing/services.py:186
+msgid "The price per workspace cannot be negative. Use 0 to charge nothing."
+msgstr "O preço por workspace não pode ser negativo. Use 0 para não cobrar nada."
+
+#: apps/billing/services.py:187
+msgid ""
+"The price per workspace cannot have fractions of a cent. Use at most two "
+"decimals."
+msgstr "O preço por workspace não pode ter fração de centavo. Use no máximo duas casas decimais."
+
+#: apps/billing/services.py:188
+msgid ""
+"That price per workspace is too high to be intentional. Check the amount."
+msgstr "Esse preço por workspace é alto demais para ser intencional. Confira o valor."
+
+#: apps/billing/services.py:191
+msgid "Enter how much disk is included, in GB."
+msgstr "Informe quanto disco está incluído, em GB."
+
+#: apps/billing/services.py:192 apps/billing/services.py:194
+msgid "The included disk must be a whole number of GB."
+msgstr "O disco incluído precisa ser um número inteiro de GB."
+
+#: apps/billing/services.py:193
+msgid "The included disk cannot be negative. Use 0 to include none."
+msgstr "O disco incluído não pode ser negativo. Use 0 para não incluir nenhum."
+
+#: apps/billing/services.py:195
+msgid ""
+"That amount of included disk is too high to be intentional. Check the value, "
+"in GB."
+msgstr "Essa quantidade de disco incluído é alta demais para ser intencional. Confira o valor, em GB."
+
+#: apps/billing/services.py:198
+msgid "Enter the price per extra GB, in reais."
+msgstr "Informe o preço por GB extra, em reais."
+
+#: apps/billing/services.py:199
+msgid "The price per extra GB is not a valid amount. Enter it as 2,00."
+msgstr "O preço por GB extra não é um valor válido. Informe no formato 2,00."
+
+#: apps/billing/services.py:200
+msgid ""
+"The price per extra GB cannot be negative. Use 0 to give extra disk away."
+msgstr "O preço por GB extra não pode ser negativo. Use 0 para ceder disco extra sem cobrar."
+
+#: apps/billing/services.py:201
+msgid ""
+"The price per extra GB cannot have fractions of a cent. Use at most two "
+"decimals."
+msgstr "O preço por GB extra não pode ter fração de centavo. Use no máximo duas casas decimais."
+
+#: apps/billing/services.py:202
+msgid ""
+"That price per extra GB is too high to be intentional. Check the amount."
+msgstr "Esse preço por GB extra é alto demais para ser intencional. Confira o valor."
+
 #: apps/billing/storage_usage.py:89
 #, python-format
 msgid ""
@@ -236,7 +317,7 @@ msgstr ""
 "Este workspace usou todos os %(limit)s GB de armazenamento. Exclua arquivos "
 "que você não precisa mais ou contrate espaço extra para continuar enviando."
 
-#: apps/billing/views.py:249
+#: apps/billing/views.py:251
 msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
 "Your workspace is registered and we will contact you to finish the "
@@ -246,7 +327,7 @@ msgstr ""
 "pagamento foi criado. Seu workspace está registrado e entraremos em contato "
 "para concluir a assinatura."
 
-#: apps/billing/views.py:258 apps/billing/views.py:331
+#: apps/billing/views.py:260 apps/billing/views.py:333
 msgid ""
 "We could not reach the payment provider. Nothing was charged — please try "
 "again in a moment."
@@ -254,7 +335,7 @@ msgstr ""
 "Não conseguimos acessar o provedor de pagamento. Nada foi cobrado — tente "
 "novamente em instantes."
 
-#: apps/billing/views.py:264
+#: apps/billing/views.py:266
 msgid ""
 "Subscription contracted. It activates as soon as the first payment is "
 "confirmed."
@@ -262,13 +343,13 @@ msgstr ""
 "Assinatura contratada. Ela é ativada assim que o primeiro pagamento for "
 "confirmado."
 
-#: apps/billing/views.py:307
+#: apps/billing/views.py:309
 #, python-format
 msgid ""
 "Choose how much extra storage to contract, between %(min)s GB and %(max)s GB."
 msgstr "Escolha quanto espaço extra contratar, entre %(min)s GB e %(max)s GB."
 
-#: apps/billing/views.py:321
+#: apps/billing/views.py:323
 #, python-format
 msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
@@ -278,7 +359,7 @@ msgstr ""
 "pagamento foi criado. Seu pedido de %(gb)s GB foi registrado e entraremos em "
 "contato para concluí-lo."
 
-#: apps/billing/views.py:337
+#: apps/billing/views.py:339
 #, python-format
 msgid ""
 "%(gb)s GB contracted. The space is released as soon as the payment is "
@@ -287,12 +368,22 @@ msgstr ""
 "%(gb)s GB contratados. O espaço é liberado assim que o pagamento for "
 "confirmado."
 
-#: apps/billing/views.py:708
+#: apps/billing/views.py:751
+msgid "The prices were already those values, so nothing changed."
+msgstr "Os preços já eram esses valores, então nada foi alterado."
+
+#: apps/billing/views.py:766
+msgid ""
+"Prices updated. Only subscriptions and add-ons contracted from now on use "
+"the new values — nobody who already bought is re-priced."
+msgstr "Preços atualizados. Somente assinaturas e adicionais contratados de agora em diante usam os novos valores — ninguém que já comprou é reprecificado."
+
+#: apps/billing/views.py:1034
 #, python-format
 msgid "Workspace \"%(name)s\" is now exempt and will not be charged."
 msgstr "O workspace \"%(name)s\" agora é isento e não será cobrado."
 
-#: apps/billing/views.py:713
+#: apps/billing/views.py:1039
 #, python-format
 msgid ""
 "Account \"%(org)s\" now has more exempt workspaces than its limit allows."
@@ -300,7 +391,7 @@ msgstr ""
 "A conta \"%(org)s\" agora tem mais workspaces isentos do que o limite "
 "permite."
 
-#: apps/billing/views.py:720
+#: apps/billing/views.py:1046
 #, python-format
 msgid ""
 "Workspace \"%(name)s\" will be charged again. It needs a subscription to "
@@ -309,17 +400,17 @@ msgstr ""
 "O workspace \"%(name)s\" voltará a ser cobrado. Agora é necessária uma "
 "assinatura para mantê-lo ativo."
 
-#: apps/billing/views.py:724 apps/billing/views.py:1019
+#: apps/billing/views.py:1050 apps/billing/views.py:1345
 msgid "Unknown action."
 msgstr "Ação desconhecida."
 
-#: apps/billing/views.py:748 apps/billing/views.py:811
+#: apps/billing/views.py:1074 apps/billing/views.py:1137
 msgid ""
 "The number of exempt workspaces must be zero or a positive whole number."
 msgstr ""
 "O número de workspaces isentos deve ser zero ou um número inteiro positivo."
 
-#: apps/billing/views.py:759
+#: apps/billing/views.py:1085
 #, python-format
 msgid ""
 "Account \"%(org)s\" may now have up to %(quota)s workspace(s) exempt from "
@@ -328,7 +419,7 @@ msgstr ""
 "A conta \"%(org)s\" agora pode ter até %(quota)s workspace(s) isentos de "
 "cobrança."
 
-#: apps/billing/views.py:765
+#: apps/billing/views.py:1091
 msgid ""
 "Workspaces already exempt above the new limit were kept — nobody starts "
 "being charged retroactively."
@@ -336,72 +427,84 @@ msgstr ""
 "Os workspaces já isentos acima do novo limite foram mantidos — ninguém passa "
 "a ser cobrado retroativamente."
 
-#: apps/billing/views.py:819
+#: apps/billing/views.py:1145
 msgid "Enter the end date as a valid date, or leave it empty for no end date."
-msgstr "Informe a data de término em um formato válido, ou deixe em branco para não ter data de término."
+msgstr ""
+"Informe a data de término em um formato válido, ou deixe em branco para não "
+"ter data de término."
 
-#: apps/billing/views.py:825
+#: apps/billing/views.py:1151
 msgid "The end date is in the past. Choose today or a later date."
 msgstr "A data de término está no passado. Escolha hoje ou uma data posterior."
 
-#: apps/billing/views.py:839
+#: apps/billing/views.py:1165
 #, python-format
 msgid ""
 "Account \"%(org)s\" has %(quota)s workspace(s) exempt from charges, with no "
 "end date."
-msgstr "A conta \"%(org)s\" tem %(quota)s workspace(s) isentos de cobrança, sem data de término."
+msgstr ""
+"A conta \"%(org)s\" tem %(quota)s workspace(s) isentos de cobrança, sem data "
+"de término."
 
-#: apps/billing/views.py:845
+#: apps/billing/views.py:1171
 #, python-format
 msgid ""
 "Account \"%(org)s\" has %(quota)s workspace(s) exempt from charges until "
 "%(date)s, after which it is billed again automatically."
-msgstr "A conta \"%(org)s\" tem %(quota)s workspace(s) isentos de cobrança até %(date)s; depois dessa data ela volta a ser cobrada automaticamente."
+msgstr ""
+"A conta \"%(org)s\" tem %(quota)s workspace(s) isentos de cobrança até "
+"%(date)s; depois dessa data ela volta a ser cobrada automaticamente."
 
-#: apps/billing/views.py:866
+#: apps/billing/views.py:1192
 #, python-format
 msgid ""
 "Account \"%(org)s\" is billed again. Each workspace needs a subscription to "
 "stay active."
-msgstr "A conta \"%(org)s\" voltou a ser cobrada. Cada workspace precisa de uma assinatura para continuar ativo."
+msgstr ""
+"A conta \"%(org)s\" voltou a ser cobrada. Cada workspace precisa de uma "
+"assinatura para continuar ativo."
 
-#: apps/billing/views.py:889
+#: apps/billing/views.py:1215
 msgid "The account needs a name."
 msgstr "A conta precisa de um nome."
 
-#: apps/billing/views.py:908
+#: apps/billing/views.py:1234
 msgid "The account owner needs an e-mail address."
 msgstr "O responsável pela conta precisa de um e-mail."
 
-#: apps/billing/views.py:913
+#: apps/billing/views.py:1239
 msgid "That is not a valid e-mail address."
 msgstr "Esse e-mail não é válido."
 
-#: apps/billing/views.py:919
+#: apps/billing/views.py:1245
 #, python-format
 msgid "Another account already uses %(email)s. Nothing was changed."
 msgstr "Outra conta já usa %(email)s. Nada foi alterado."
 
-#: apps/billing/views.py:930
+#: apps/billing/views.py:1256
 #, python-format
 msgid "Account \"%(org)s\" updated."
 msgstr "Conta \"%(org)s\" atualizada."
 
-#: apps/billing/views.py:973
+#: apps/billing/views.py:1299
 #, python-format
 msgid ""
 "A password reset e-mail was sent to %(email)s. Only they can set the new "
 "password."
-msgstr "Um e-mail de redefinição de senha foi enviado para %(email)s. Só a própria pessoa pode definir a nova senha."
+msgstr ""
+"Um e-mail de redefinição de senha foi enviado para %(email)s. Só a própria "
+"pessoa pode definir a nova senha."
 
-#: apps/billing/views.py:1010
+#: apps/billing/views.py:1336
 #, python-format
 msgid ""
 "%(email)s can no longer sign in. Nothing was deleted — reactivate to restore "
 "access."
-msgstr "%(email)s não consegue mais entrar. Nada foi excluído — reative para restaurar o acesso."
+msgstr ""
+"%(email)s não consegue mais entrar. Nada foi excluído — reative para "
+"restaurar o acesso."
 
-#: apps/billing/views.py:1017
+#: apps/billing/views.py:1343
 #, python-format
 msgid "%(email)s can sign in again."
 msgstr "%(email)s pode entrar novamente."
@@ -443,6 +546,7 @@ msgid "Weekly"
 msgstr "Semanal"
 
 #: apps/calendar/models.py:139 templates/billing/staff_console.html:71
+#: templates/billing/staff_subscriptions.html:123
 msgid "Monthly"
 msgstr "Mensal"
 
@@ -1701,6 +1805,7 @@ msgid "all time"
 msgstr "todo o período"
 
 #: templates/analytics/_post_table.html:18
+#: templates/billing/staff_subscriptions.html:102
 #: templates/calendar/partials/publish_approvals.html:22
 #: templates/inbox/feed.html:138 templates/media_library/library_index.html:267
 #: templates/media_library/shared_library.html:72
@@ -2021,12 +2126,12 @@ msgid "Is not empty"
 msgstr "Não está vazio"
 
 #: templates/automations/flow_builder.html:619
-#: templates/billing/staff_plans.html:81
+#: templates/billing/staff_plans.html:185
 msgid "Yes"
 msgstr "Sim"
 
 #: templates/automations/flow_builder.html:620
-#: templates/billing/staff_plans.html:83
+#: templates/billing/staff_plans.html:187
 msgid "No"
 msgstr "Não"
 
@@ -2163,6 +2268,7 @@ msgstr "Condição"
 
 #: templates/automations/flow_builder.html:959
 #: templates/automations/form.html:70
+#: templates/billing/staff_subscriptions.html:211
 msgid "When"
 msgstr "Quando"
 
@@ -2264,6 +2370,8 @@ msgid "Which comments this rule picks up."
 msgstr "Quais comentários esta regra identifica."
 
 #: templates/automations/form.html:76 templates/billing/staff_console.html:67
+#: templates/billing/staff_subscriptions.html:120
+#: templates/billing/staff_subscriptions.html:213
 msgid "Account"
 msgstr "Conta"
 
@@ -2504,6 +2612,7 @@ msgid "All rules"
 msgstr "Todas as regras"
 
 #: templates/automations/log.html:42
+#: templates/billing/staff_subscriptions.html:215
 msgid "Outcome"
 msgstr "Resultado"
 
@@ -2512,6 +2621,7 @@ msgid "All outcomes"
 msgstr "Todos os resultados"
 
 #: templates/automations/log.html:52
+#: templates/billing/staff_subscriptions.html:110
 msgid "Filter"
 msgstr "Filtrar"
 
@@ -2841,18 +2951,19 @@ msgstr "Gerenciar equipe"
 
 #: templates/base.html:898 templates/billing/staff_console.html:40
 #: templates/billing/staff_impersonations.html:19
-#: templates/billing/staff_plans.html:19 templates/layouts/admin_shell.html:39
-#: templates/layouts/admin_shell.html:90 templates/layouts/admin_shell.html:206
-#: templates/layouts/settings.html:70
+#: templates/billing/staff_plans.html:25
+#: templates/billing/staff_subscriptions.html:32
+#: templates/layouts/admin_shell.html:39 templates/layouts/admin_shell.html:90
+#: templates/layouts/admin_shell.html:215 templates/layouts/settings.html:70
 #: templates/layouts/workspace_settings.html:51
 msgid "Administration"
 msgstr "Administração"
 
-#: templates/base.html:916 templates/layouts/admin_shell.html:176
+#: templates/base.html:916 templates/layouts/admin_shell.html:185
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:930 templates/layouts/admin_shell.html:189
+#: templates/base.html:930 templates/layouts/admin_shell.html:198
 msgid "Log out"
 msgstr "Sair"
 
@@ -2932,6 +3043,8 @@ msgid "Workspaces"
 msgstr "Workspaces"
 
 #: templates/billing/staff_console.html:69
+#: templates/billing/staff_subscriptions.html:99
+#: templates/billing/staff_subscriptions.html:122
 #: templates/billing/workspace_billing.html:53
 #: templates/calendar/partials/list_view.html:12
 #: templates/calendar/partials/publish_sent.html:15
@@ -2958,6 +3071,7 @@ msgid "No members"
 msgstr "Sem membros"
 
 #: templates/billing/staff_console.html:122
+#: templates/billing/staff_subscriptions.html:145
 msgid "Exempt"
 msgstr "Isento"
 
@@ -3018,7 +3132,11 @@ msgid ""
 "How many of this account's existing workspaces go unbilled, and until when. "
 "On that date the account is billed again automatically — nothing is deleted "
 "and nobody loses access. Leave the date empty for no end date."
-msgstr "Quantos dos workspaces que esta conta já tem ficam sem cobrança, e até quando. Nessa data a conta volta a ser cobrada automaticamente — nada é excluído e ninguém perde o acesso. Deixe a data em branco para não ter data de término."
+msgstr ""
+"Quantos dos workspaces que esta conta já tem ficam sem cobrança, e até "
+"quando. Nessa data a conta volta a ser cobrada automaticamente — nada é "
+"excluído e ninguém perde o acesso. Deixe a data em branco para não ter data "
+"de término."
 
 #: templates/billing/staff_console.html:298
 #, python-format
@@ -3058,7 +3176,9 @@ msgstr "E-mail do responsável"
 msgid ""
 "This is the address they sign in with. If another account already uses it, "
 "nothing is changed."
-msgstr "É com este e-mail que a pessoa entra. Se outra conta já usar o mesmo endereço, nada é alterado."
+msgstr ""
+"É com este e-mail que a pessoa entra. Se outra conta já usar o mesmo "
+"endereço, nada é alterado."
 
 #: templates/billing/staff_console.html:398
 msgid "operator account"
@@ -3082,7 +3202,9 @@ msgstr "Entrar como, para dar suporte"
 
 #: templates/billing/staff_console.html:448
 msgid "The reset is e-mailed to them; nobody here sees or sets their password."
-msgstr "A redefinição vai por e-mail para a pessoa; ninguém aqui vê nem define a senha dela."
+msgstr ""
+"A redefinição vai por e-mail para a pessoa; ninguém aqui vê nem define a "
+"senha dela."
 
 #: templates/billing/staff_console.html:454
 msgid "This account has no members."
@@ -3093,6 +3215,7 @@ msgid "Charge this workspace"
 msgstr "Voltar a cobrar este workspace"
 
 #: templates/billing/staff_console.html:498
+#: templates/billing/staff_subscriptions.html:60
 msgid "Exempt from charges"
 msgstr "Isentar de cobrança"
 
@@ -3106,7 +3229,7 @@ msgstr "Nenhuma conta ainda."
 
 #: templates/billing/staff_impersonations.html:19
 #: templates/billing/staff_impersonations.html:24
-#: templates/layouts/admin_shell.html:114
+#: templates/layouts/admin_shell.html:123
 msgid "Access log"
 msgstr "Registro de acessos"
 
@@ -3135,7 +3258,7 @@ msgstr[1] ""
 "sessões expiraram por dentro."
 
 #: templates/billing/staff_impersonations.html:52
-#: templates/layouts/admin_shell.html:139
+#: templates/layouts/admin_shell.html:148
 msgid "Operator"
 msgstr "Operador"
 
@@ -3176,76 +3299,108 @@ msgstr ""
 "Somente leitura. O acesso é iniciado em Clientes e encerrado pelo operador "
 "que o iniciou."
 
-#: templates/billing/staff_plans.html:19 templates/billing/staff_plans.html:24
+#: templates/billing/staff_plans.html:25 templates/billing/staff_plans.html:30
 #: templates/layouts/admin_shell.html:108
 msgid "Plan and prices"
 msgstr "Plano e preços"
 
-#: templates/billing/staff_plans.html:27
+#: templates/billing/staff_plans.html:33
 msgid ""
 "One plan per workspace, charged monthly. Extra disk is sold as an add-on."
 msgstr ""
 "Um plano por workspace, cobrado mensalmente. Disco extra é vendido como "
 "adicional."
 
-#: templates/billing/staff_plans.html:38
-msgid "Configured prices"
-msgstr "Preços configurados"
+#: templates/billing/staff_plans.html:44
+msgid "Prices"
+msgstr "Preços"
 
-#: templates/billing/staff_plans.html:40
+#: templates/billing/staff_plans.html:46
 msgid ""
 "List prices, read only when a subscription or an add-on is contracted. "
-"Raising one never re-prices a customer who already bought."
-msgstr ""
-"Preços de tabela, lidos apenas quando uma assinatura ou um adicional é "
-"contratado. Aumentar um deles nunca reprecifica quem já comprou."
+"Changing one never re-prices a customer who already bought."
+msgstr "Preços de tabela, lidos apenas quando uma assinatura ou um adicional é contratado. Alterar um deles nunca reprecifica quem já comprou."
 
-#: templates/billing/staff_plans.html:47
+#: templates/billing/staff_plans.html:69
 msgid "Price per workspace"
 msgstr "Preço por workspace"
 
-#: templates/billing/staff_plans.html:51
+#: templates/billing/staff_plans.html:74
 msgid "Billed monthly, for each workspace that is not exempt from charges."
 msgstr "Cobrado mensalmente, para cada workspace que não é isento de cobrança."
 
-#: templates/billing/staff_plans.html:58
+#: templates/billing/staff_plans.html:79 templates/billing/staff_plans.html:113
+#: templates/billing/staff_plans.html:141
+#, python-format
+msgid "Last changed by %(who)s on %(when)s."
+msgstr "Alterado por %(who)s em %(when)s."
+
+#: templates/billing/staff_plans.html:81 templates/billing/staff_plans.html:115
+#: templates/billing/staff_plans.html:143
+#, python-format
+msgid "Last changed on %(when)s."
+msgstr "Alterado em %(when)s."
+
+#: templates/billing/staff_plans.html:85 templates/billing/staff_plans.html:119
+msgid ""
+"Nobody has set this yet — it is the value this installation was deployed "
+"with."
+msgstr "Ninguém definiu isso ainda — é o valor com que esta instalação foi publicada."
+
+#: templates/billing/staff_plans.html:106
 msgid "Disk included"
 msgstr "Disco incluído"
 
-#: templates/billing/staff_plans.html:59
+#: templates/billing/staff_plans.html:108
 msgid "Space every workspace gets with its subscription."
 msgstr "Espaço que todo workspace recebe com a assinatura."
 
-#: templates/billing/staff_plans.html:62
-#, python-format
-msgid "%(amount)s GB"
-msgstr "%(amount)s GB"
+#: templates/billing/staff_plans.html:127
+msgid "GB"
+msgstr "GB"
 
-#: templates/billing/staff_plans.html:68
+#: templates/billing/staff_plans.html:134
 msgid "Price per extra GB"
 msgstr "Preço por GB extra"
 
-#: templates/billing/staff_plans.html:69
+#: templates/billing/staff_plans.html:136
 msgid "Add-on price, charged monthly on top of the workspace."
 msgstr "Preço do adicional, cobrado mensalmente além do workspace."
 
-#: templates/billing/staff_plans.html:76
+#: templates/billing/staff_plans.html:149
+msgid ""
+"Not decided yet — the deployed value is a stand-in so the add-on flow works "
+"end to end."
+msgstr "Ainda não definido — o valor publicado é provisório, só para o fluxo de adicionais funcionar de ponta a ponta."
+
+#: templates/billing/staff_plans.html:167
+msgid ""
+"Changing a price affects only subscriptions and add-ons contracted "
+"afterwards. Everyone who already bought keeps the price they bought at — "
+"nobody is re-priced."
+msgstr "Alterar um preço afeta somente as assinaturas e os adicionais contratados depois. Quem já comprou mantém o preço pelo qual comprou — ninguém é reprecificado."
+
+#: templates/billing/staff_plans.html:172
+msgid "Save prices"
+msgstr "Salvar preços"
+
+#: templates/billing/staff_plans.html:180
 msgid "Disk limit enforced"
 msgstr "Limite de disco aplicado"
 
-#: templates/billing/staff_plans.html:77
+#: templates/billing/staff_plans.html:181
 msgid "Whether an upload that would exceed the contracted space is refused."
 msgstr "Se um envio que passaria do espaço contratado é recusado."
 
-#: templates/billing/staff_plans.html:97
+#: templates/billing/staff_plans.html:201
 msgid "Payment provider"
 msgstr "Meio de pagamento"
 
-#: templates/billing/staff_plans.html:100
+#: templates/billing/staff_plans.html:204
 msgid "Charges are created at the provider when a customer contracts."
 msgstr "As cobranças são criadas no provedor quando um cliente contrata."
 
-#: templates/billing/staff_plans.html:102
+#: templates/billing/staff_plans.html:206
 msgid ""
 "No credentials on this installation, so contracting records the request "
 "without creating a charge."
@@ -3253,57 +3408,207 @@ msgstr ""
 "Sem credenciais nesta instalação, então contratar registra o pedido sem "
 "criar cobrança."
 
-#: templates/billing/staff_plans.html:117
+#: templates/billing/staff_plans.html:221
 msgid "Provider connected"
 msgstr "Provedor conectado"
 
-#: templates/billing/staff_plans.html:119
+#: templates/billing/staff_plans.html:223
 msgid "Provider not set up"
 msgstr "Provedor não configurado"
 
-#: templates/billing/staff_plans.html:126
-msgid ""
-"These values are set on the installation, not on this screen. Changing one "
-"affects only subscriptions contracted afterwards."
-msgstr ""
-"Estes valores são definidos na instalação, não nesta tela. Alterar um deles "
-"afeta somente as assinaturas contratadas depois."
+#: templates/billing/staff_plans.html:233
+msgid "These last two are set on the installation, not on this screen."
+msgstr "Estes dois últimos são definidos na instalação, não nesta tela."
 
-#: templates/billing/staff_plans.html:133
+#: templates/billing/staff_plans.html:254
+msgid "Price history"
+msgstr "Histórico de preços"
+
+#: templates/billing/staff_plans.html:256
+msgid ""
+"The most recent changes to the list above. Nothing here changed anyone's "
+"existing bill."
+msgstr "As alterações mais recentes na lista acima. Nada aqui alterou a fatura de quem já é cliente."
+
+#: templates/billing/staff_plans.html:270
+#, python-format
+msgid "Set to %(value)s, from the installation's own value."
+msgstr "Definido em %(value)s, antes vindo do valor da própria instalação."
+
+#: templates/billing/staff_plans.html:272
+#, python-format
+msgid "%(old)s to %(value)s"
+msgstr "de %(old)s para %(value)s"
+
+#: templates/billing/staff_plans.html:278
+#, python-format
+msgid "%(who)s on %(when)s"
+msgstr "%(who)s em %(when)s"
+
+#: templates/billing/staff_plans.html:292
 msgid "Subscriptions on this plan"
 msgstr "Assinaturas neste plano"
 
-#: templates/billing/staff_plans.html:135
+#: templates/billing/staff_plans.html:294
 msgid "Counted across every account. Open Customers to act on one."
 msgstr "Contadas em todas as contas. Abra Clientes para agir sobre uma."
 
-#: templates/billing/staff_plans.html:142
+#: templates/billing/staff_plans.html:301
 msgid "Paying"
 msgstr "Pagando"
 
-#: templates/billing/staff_plans.html:156
+#: templates/billing/staff_plans.html:315
 msgid "Workspaces not charged"
 msgstr "Sem cobrança"
 
-#: templates/billing/staff_plans.html:160
+#: templates/billing/staff_plans.html:319
 msgid "Awaiting first payment"
 msgstr "Aguardando o primeiro pagamento"
 
-#: templates/billing/staff_plans.html:164
+#: templates/billing/staff_plans.html:323
+#: templates/billing/staff_subscriptions.html:65
 msgid "Overdue"
 msgstr "Em atraso"
 
-#: templates/billing/staff_plans.html:174
+#: templates/billing/staff_plans.html:333
 #, python-format
 msgid "%(counter)s active disk add-on"
 msgid_plural "%(counter)s active disk add-ons"
 msgstr[0] "%(counter)s adicional de disco ativo"
 msgstr[1] "%(counter)s adicionais de disco ativos"
 
-#: templates/billing/staff_plans.html:178
+#: templates/billing/staff_plans.html:337
 #, python-format
 msgid "%(amount)s extra GB sold"
 msgstr "%(amount)s GB extras vendidos"
+
+#: templates/billing/staff_subscriptions.html:32
+#: templates/billing/staff_subscriptions.html:37
+#: templates/layouts/admin_shell.html:117
+msgid "Subscriptions"
+msgstr "Assinaturas"
+
+#: templates/billing/staff_subscriptions.html:40
+msgid ""
+"Every contract individually, and what the payment provider has reported."
+msgstr "Cada contrato individualmente, e o que o provedor de pagamento informou."
+
+#: templates/billing/staff_subscriptions.html:53
+msgid "Contracted per month"
+msgstr "Contratado por mês"
+
+#: templates/billing/staff_subscriptions.html:54
+msgid "Active subscriptions, add-ons included."
+msgstr "Assinaturas ativas, adicionais incluídos."
+
+#: templates/billing/staff_subscriptions.html:61
+msgid "What the exemptions would bill if they were charged."
+msgstr "O que as isenções cobrariam se fossem cobradas."
+
+#: templates/billing/staff_subscriptions.html:66
+msgid "Subscriptions the provider failed to charge."
+msgstr "Assinaturas que o provedor não conseguiu cobrar."
+
+#: templates/billing/staff_subscriptions.html:77
+msgid ""
+"These are contracted amounts, not amounts received. What was actually "
+"collected comes from the payment provider and is listed under Charges below."
+msgstr "Estes são valores contratados, não valores recebidos. O que foi efetivamente arrecadado vem do provedor de pagamento e está listado em Cobranças, abaixo."
+
+#: templates/billing/staff_subscriptions.html:85
+msgid "Contracts"
+msgstr "Contratos"
+
+#: templates/billing/staff_subscriptions.html:88
+#, python-format
+msgid "%(shown)s of %(total)s subscriptions."
+msgstr "%(shown)s de %(total)s assinaturas."
+
+#: templates/billing/staff_subscriptions.html:90
+#, python-format
+msgid "%(counter)s subscription."
+msgid_plural "%(counter)s subscriptions."
+msgstr[0] "%(counter)s assinatura."
+msgstr[1] "%(counter)s assinaturas."
+
+#: templates/billing/staff_subscriptions.html:121
+msgid "Workspace"
+msgstr "Workspace"
+
+#: templates/billing/staff_subscriptions.html:124
+msgid "Extra disk"
+msgstr "Disco extra"
+
+#: templates/billing/staff_subscriptions.html:125
+msgid "Paid through"
+msgstr "Pago até"
+
+#: templates/billing/staff_subscriptions.html:157
+msgid "not charged"
+msgstr "sem cobrança"
+
+#: templates/billing/staff_subscriptions.html:163
+#, python-format
+msgid "+%(amount)s GB"
+msgstr "+%(amount)s GB"
+
+#: templates/billing/staff_subscriptions.html:188
+msgid "No subscription is in this state."
+msgstr "Nenhuma assinatura está nesse estado."
+
+#: templates/billing/staff_subscriptions.html:190
+msgid ""
+"No workspace has a subscription row yet. One is created the first time a "
+"workspace's billing is opened."
+msgstr "Nenhum workspace tem registro de assinatura ainda. Um é criado na primeira vez que o faturamento de um workspace é aberto."
+
+#: templates/billing/staff_subscriptions.html:200
+msgid "Charges"
+msgstr "Cobranças"
+
+#: templates/billing/staff_subscriptions.html:202
+msgid ""
+"What the payment provider reported, newest first. Amounts are the provider's "
+"own figures, not ours."
+msgstr "O que o provedor de pagamento informou, do mais recente ao mais antigo. Os valores são os números do próprio provedor, não os nossos."
+
+#: templates/billing/staff_subscriptions.html:212
+#: templates/notifications/preferences.html:34
+msgid "Event"
+msgstr "Evento"
+
+#: templates/billing/staff_subscriptions.html:214
+#: templates/billing/workspace_billing.html:206
+msgid "Amount"
+msgstr "Quantidade"
+
+#: templates/billing/staff_subscriptions.html:239
+msgid "not matched to an account"
+msgstr "sem conta correspondente"
+
+#: templates/billing/staff_subscriptions.html:270
+#, python-format
+msgid "Showing the %(shown)s most recent of %(total)s events."
+msgstr "Mostrando os %(shown)s eventos mais recentes de %(total)s."
+
+#: templates/billing/staff_subscriptions.html:286
+msgid ""
+"The payment provider has not reported anything yet. Charges appear here as "
+"soon as it does."
+msgstr "O provedor de pagamento ainda não informou nada. As cobranças aparecem aqui assim que ele informar."
+
+#: templates/billing/staff_subscriptions.html:290
+msgid ""
+"No charges yet, because the payment provider has no credentials on this "
+"installation."
+msgstr "Nenhuma cobrança ainda, porque o provedor de pagamento não tem credenciais nesta instalação."
+
+#: templates/billing/staff_subscriptions.html:293
+msgid ""
+"Contracting records what a customer asked for and charges nobody. Nothing "
+"has been billed or collected, and the totals above are what would be billed "
+"once the provider is set up."
+msgstr "Contratar registra o que o cliente pediu e não cobra ninguém. Nada foi faturado nem arrecadado, e os totais acima são o que seria faturado quando o provedor estiver configurado."
 
 #: templates/billing/subscribe_modal.html:20
 msgid "Contract workspace"
@@ -3499,10 +3804,6 @@ msgid ""
 msgstr ""
 "R$ %(price)s por GB por mês. Escolha quanto você precisa — o preço é "
 "atualizado antes de você confirmar."
-
-#: templates/billing/workspace_billing.html:206
-msgid "Amount"
-msgstr "Quantidade"
 
 #: templates/billing/workspace_billing.html:219
 msgid "Or type another amount (GB)"
@@ -5973,15 +6274,15 @@ msgid "Per-org subscription, billed monthly. Cancel anytime."
 msgstr ""
 "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
 
-#: templates/layouts/admin_shell.html:153
+#: templates/layouts/admin_shell.html:162
 msgid "Back to the product"
 msgstr "Voltar para o produto"
 
-#: templates/layouts/admin_shell.html:161
+#: templates/layouts/admin_shell.html:170
 msgid "My account"
 msgstr "Minha conta"
 
-#: templates/layouts/admin_shell.html:203
+#: templates/layouts/admin_shell.html:212
 msgid "Open the administration menu"
 msgstr "Abrir o menu da administração"
 
@@ -6524,10 +6825,6 @@ msgstr "Canais por evento"
 #: templates/notifications/preferences.html:29
 msgid "Toggle delivery channels for each event type."
 msgstr "Ative ou desative os canais de entrega para cada tipo de evento."
-
-#: templates/notifications/preferences.html:34
-msgid "Event"
-msgstr "Evento"
 
 #: templates/notifications/preferences.html:64
 msgid "Quiet Hours & Digest"
