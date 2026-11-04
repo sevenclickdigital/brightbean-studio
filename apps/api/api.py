@@ -175,18 +175,14 @@ def _not_found_handler(request: HttpRequest, exc: Http404) -> HttpResponse:
 # Map storage-quota breaches to 413 with the documented body + headers
 # (Gap 1a). Routed here so both the API media router and any other surface
 # that imports ``create_asset`` produce a consistent error shape.
+from apps.billing.storage_usage import WorkspaceStorageExceededError  # noqa: E402
 from apps.media_library.quotas import StorageQuotaExceededError  # noqa: E402
 
 
-@api.exception_handler(StorageQuotaExceededError)
-def _storage_quota_handler(request: HttpRequest, exc: StorageQuotaExceededError) -> HttpResponse:
+def _storage_limit_response(request: HttpRequest, exc, *, error_code: str, detail: str) -> HttpResponse:
     remaining = max(exc.limit - exc.used, 0)
-    detail = (
-        f"Workspace storage limit reached. Used {exc.used} of {exc.limit} bytes; "
-        f"this upload would exceed by {(exc.used + exc.attempted) - exc.limit} bytes."
-    )
     body = {
-        "error": "storage_quota_exceeded",
+        "error": error_code,
         "detail": detail,
         "used_bytes": exc.used,
         "limit_bytes": exc.limit,
@@ -198,6 +194,36 @@ def _storage_quota_handler(request: HttpRequest, exc: StorageQuotaExceededError)
     response["X-Storage-Remaining"] = str(remaining)
     _audit_failed_request(request, status_code=413)
     return response
+
+
+@api.exception_handler(StorageQuotaExceededError)
+def _storage_quota_handler(request: HttpRequest, exc: StorageQuotaExceededError) -> HttpResponse:
+    return _storage_limit_response(
+        request,
+        exc,
+        error_code="storage_quota_exceeded",
+        detail=(
+            f"Workspace storage limit reached. Used {exc.used} of {exc.limit} bytes; "
+            f"this upload would exceed by {(exc.used + exc.attempted) - exc.limit} bytes."
+        ),
+    )
+
+
+# A distinct error code from the org cap above: the two have different
+# remedies (support/plan change vs. delete files or contract extra GB), and
+# an agent integrator needs to tell them apart to report the right thing.
+@api.exception_handler(WorkspaceStorageExceededError)
+def _workspace_storage_handler(request: HttpRequest, exc: WorkspaceStorageExceededError) -> HttpResponse:
+    return _storage_limit_response(
+        request,
+        exc,
+        error_code="workspace_storage_exceeded",
+        detail=(
+            f"This workspace's storage is full. Used {exc.used} of {exc.limit} bytes; "
+            f"this upload would exceed by {(exc.used + exc.attempted) - exc.limit} bytes. "
+            "Delete files you no longer need, or contract extra storage."
+        ),
+    )
 
 
 def _audit_failed_request(request: HttpRequest, *, status_code: int) -> None:

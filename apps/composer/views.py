@@ -26,6 +26,7 @@ from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy, ngettext
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.billing.storage_usage import WorkspaceStorageExceededError
 from apps.common.validators import (
     is_safe_url,
     parse_and_truncate_tag_string,
@@ -33,6 +34,7 @@ from apps.common.validators import (
     safe_xml_fromstring,
 )
 from apps.media_library.models import MediaAsset
+from apps.media_library.quotas import StorageQuotaExceededError
 from apps.members.decorators import require_permission
 from apps.members.models import WorkspaceMembership
 from apps.social_accounts.models import SocialAccount
@@ -1769,6 +1771,12 @@ def thumbnail_upload(request, workspace_id):
         return JsonResponse({"error": _("Only image files are allowed")}, status=400)
 
     from apps.media_library.models import MediaAsset
+    from apps.media_library.quotas import enforce_upload_quotas
+
+    try:
+        enforce_upload_quotas(workspace.organization, workspace, uploaded_file.size or 0)
+    except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+        return _quota_error_response(exc)
 
     asset = MediaAsset.objects.create(
         organization=workspace.organization,
@@ -2154,7 +2162,7 @@ def unsplash_import(request, workspace_id, post_id=None):
     from django.core.files.base import ContentFile
 
     from apps.media_library.models import MediaAsset
-    from apps.media_library.quotas import StorageQuotaExceededError, enforce_storage_quota
+    from apps.media_library.quotas import enforce_upload_quotas
 
     post = None
     if post_id:
@@ -2164,7 +2172,7 @@ def unsplash_import(request, workspace_id, post_id=None):
     new_assets = []
     attachments = []
     failed = 0
-    quota_exceeded = False
+    quota_error = None
 
     # follow_redirects is OFF: the host allowlist below is only meaningful if a
     # 30x can't bounce the request to an internal address (SSRF). One pooled
@@ -2227,9 +2235,13 @@ def unsplash_import(request, workspace_id, post_id=None):
                 continue
 
             try:
-                enforce_storage_quota(workspace.organization, len(content))
-            except StorageQuotaExceededError:
-                quota_exceeded = True
+                enforce_upload_quotas(workspace.organization, workspace, len(content))
+            except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+                # Stop the whole import rather than skipping this photo:
+                # every remaining one is at least as large as the headroom
+                # we just failed to find, so continuing only wastes
+                # Unsplash download calls.
+                quota_error = exc
                 break
 
             filename = f"unsplash-{photo_id}.jpg"
@@ -2253,11 +2265,8 @@ def unsplash_import(request, workspace_id, post_id=None):
                 attachments.append(attachment)
 
     if not new_assets:
-        if quota_exceeded:
-            return JsonResponse(
-                {"error": _("Storage quota exceeded. Free up space or upgrade your plan.")},
-                status=413,
-            )
+        if quota_error is not None:
+            return _quota_error_response(quota_error)
         return JsonResponse({"error": _("Could not import the selected photos.")}, status=502)
 
     if post is not None:
@@ -2543,6 +2552,13 @@ def upload_media(request, workspace_id, post_id=None):
         media_type = MediaAsset.MediaType.GIF
     else:
         media_type = MediaAsset.MediaType.DOCUMENT
+
+    from apps.media_library.quotas import enforce_upload_quotas
+
+    try:
+        enforce_upload_quotas(workspace.organization, workspace, uploaded_file.size or 0)
+    except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+        return _quota_error_response(exc)
 
     asset = MediaAsset.objects.create(
         organization=workspace.organization,
@@ -2968,9 +2984,43 @@ def _sync_idea_media_attachments(idea, workspace, ordered_asset_ids):
         idea.save(update_fields=["media_asset", "updated_at"])
 
 
+def _quota_error_response(exc):
+    """Render a storage-cap breach as a 413 JSON body.
+
+    Shared by every composer upload view so the two caps produce one shape.
+    The workspace cap carries its own translated remedy sentence ("delete
+    files or contract extra storage"); the org cap has no self-service
+    remedy, so it gets the generic line. Numbers travel alongside the text
+    so the front end can draw the meter without a second request.
+    """
+    from apps.billing.storage_usage import WorkspaceStorageExceededError
+
+    if isinstance(exc, WorkspaceStorageExceededError):
+        detail = str(exc.message)
+    else:
+        detail = _("Storage quota exceeded. Free up space or upgrade your plan.")
+    return JsonResponse(
+        {
+            "error": detail,
+            "used_bytes": exc.used,
+            "limit_bytes": exc.limit,
+            "attempted_bytes": exc.attempted,
+        },
+        status=413,
+    )
+
+
 def _create_idea_media_asset(workspace, user, uploaded_file):
-    """Create a MediaAsset from an uploaded file for Idea create/edit flows."""
+    """Create a MediaAsset from an uploaded file for Idea create/edit flows.
+
+    Raises ``StorageQuotaExceededError`` / ``WorkspaceStorageExceededError``
+    when the upload would breach a cap; the three Idea views that call this
+    map those to a 413 via ``_quota_error_response``.
+    """
     from apps.media_library.models import MediaAsset
+    from apps.media_library.quotas import enforce_upload_quotas
+
+    enforce_upload_quotas(workspace.organization, workspace, uploaded_file.size or 0)
 
     content_type = uploaded_file.content_type or ""
     if content_type == "image/gif":
@@ -3037,7 +3087,10 @@ def idea_upload_media(request, workspace_id):
     if not uploaded_file:
         return JsonResponse({"error": _("No file provided")}, status=400)
 
-    asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+    try:
+        asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+    except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+        return _quota_error_response(exc)
     return JsonResponse(
         {
             "asset_id": str(asset.id),
@@ -3077,7 +3130,10 @@ def idea_create(request, workspace_id):
     uploaded_file = request.FILES.get("media") or request.FILES.get("file")
     media_asset_id = request.POST.get("media_asset_id", "").strip()
     if uploaded_file:
-        uploaded_asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+        try:
+            uploaded_asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+        except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+            return _quota_error_response(exc)
         media_asset_ids.append(str(uploaded_asset.id))
     elif not media_asset_ids and media_asset_id:
         from apps.media_library.models import MediaAsset
@@ -3156,7 +3212,10 @@ def idea_edit(request, workspace_id, idea_id):
     uploaded_file = request.FILES.get("media") or request.FILES.get("file")
     uploaded_asset = None
     if uploaded_file:
-        uploaded_asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+        try:
+            uploaded_asset = _create_idea_media_asset(workspace, request.user, uploaded_file)
+        except (StorageQuotaExceededError, WorkspaceStorageExceededError) as exc:
+            return _quota_error_response(exc)
         media_asset_ids.append(str(uploaded_asset.id))
     media_asset_ids = _normalize_media_asset_ids(media_asset_ids)
 

@@ -116,6 +116,26 @@ class StorageSummary(Schema):
     plan_slug: str = Field("", description="IntelligenceSubscription plan slug; empty if no active subscription.")
 
 
+class WorkspaceStorageSummary(Schema):
+    """The workspace's billed disk position — the cap the customer bought.
+
+    Reported alongside, not instead of, ``StorageSummary``: that one is the
+    organization-wide infrastructure cap and an upload has to fit under
+    both. ``near_limit`` is the 90% signal.
+    """
+
+    used_bytes: int
+    limit_bytes: int
+    remaining_bytes: int
+    percent_used: float
+    near_limit: bool
+    is_full: bool
+    has_subscription: bool = Field(
+        False,
+        description="False when the workspace has no billing subscription; its quota is then 0.",
+    )
+
+
 class MeResponse(Schema):
     """Echoes everything the key is scoped to so an agent can self-introspect."""
 
@@ -125,6 +145,7 @@ class MeResponse(Schema):
     organization_id: uuid.UUID
     permissions: list[str]
     storage: StorageSummary
+    workspace_storage: WorkspaceStorageSummary | None = None
     allowlisted_accounts: list[AccountSummary]
 
 

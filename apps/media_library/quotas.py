@@ -1,11 +1,24 @@
-"""Per-organization storage-quota resolution + enforcement.
+"""Storage-quota resolution + enforcement.
 
-The single chokepoint is ``apps.media_library.services.create_asset``,
-which calls ``enforce_storage_quota`` before persisting a new asset.
-Both the cookie-authenticated UI and the Agent API flow through that
-service, so quota policy is consistent across surfaces by construction.
+Two caps apply to an upload, and ``enforce_upload_quotas`` is where both
+are checked:
 
-Resolution order (high → low precedence):
+1. **Per organization** (this module). The infrastructure guard, older
+   than per-workspace billing: it bounds the total bytes a single
+   Organization can accumulate so an account — or a leaked Agent API key
+   with ``upload_media`` — cannot fill the bucket. Covers every asset the
+   org owns, shared media included.
+2. **Per workspace** (``apps.billing.storage_usage``). The product
+   contract: base quota plus contracted extra-GB add-ons, with a 90%
+   warning and a hard block at 100%.
+
+They are not redundant and neither subsumes the other — the org cap is
+about the disk we rent, the workspace cap is about the disk we sold. An
+upload must satisfy both, org first because its aggregate is the cheaper
+one. Shared media (``workspace`` NULL) is charged to the organization and
+to no workspace; the reasoning is in ``apps.billing.storage_usage``.
+
+Org resolution order (high → low precedence):
 
 1. ``OrgSetting`` value at key ``media.storage_quota_bytes_override``
    — manual support exception or enterprise contract.
@@ -151,3 +164,26 @@ def enforce_storage_quota(organization, incoming_bytes: int) -> None:
     used = used_storage_bytes(organization)
     if used + max(incoming_bytes, 0) > quota.limit_bytes:
         raise StorageQuotaExceededError(used=used, limit=quota.limit_bytes, attempted=int(incoming_bytes))
+
+
+def enforce_upload_quotas(organization, workspace, incoming_bytes: int) -> None:
+    """Check both caps that govern an upload, cheapest first.
+
+    The function every asset-creating path should call. Raises
+    ``StorageQuotaExceededError`` for the org cap or
+    ``WorkspaceStorageExceededError`` for the workspace cap — distinct
+    exceptions on purpose, because the remedies differ: the org cap is
+    lifted by support or a plan change, the workspace cap by deleting
+    files or contracting GB, and only the latter is something the user can
+    act on themselves.
+
+    ``workspace=None`` means shared org-level media, which the workspace
+    cap does not govern; the org cap still runs.
+    """
+    enforce_storage_quota(organization, incoming_bytes)
+
+    # Imported here, not at module scope: billing imports media_library
+    # models, so a top-level import would close an import cycle.
+    from apps.billing.storage_usage import enforce_workspace_storage
+
+    enforce_workspace_storage(workspace, incoming_bytes)

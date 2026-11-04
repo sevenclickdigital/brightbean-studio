@@ -6,7 +6,8 @@ from ninja import Router
 
 from apps.api.limits import enforce_http_rate_limits
 from apps.api.middleware import log_audit_entry
-from apps.api.schemas import AccountSummary, MeResponse, StorageSummary
+from apps.api.schemas import AccountSummary, MeResponse, StorageSummary, WorkspaceStorageSummary
+from apps.billing.storage_usage import storage_status
 from apps.media_library.quotas import resolve_storage_quota, used_storage_bytes
 
 router = Router(tags=["me"])
@@ -29,6 +30,17 @@ def me(request):
         plan_slug=quota.plan_slug,
     )
 
+    ws_status = storage_status(workspace)
+    workspace_storage = WorkspaceStorageSummary(
+        used_bytes=ws_status.used_bytes,
+        limit_bytes=ws_status.limit_bytes,
+        remaining_bytes=ws_status.remaining_bytes,
+        percent_used=round(ws_status.percent_used, 2),
+        near_limit=ws_status.is_near_limit,
+        is_full=ws_status.is_full,
+        has_subscription=ws_status.has_subscription,
+    )
+
     body = MeResponse(
         api_key_id=api_key.id,
         workspace_id=workspace.id,
@@ -36,6 +48,7 @@ def me(request):
         organization_id=workspace.organization_id,
         permissions=[k for k, v in request.workspace_membership.effective_permissions.items() if v],
         storage=storage,
+        workspace_storage=workspace_storage,
         allowlisted_accounts=accounts,
     )
     log_audit_entry(request, action="me.read", target_id=None, status_code=200)

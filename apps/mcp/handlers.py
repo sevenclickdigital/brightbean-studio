@@ -814,6 +814,7 @@ def _upload_media(args: dict, context: dict[str, Any]) -> dict:
     from django.core.exceptions import ValidationError
     from django.core.files.uploadedfile import SimpleUploadedFile
 
+    from apps.billing.storage_usage import WorkspaceStorageExceededError
     from apps.media_library.quotas import StorageQuotaExceededError
     from apps.media_library.services import create_asset as media_create_asset
 
@@ -864,6 +865,12 @@ def _upload_media(args: dict, context: dict[str, Any]) -> dict:
         raise JsonRpcError(
             INVALID_PARAMS,
             f"Storage quota exceeded: used={exc.used} limit={exc.limit} attempted={exc.attempted}",
+        ) from exc
+    except WorkspaceStorageExceededError as exc:
+        raise JsonRpcError(
+            INVALID_PARAMS,
+            f"Workspace storage full: used={exc.used} limit={exc.limit} attempted={exc.attempted}. "
+            "Delete files you no longer need, or contract extra storage.",
         ) from exc
     except ValidationError as exc:
         raise JsonRpcError(INVALID_PARAMS, "; ".join(getattr(exc, "messages", [str(exc)]))) from exc
@@ -984,6 +991,7 @@ def _finalize_media_upload(args: dict, context: dict[str, Any]) -> dict:
     from django.db import transaction
     from django.utils import timezone
 
+    from apps.billing.storage_usage import WorkspaceStorageExceededError
     from apps.media_library.models import MediaAsset, PendingUpload
     from apps.media_library.quotas import StorageQuotaExceededError
     from apps.media_library.services import inspect_uploaded_object, register_uploaded_asset
@@ -1027,6 +1035,12 @@ def _finalize_media_upload(args: dict, context: dict[str, Any]) -> dict:
             raise JsonRpcError(
                 INVALID_PARAMS,
                 f"Storage quota exceeded: used={exc.used} limit={exc.limit} attempted={exc.attempted}",
+            ) from exc
+        except WorkspaceStorageExceededError as exc:
+            raise JsonRpcError(
+                INVALID_PARAMS,
+                f"Workspace storage full: used={exc.used} limit={exc.limit} attempted={exc.attempted}. "
+                "Delete files you no longer need, or contract extra storage.",
             ) from exc
         except ValidationError as exc:
             raise JsonRpcError(INVALID_PARAMS, "; ".join(getattr(exc, "messages", [str(exc)]))) from exc

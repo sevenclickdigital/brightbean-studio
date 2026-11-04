@@ -85,11 +85,12 @@ def create_asset(
     text/html. ``filename`` keeps the uploader's name for display; the key on
     disk gets the extension the bytes justify.
 
-    Enforces the org-level storage quota before persisting; raises
-    ``StorageQuotaExceededError`` (mapped to HTTP 413 by the API layer) when
-    the upload would push usage over the cap.
+    Enforces BOTH storage caps before persisting — the org-level one and the
+    workspace's billed quota. Raises ``StorageQuotaExceededError`` (org,
+    mapped to HTTP 413 by the API layer) or ``WorkspaceStorageExceededError``
+    (workspace) when the upload would push usage over a cap.
     """
-    from .quotas import enforce_storage_quota
+    from .quotas import enforce_upload_quotas
     from .validators import (  # local import to avoid validator import cycle on the test path
         sniff_mime,
         storage_filename,
@@ -99,7 +100,7 @@ def create_asset(
     if errors:
         raise ValidationError(errors)
 
-    enforce_storage_quota(organization, getattr(uploaded_file, "size", 0) or 0)
+    enforce_upload_quotas(organization, workspace, getattr(uploaded_file, "size", 0) or 0)
 
     sniffed_mime = sniff_mime(uploaded_file) or ""
 
@@ -203,9 +204,9 @@ def inspect_uploaded_object(pending) -> dict:
     size (HEAD) and the MIME (range-GET + magic-byte sniff) from the stored
     object — never trusting the agent's declared values — runs the same
     ``validate_file`` allowlist + per-type size policy the REST/base64 uploads
-    use, and enforces the org storage quota. On any validation/quota failure the
-    orphaned object is deleted (best-effort, so the cleanup error can't mask the
-    real reason) before re-raising.
+    use, and enforces both storage quotas (org and workspace). On any
+    validation/quota failure the orphaned object is deleted (best-effort, so the
+    cleanup error can't mask the real reason) before re-raising.
 
     Does NO database writes and acquires no lock, so the caller runs it OUTSIDE
     the finalize transaction — keeping the per-row lock off the remote round-trips.
@@ -213,7 +214,9 @@ def inspect_uploaded_object(pending) -> dict:
     """
     import contextlib
 
-    from .quotas import StorageQuotaExceededError, enforce_storage_quota
+    from apps.billing.storage_usage import WorkspaceStorageExceededError
+
+    from .quotas import StorageQuotaExceededError, enforce_upload_quotas
     from .storage import delete_object, head_object_size, read_object_head_bytes
     from .validators import sniff_mime
 
@@ -233,8 +236,8 @@ def inspect_uploaded_object(pending) -> dict:
         if errors:
             raise ValidationError(errors)
         mime = sniff_mime(io.BytesIO(head)) or ""
-        enforce_storage_quota(pending.organization, size)
-    except (ValidationError, StorageQuotaExceededError):
+        enforce_upload_quotas(pending.organization, pending.workspace, size)
+    except (ValidationError, StorageQuotaExceededError, WorkspaceStorageExceededError):
         with contextlib.suppress(Exception):
             delete_object(key)
         raise

@@ -726,6 +726,20 @@ BILLING_WORKSPACE_BASE_STORAGE_BYTES = env.int(
 # changes.
 BILLING_STORAGE_PRICE_PER_GB_CENTS = env.int("BILLING_STORAGE_PRICE_PER_GB_CENTS", default=200)
 
+# Master switch for the per-workspace disk block. Separate from
+# ``STORAGE_QUOTA_ENABLED`` (which governs the older per-organization cap)
+# because the two are independent policies: a deployment can want the
+# infrastructure guard on while the billing-driven block is still off —
+# the state every deployment is in until its workspaces are contracted.
+# See ``apps.billing.storage_usage``.
+BILLING_STORAGE_QUOTA_ENABLED = env.bool("BILLING_STORAGE_QUOTA_ENABLED", default=True)
+
+# How long a workspace's summed disk usage may be served from cache, in
+# seconds. The figure is invalidated on asset create/delete, so this TTL
+# only bounds how long a *missed* invalidation could persist; 0 disables
+# caching entirely and makes every upload pay for the SUM.
+BILLING_STORAGE_USAGE_CACHE_SECONDS = env.int("BILLING_STORAGE_USAGE_CACHE_SECONDS", default=300)
+
 
 # ---------------------------------------------------------------------------
 # Asaas (payment gateway behind the billing above)
