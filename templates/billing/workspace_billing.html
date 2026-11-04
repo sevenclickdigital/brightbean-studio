@@ -132,8 +132,10 @@ when disk runs short.
         </div>
       </div>
 
-      {# The meter. Width is clamped by ``meter_percent``; the domain object
-         keeps the raw percentage uncapped on purpose. #}
+      {% comment %}
+      The meter. Width is clamped by ``meter_percent``; the domain object
+      keeps the raw percentage uncapped on purpose.
+      {% endcomment %}
       <div class="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden"
            role="progressbar"
            aria-valuenow="{{ storage.percent_used|meter_percent }}"
@@ -224,8 +226,10 @@ when disk runs short.
                hx-include="this"
                class="form-input-styled w-28 tabular-nums">
         <span class="text-sm text-stone-500">{% translate "GB per month" %}</span>
-        {# Invisible companion so the preset buttons can refresh the server
-           quote without duplicating the htmx attributes on each of them. #}
+        {% comment %}
+        Invisible companion so the preset buttons can refresh the server
+        quote without duplicating the htmx attributes on each of them.
+        {% endcomment %}
         <button type="button" x-ref="quoteTrigger" class="hidden"
                 hx-get="{% url 'billing:storage_quote' workspace_id=workspace.id %}"
                 hx-target="#storage-quote"

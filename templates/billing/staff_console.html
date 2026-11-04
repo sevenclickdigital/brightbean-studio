@@ -106,8 +106,8 @@ nothing here is reachable by a customer.
       </div>
 
       {# Disk, as a number and a bar — the signal that predicts a support ticket. #}
-      <div class="w-40">
-        <div class="flex items-baseline justify-between text-[11px] mb-1">
+      <div class="w-48">
+        <div class="flex items-baseline justify-between gap-2 text-[11px] mb-1">
           <span class="text-stone-500">
             {% blocktranslate with used=ws.storage.used_bytes|gb limit=ws.storage.limit_bytes|gb %}{{ used }} / {{ limit }} GB{% endblocktranslate %}
           </span>
@@ -127,8 +127,10 @@ nothing here is reachable by a customer.
         R$ {{ ws.monthly_total_cents|brl }}
       </div>
 
-      {# Courtesy toggle. The action is explicit in the POST so a
-         double-submit is idempotent instead of flipping the comp back. #}
+      {% comment %}
+      Courtesy toggle. The action is explicit in the POST so a
+      double-submit is idempotent instead of flipping the comp back.
+      {% endcomment %}
       <form method="post" action="{% url 'billing_staff:toggle_courtesy' target_workspace_id=ws.workspace.id %}">
         {% csrf_token %}
         {% if ws.subscription.is_courtesy %}
