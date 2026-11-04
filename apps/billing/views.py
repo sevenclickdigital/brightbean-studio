@@ -7,7 +7,9 @@ URL surface:
 - ``/workspace/<workspace_id>/billing/subscribe/confirm/``: POST, contracts
 - ``/workspace/<workspace_id>/billing/storage/quote/``    : HTMX price quote
 - ``/workspace/<workspace_id>/billing/storage/``          : POST, buys GB
-- ``/billing/staff/``                                     : staff console
+- ``/billing/staff/``                                     : customers
+- ``/billing/staff/plans/``                               : plan and prices
+- ``/billing/staff/impersonations/``                      : access log
 - ``/billing/staff/courtesy/<target_workspace_id>/``      : POST, comp toggle
 - ``/billing/staff/quota/<org_id>/``                      : POST, org quota
 
@@ -33,15 +35,16 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.accounts import impersonation
+from apps.accounts.models import ImpersonationSession
 from apps.billing import contracting, services
 from apps.billing.gateways.asaas import AsaasError, AsaasNotConfigured
-from apps.billing.models import WorkspaceAddon
+from apps.billing.models import WorkspaceAddon, WorkspaceSubscription
 from apps.billing.storage_usage import storage_status
 from apps.members.models import OrgMembership, WorkspaceMembership
 from apps.organizations.models import Organization
@@ -61,6 +64,12 @@ STORAGE_ADDON_CHOICES = (5, 10, 25, 50, 100)
 # "5000" is a validation error instead of a R$ 10.000 subscription.
 STORAGE_ADDON_MIN_GB = 1
 STORAGE_ADDON_MAX_GB = 1000
+
+# How many impersonation rows the access log shows. A window rather than
+# pagination: takeovers are rare, and the question the page answers ("was
+# anyone inside this account recently") is a recency question. Also what
+# keeps the page off a full-table scan if that ever stops being true.
+IMPERSONATION_LOG_LIMIT = 200
 
 
 # ---------------------------------------------------------------------------
@@ -322,8 +331,28 @@ def contract_storage(request, workspace_id):
 
 
 # ---------------------------------------------------------------------------
-# Staff console
+# Administrative area (operator only)
 # ---------------------------------------------------------------------------
+# Three screens, split by the question each one answers, instead of the
+# single page this used to be:
+#
+# - Customers      : "who is paying, who is comped, who is out of disk" —
+#                    the comparative view, and the only screen with
+#                    actions on it (courtesy, quota, impersonation).
+# - Plan and prices: "what are we charging" — the configured list prices
+#                    and included disk, which until now existed only in
+#                    settings and as a subtitle on the console.
+# - Access log     : "who was inside a customer's account, and when" —
+#                    ``ImpersonationSession`` has had a model and an
+#                    index for exactly this question since impersonation
+#                    shipped, and no screen to ask it from.
+#
+# The split is by *question*, not by entity: a plans screen that could be
+# edited would need a pricing model (list prices are settings today, and
+# every sold row snapshots its own price), so it is read-only and says
+# so. Mixing it into the customer list, which is what the old subtitle
+# did, meant the product owner could not see the price list without
+# loading every organization's billing rows.
 
 
 def _is_billing_staff(request):
@@ -375,17 +404,32 @@ def _staff_required(view_func):
 @_staff_required
 @require_GET
 def staff_console(request):
-    """Every organization, its comp budget, and each workspace's state.
+    """Customers: every organization, its comp budget, each workspace's state.
 
     One page rather than a drill-down because the question the product
     owner asks it is comparative: "who is paying, who is comped, who is
     about to run out of disk". Usage is read per workspace from the
     billing cache, which is what every other surface reads.
 
-    Each organization also lists the accounts an operator may take over
-    for support. The candidates are filtered here, by the same
-    ``may_impersonate`` the view enforces, so the page never offers a
-    button that would 403 — notably not another operator's account.
+    Keeps the ``/billing/staff/`` path and the ``staff_console`` name it
+    had as the single console: it is the link in the account menu, the
+    redirect target for an operator with no workspace, and what the
+    existing tests reverse. Renaming it would have broken all three for
+    nothing — this is still the screen an operator wants first.
+
+    Each organization lists **every** one of its members with their
+    e-mail, because the e-mail is how the product owner identifies a
+    customer — an organization name like "My Organization" identifies
+    nobody. The list used to be pre-filtered to impersonable accounts
+    only, which meant an organization whose single member is staff showed
+    a name and no human at all.
+
+    So the filter moved off the list and onto a per-row flag:
+    ``may_impersonate`` still decides who gets a *button* (an operator
+    must never be offered a takeover that would 403, notably not another
+    operator's account), while the e-mail is shown either way. Still
+    computed here rather than in the template, so the rule stays the
+    service's and the page cannot drift from it.
     """
     organizations = (
         Organization.objects.all()
@@ -417,6 +461,17 @@ def staff_console(request):
                     "monthly_total_cents": services.workspace_monthly_total_cents(workspace),
                 }
             )
+        # Every member, each carrying whether a takeover is allowed. The
+        # e-mail identifies the customer and is always shown;
+        # ``may_impersonate`` only gates the button, so an organization
+        # whose only member is another operator still names a human.
+        members = [
+            {
+                "membership": membership,
+                "may_impersonate": impersonation.may_impersonate(operator, membership.user),
+            }
+            for membership in organization.memberships.all()
+        ]
         rows.append(
             {
                 "organization": organization,
@@ -424,15 +479,11 @@ def staff_console(request):
                 "workspaces": workspace_rows,
                 "monthly_total_cents": sum(w["monthly_total_cents"] for w in workspace_rows),
                 "courtesy_exceeded": services.courtesy_quota_exceeded(organization),
-                # Only accounts this operator may actually take over.
-                # Other operators are excluded here, not hidden in the
-                # template, so the rule is the service's and the page
-                # cannot drift from it.
-                "members": [
-                    membership
-                    for membership in organization.memberships.all()
-                    if impersonation.may_impersonate(operator, membership.user)
-                ],
+                "members": members,
+                # Precomputed so the template does not need a filter to
+                # decide whether the takeover block has anything in it —
+                # an empty heading over no buttons is worse than nothing.
+                "has_impersonable_members": any(entry["may_impersonate"] for entry in members),
             }
         )
 
@@ -443,6 +494,86 @@ def staff_console(request):
             "rows": rows,
             "workspace_price_cents": services.workspace_price_cents(),
             "storage_price_per_gb_cents": services.storage_price_per_gb_cents(),
+            "admin_active": "accounts",
+        },
+    )
+
+
+@_staff_required
+@require_GET
+def staff_plans(request):
+    """The configured plan: what a workspace costs and what it includes.
+
+    Read-only, and the page says so. The list prices are deployment
+    settings (``BILLING_*`` in config/settings/base.py) and every sold
+    subscription or add-on row snapshots the price it was sold at, so an
+    editable field here would either need a pricing model that does not
+    exist or would silently fail to change any existing customer's bill —
+    the worse of the two outcomes, because it would look like it worked.
+
+    Counts come from the same services the customer-facing billing page
+    reads, so "12 paying workspaces" here and the sum of the rows on the
+    customers screen cannot disagree.
+    """
+    subscriptions = WorkspaceSubscription.objects.all()
+    addons = WorkspaceAddon.objects.filter(kind=WorkspaceAddon.Kind.EXTRA_STORAGE)
+
+    return render(
+        request,
+        "billing/staff_plans.html",
+        {
+            "workspace_price_cents": services.workspace_price_cents(),
+            "storage_price_per_gb_cents": services.storage_price_per_gb_cents(),
+            "base_storage_bytes": services.base_storage_bytes(),
+            "storage_quota_enabled": getattr(settings, "BILLING_STORAGE_QUOTA_ENABLED", False),
+            # Expected states, not an incident — see the module docstring.
+            "gateway_configured": bool(getattr(settings, "ASAAS_API_KEY", "")),
+            "counts": {
+                "active": subscriptions.filter(status=WorkspaceSubscription.Status.ACTIVE).count(),
+                "courtesy": subscriptions.filter(status=WorkspaceSubscription.Status.COURTESY).count(),
+                "pending": subscriptions.filter(status=WorkspaceSubscription.Status.PENDING).count(),
+                "past_due": subscriptions.filter(status=WorkspaceSubscription.Status.PAST_DUE).count(),
+                "canceled": subscriptions.filter(status=WorkspaceSubscription.Status.CANCELED).count(),
+                "active_storage_addons": addons.filter(status=WorkspaceAddon.Status.ACTIVE).count(),
+                # ``quantity`` is GB for the extra_storage kind — see
+                # WorkspaceAddon. Coalesced to 0 because SUM over no rows
+                # is NULL, and a fresh installation has no rows.
+                "extra_gb_sold": addons.filter(status=WorkspaceAddon.Status.ACTIVE).aggregate(total=Sum("quantity"))[
+                    "total"
+                ]
+                or 0,
+            },
+            "admin_active": "plans",
+        },
+    )
+
+
+@_staff_required
+@require_GET
+def staff_impersonation_log(request):
+    """Who was inside a customer's account, and when.
+
+    The audit question ``ImpersonationSession`` was built to answer (see
+    its docstring) and the only one with no screen. Read-only by
+    construction: a trail an operator can edit is not a trail, and a row
+    is closed by ``impersonation.stop``, never by a person.
+
+    Capped at the most recent rows rather than paginated. The honest
+    reason is volume: takeovers are rare, and the question asked here is
+    "was anyone in this account recently", which a fixed window answers.
+    The cap, not pagination, is also what stops this page from becoming a
+    full-table scan the day it is not.
+    """
+    sessions = ImpersonationSession.objects.select_related("impersonator", "impersonated")[:IMPERSONATION_LOG_LIMIT]
+
+    return render(
+        request,
+        "billing/staff_impersonations.html",
+        {
+            "sessions": sessions,
+            "limit": IMPERSONATION_LOG_LIMIT,
+            "open_count": ImpersonationSession.objects.filter(ended_at__isnull=True).count(),
+            "admin_active": "impersonations",
         },
     )
 
@@ -470,21 +601,25 @@ def staff_toggle_courtesy(request, target_workspace_id):
             note=request.POST.get("note", "").strip()[:255],
             granted_by=request.user,
         )
+        # Worded as "will not be charged", matching the button that was
+        # pressed. "Is now a courtesy" was read as something handed to
+        # the customer rather than a line removed from their invoice.
         messages.success(
             request,
-            _('Workspace "%(name)s" is now a courtesy and will not be charged.') % {"name": workspace.name},
+            _('Workspace "%(name)s" is now exempt and will not be charged.') % {"name": workspace.name},
         )
         if services.courtesy_quota_exceeded(workspace.organization):
             messages.warning(
                 request,
-                _('Organization "%(org)s" now has more courtesy workspaces than its quota allows.')
+                _('Account "%(org)s" now has more exempt workspaces than its limit allows.')
                 % {"org": workspace.organization.name},
             )
     elif action == "revoke":
         services.revoke_courtesy(workspace)
         messages.success(
             request,
-            _('Courtesy removed from "%(name)s". It needs a subscription to stay active.') % {"name": workspace.name},
+            _('Workspace "%(name)s" will be charged again. It needs a subscription to stay active.')
+            % {"name": workspace.name},
         )
     else:
         messages.error(request, _("Unknown action."))
@@ -495,7 +630,13 @@ def staff_toggle_courtesy(request, target_workspace_id):
 @_staff_required
 @require_POST
 def staff_set_courtesy_quota(request, org_id):
-    """Set how many of an organization's workspaces may be comped."""
+    """Set how many of an organization's EXISTING workspaces go unbilled.
+
+    Creates nothing. The field is a ceiling on exemptions among the
+    workspaces the account already has, which is also why every message
+    below talks about charges rather than about granting a courtesy — the
+    product owner read the old wording as provisioning workspaces.
+    """
     organization = get_object_or_404(Organization, id=org_id)
 
     try:
@@ -503,7 +644,10 @@ def staff_set_courtesy_quota(request, org_id):
     except (TypeError, ValueError):
         quota = -1
     if quota < 0:
-        messages.error(request, _("The courtesy quota must be zero or a positive whole number."))
+        messages.error(
+            request,
+            _("The number of exempt workspaces must be zero or a positive whole number."),
+        )
         return redirect("billing_staff:staff_console")
 
     profile = services.ensure_billing_profile(organization)
@@ -513,11 +657,12 @@ def staff_set_courtesy_quota(request, org_id):
 
     messages.success(
         request,
-        _('Courtesy quota for "%(org)s" set to %(quota)s workspace(s).') % {"org": organization.name, "quota": quota},
+        _('Account "%(org)s" may now have up to %(quota)s workspace(s) exempt from charges.')
+        % {"org": organization.name, "quota": quota},
     )
     if services.courtesy_quota_exceeded(organization):
         messages.warning(
             request,
-            _("Existing courtesies above the new quota were kept — nobody starts being charged retroactively."),
+            _("Workspaces already exempt above the new limit were kept — nobody starts being charged retroactively."),
         )
     return redirect("billing_staff:staff_console")

@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n %}
 
 {% block page_header %}{% endblock %}
 
@@ -19,6 +20,19 @@
     <span class="sidebar-nav-label">Preferences</span>
 </a>
 
+{% comment %}
+Every link in this section sits behind ``require_org_role``
+(apps/members/decorators.py), so for an account with no OrgMembership —
+which is exactly what an operator is, by design — all six answer 403.
+Shown only when there is a membership to carry them, so the operator's
+own Profile and Preferences page stops offering six doors that refuse
+them.
+
+Keyed on ``request.org_membership`` rather than ``user.is_staff``: the
+condition that matters is owning an organization, not being an operator.
+Staff who are also customers (the local test accounts) keep the section.
+{% endcomment %}
+{% if request.org_membership %}
 <div class="sidebar-section-label">Organization</div>
 <a href="{% url 'organizations:settings' %}" class="sidebar-nav-item mb-1 {% if settings_active == 'general' %}active{% endif %}">
     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
@@ -44,6 +58,21 @@
     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
     <span class="sidebar-nav-label">Media Library</span>
 </a>
+{% endif %}
+
+{% comment %}
+The way back for an operator who reached their own account settings from
+the administrative area. Without it, the only exits on this page for an
+account with no workspace are the back arrow above (which falls through
+to ``/``, which redirects operators here) and logging out.
+{% endcomment %}
+{% if user.is_staff and not impersonation %}
+<div class="sidebar-section-label">{% translate "Administration" %}</div>
+<a href="{% url 'billing_staff:staff_console' %}" class="sidebar-nav-item mb-1">
+    <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span class="sidebar-nav-label">{% translate "Administrative area" %}</span>
+</a>
+{% endif %}
 {% endblock %}
 
 {% block content %}

@@ -1,0 +1,101 @@
+{% extends "layouts/admin_shell.html" %}
+{% load i18n %}
+{% comment %}
+Access log: every time an operator signed in as a customer.
+
+The audit question ImpersonationSession was built for (see its docstring
+in apps/accounts/models.py) and the only one that had no screen — the
+rows have been written since impersonation shipped and were readable
+only through /admin/ or a shell.
+
+No actions. A trail an operator can edit is not a trail, and a row is
+closed by apps.accounts.impersonation.stop, never by a person on a page.
+
+Both parties are shown from the snapshotted e-mail columns rather than
+the foreign keys, because the whole point of those columns is that the
+trail survives a deleted account.
+{% endcomment %}
+
+{% block title %}{% translate "Access log" %} - {% translate "Administration" %} - Brightbean{% endblock %}
+
+{% block page_header %}
+<div class="mb-4 lg:mb-[25px]">
+  <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">
+    {% translate "Access log" %}
+  </h1>
+  <p class="text-sm text-stone-500 mt-1">
+    {% blocktranslate with limit=limit %}Every time an operator signed in as a customer for support. The {{ limit }} most recent.{% endblocktranslate %}
+  </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-4">
+
+  {% comment %}
+  An open row means the operator never pressed "return to my account",
+  or their session expired inside. Called out because it is the state
+  worth chasing, not an error.
+  {% endcomment %}
+  {% if open_count %}
+  <div class="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
+    {% blocktranslate count counter=open_count %}{{ counter }} takeover is still open — it was never ended, or the session expired inside.{% plural %}{{ counter }} takeovers are still open — they were never ended, or the sessions expired inside.{% endblocktranslate %}
+  </div>
+  {% endif %}
+
+  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-stone-100 bg-stone-50">
+            <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Operator" %}</th>
+            <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Account used" %}</th>
+            <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Started" %}</th>
+            <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Ended" %}</th>
+            <th class="px-5 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Origin" %}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for session in sessions %}
+          <tr class="{% if not forloop.last %}border-b border-stone-100{% endif %}">
+            <td class="px-5 py-3 text-stone-900">
+              {{ session.impersonator_email }}
+              {% if not session.impersonator_id %}
+              {# The account is gone; the snapshot is all that is left. #}
+              <span class="block text-[11px] text-stone-400">{% translate "Account deleted" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-stone-700">
+              {{ session.impersonated_email }}
+              {% if not session.impersonated_id %}
+              <span class="block text-[11px] text-stone-400">{% translate "Account deleted" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-stone-500 whitespace-nowrap tabular-nums">{{ session.started_at|date:"SHORT_DATETIME_FORMAT" }}</td>
+            <td class="px-5 py-3 whitespace-nowrap">
+              {% if session.ended_at %}
+              <span class="text-stone-500 tabular-nums">{{ session.ended_at|date:"SHORT_DATETIME_FORMAT" }}</span>
+              {% else %}
+              <span class="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-amber-50 text-amber-700">{% translate "Still open" %}</span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3 text-stone-400 tabular-nums whitespace-nowrap">{{ session.ip_address|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="px-5 py-6 text-sm text-stone-400">
+              {% translate "No operator has signed in as a customer yet." %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <p class="text-xs text-stone-500">
+    {% translate "Read-only. A takeover is started from Customers and ended by the operator who started it." %}
+  </p>
+
+</div>
+{% endblock %}

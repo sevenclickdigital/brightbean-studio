@@ -37,17 +37,21 @@
 </a>
 {% if user.is_staff and not impersonation %}
 {% comment %}
-The operator's console. Shown only to staff, which is also what the view
-enforces — this link is a convenience, never the access control.
+The way into the administrative area. Shown only to staff, which is also
+what the views enforce — this link is a convenience, never the access
+control.
 
-Hidden during an impersonation: the view refuses an impersonated session
+It leaves this layout entirely: the area it opens renders in
+layouts/admin_shell.html, with no workspace navigation around it.
+
+Hidden during an impersonation: the views refuse an impersonated session
 outright, so showing the link would only offer a 403 while suggesting the
 customer's account carries operator rights.
 {% endcomment %}
 <div class="sidebar-section-label">{% translate "Administration" %}</div>
 <a href="{% url 'billing_staff:staff_console' %}" class="sidebar-nav-item mb-1">
     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    <span class="sidebar-nav-label">{% translate "Billing administration" %}</span>
+    <span class="sidebar-nav-label">{% translate "Administrative area" %}</span>
 </a>
 {% endif %}
 {% endblock %}

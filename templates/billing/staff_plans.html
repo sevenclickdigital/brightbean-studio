@@ -1,0 +1,181 @@
+{% extends "layouts/admin_shell.html" %}
+{% load i18n billing_extras %}
+{% comment %}
+Plan and prices: what the deployment is configured to charge, and how
+many workspaces are in each subscription state.
+
+Read-only, and it says so on screen rather than only in the view's
+docstring. The figures are deployment settings and every sold row
+snapshots its own price (apps/billing/services), so an input here would
+be a control that changes nothing anyone is paying — the most expensive
+kind of wrong, because it looks like it worked.
+
+Until now these numbers existed only in config/settings/base.py and as a
+one-line subtitle on the customers screen, which meant the product owner
+could not see the price list without loading every organization's
+billing rows.
+{% endcomment %}
+
+{% block title %}{% translate "Plan and prices" %} - {% translate "Administration" %} - Brightbean{% endblock %}
+
+{% block page_header %}
+<div class="mb-4 lg:mb-[25px]">
+  <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">
+    {% translate "Plan and prices" %}
+  </h1>
+  <p class="text-sm text-stone-500 mt-1">
+    {% translate "One plan per workspace, charged monthly. Extra disk is sold as an add-on." %}
+  </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl space-y-6">
+
+  {# ── The price list ── #}
+  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+    <div class="px-5 py-4 border-b border-stone-100">
+      <h2 class="text-base font-semibold text-stone-900">{% translate "Configured prices" %}</h2>
+      <p class="text-xs text-stone-500 mt-0.5">
+        {% translate "List prices, read only when a subscription or an add-on is contracted. Raising one never re-prices a customer who already bought." %}
+      </p>
+    </div>
+
+    <dl class="divide-y divide-stone-100">
+      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
+        <div>
+          <dt class="text-sm font-medium text-stone-900">{% translate "Price per workspace" %}</dt>
+          {# "not exempt" rather than "not a courtesy": the same reading #}
+          {# that made the quota field on Customers look like #}
+          {# provisioning applies to the word "courtesy" on its own. #}
+          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Billed monthly, for each workspace that is not exempt from charges." %}</dd>
+        </div>
+        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">R$ {{ workspace_price_cents|brl }}</div>
+      </div>
+
+      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
+        <div>
+          <dt class="text-sm font-medium text-stone-900">{% translate "Disk included" %}</dt>
+          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Space every workspace gets with its subscription." %}</dd>
+        </div>
+        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">
+          {% blocktranslate with amount=base_storage_bytes|gb %}{{ amount }} GB{% endblocktranslate %}
+        </div>
+      </div>
+
+      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
+        <div>
+          <dt class="text-sm font-medium text-stone-900">{% translate "Price per extra GB" %}</dt>
+          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Add-on price, charged monthly on top of the workspace." %}</dd>
+        </div>
+        <div class="text-lg font-semibold text-stone-900 tabular-nums whitespace-nowrap">R$ {{ storage_price_per_gb_cents|brl }}</div>
+      </div>
+
+      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
+        <div>
+          <dt class="text-sm font-medium text-stone-900">{% translate "Disk limit enforced" %}</dt>
+          <dd class="text-xs text-stone-500 mt-0.5">{% translate "Whether an upload that would exceed the contracted space is refused." %}</dd>
+        </div>
+        <div class="whitespace-nowrap">
+          {% if storage_quota_enabled %}
+          <span class="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-50 text-green-700">{% translate "Yes" %}</span>
+          {% else %}
+          <span class="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-stone-100 text-stone-600">{% translate "No" %}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {% comment %}
+      An empty Asaas credential is the normal state of most
+      environments, not an incident (see apps/billing/views). Said here
+      plainly so the product owner does not read "0 active" below as
+      customers failing to pay.
+      {% endcomment %}
+      <div class="px-5 py-4 flex items-baseline justify-between gap-4">
+        <div>
+          <dt class="text-sm font-medium text-stone-900">{% translate "Payment provider" %}</dt>
+          <dd class="text-xs text-stone-500 mt-0.5">
+            {% if gateway_configured %}
+            {% translate "Charges are created at the provider when a customer contracts." %}
+            {% else %}
+            {% translate "No credentials on this installation, so contracting records the request without creating a charge." %}
+            {% endif %}
+          </dd>
+        </div>
+        <div class="whitespace-nowrap">
+          {% comment %}
+          "Provider connected" rather than the bare "Connected" the
+          channel badges use: that msgid is already translated in the
+          feminine ("Conectada", agreeing with "conta"), and this label
+          describes a masculine noun. Sharing the string would print the
+          wrong gender here with no way for a translator to fix one
+          without breaking the other.
+          {% endcomment %}
+          {% if gateway_configured %}
+          <span class="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-green-50 text-green-700">{% translate "Provider connected" %}</span>
+          {% else %}
+          <span class="inline-flex px-2 py-0.5 text-[11px] font-medium rounded-full bg-amber-50 text-amber-700">{% translate "Provider not set up" %}</span>
+          {% endif %}
+        </div>
+      </div>
+    </dl>
+
+    <p class="px-5 py-3 bg-stone-50 border-t border-stone-100 text-xs text-stone-500">
+      {% translate "These values are set on the installation, not on this screen. Changing one affects only subscriptions contracted afterwards." %}
+    </p>
+  </section>
+
+  {# ── What is actually subscribed, in the plan's own terms ── #}
+  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+    <div class="px-5 py-4 border-b border-stone-100">
+      <h2 class="text-base font-semibold text-stone-900">{% translate "Subscriptions on this plan" %}</h2>
+      <p class="text-xs text-stone-500 mt-0.5">
+        {% translate "Counted across every account. Open Customers to act on one." %}
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-y divide-stone-100">
+      <div class="px-5 py-4">
+        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.active }}</div>
+        <div class="text-xs text-stone-500 mt-0.5">{% translate "Paying" %}</div>
+      </div>
+      <div class="px-5 py-4">
+        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.courtesy }}</div>
+        {% comment %}
+        Names what is true of these workspaces, not a thing granted.
+
+        A distinct msgid from the Customers screen's "Exempt from
+        charges" button, which is an imperative ("Isentar de cobrança").
+        This one is a count label and has to agree with the plural
+        workspaces it counts ("Isentos de cobrança"); sharing the string
+        would print the button's infinitive as a heading.
+        {% endcomment %}
+        <div class="text-xs text-stone-500 mt-0.5">{% translate "Workspaces not charged" %}</div>
+      </div>
+      <div class="px-5 py-4">
+        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.pending }}</div>
+        <div class="text-xs text-stone-500 mt-0.5">{% translate "Awaiting first payment" %}</div>
+      </div>
+      <div class="px-5 py-4">
+        <div class="text-2xl font-semibold {% if counts.past_due %}text-amber-700{% else %}text-stone-900{% endif %} tabular-nums">{{ counts.past_due }}</div>
+        <div class="text-xs text-stone-500 mt-0.5">{% translate "Overdue" %}</div>
+      </div>
+      <div class="px-5 py-4">
+        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.canceled }}</div>
+        <div class="text-xs text-stone-500 mt-0.5">{% translate "Canceled" %}</div>
+      </div>
+    </div>
+
+    <div class="px-5 py-4 border-t border-stone-100 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm text-stone-700">
+      <span>
+        {% blocktranslate count counter=counts.active_storage_addons %}{{ counter }} active disk add-on{% plural %}{{ counter }} active disk add-ons{% endblocktranslate %}
+      </span>
+      <span class="text-stone-400">·</span>
+      <span>
+        {% blocktranslate with amount=counts.extra_gb_sold %}{{ amount }} extra GB sold{% endblocktranslate %}
+      </span>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

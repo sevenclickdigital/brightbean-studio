@@ -865,13 +865,20 @@
 
                     {% comment %}
                     Operator-only, and in the account menu rather than a
-                    workspace's settings: the console spans every
-                    organization, so hanging it off one workspace would
-                    suggest it only shows that one. The view enforces
-                    is_staff on its own — this only decides who is shown
-                    the door.
+                    workspace's settings: the administrative area spans
+                    every organization, so hanging it off one workspace
+                    would suggest it only shows that one. The views
+                    enforce is_staff on their own — this only decides who
+                    is shown the door.
 
-                    ``not impersonation`` because the view refuses an
+                    The door, not the room: this leads into
+                    layouts/admin_shell.html, which has none of the
+                    product navigation around it. An operator account owns
+                    no workspace, so every link in this sidebar is dead
+                    for them — that is the whole reason the admin area is
+                    a separate shell.
+
+                    ``not impersonation`` because the views refuse an
                     impersonated session (apps.billing.views._is_billing_staff):
                     an operator wearing a customer's account would
                     otherwise be shown a link that 403s, and worse, be
@@ -882,8 +889,8 @@
                     <div class="border-t border-stone-100">
                         <a href="{% url 'billing_staff:staff_console' %}"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-stone-700 hover:bg-black/[0.04] transition-colors">
-                            <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-                            {% translate "Billing administration" %}
+                            <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            {% translate "Administration" %}
                         </a>
                     </div>
                     {% endif %}

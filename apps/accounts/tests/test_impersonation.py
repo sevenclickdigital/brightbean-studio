@@ -157,8 +157,13 @@ class TestNoStaffOnStaff:
         assert ImpersonationSession.objects.count() == 0
 
     def test_console_does_not_offer_a_staff_target(self, client, operator, other_operator, db):
-        """A staff member who is also in a customer org must not appear in the
-        console's takeover list, or the page would offer a button that 403s."""
+        """A staff member who is also in a customer org must not be offered
+        for takeover, or the page would show a button that 403s.
+
+        They are still *listed*: the e-mail is how an operator identifies
+        the account, so it is shown for every member and only the button
+        is gated. ``may_impersonate`` is the per-row flag that gates it.
+        """
         org = Organization.objects.create(name="Mixed Co")
         OrgMembership.objects.create(
             user=other_operator, organization=org, org_role=OrgMembership.OrgRole.OWNER
@@ -167,15 +172,20 @@ class TestNoStaffOnStaff:
 
         response = client.get(STAFF_CONSOLE)
 
-        offered = {m.user_id for row in response.context["rows"] for m in row["members"]}
+        rows = [entry for row in response.context["rows"] for entry in row["members"]]
+        offered = {e["membership"].user_id for e in rows if e["may_impersonate"]}
+        listed = {e["membership"].user_id for e in rows}
+
         assert other_operator.pk not in offered
+        assert other_operator.pk in listed
 
     def test_console_offers_a_customer_target(self, client, operator, customer):
         client.force_login(operator)
 
         response = client.get(STAFF_CONSOLE)
 
-        offered = {m.user_id for row in response.context["rows"] for m in row["members"]}
+        rows = [entry for row in response.context["rows"] for entry in row["members"]]
+        offered = {e["membership"].user_id for e in rows if e["may_impersonate"]}
         assert customer.pk in offered
 
 

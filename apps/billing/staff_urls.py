@@ -25,7 +25,13 @@ from . import views
 app_name = "billing_staff"
 
 urlpatterns = [
+    # The customers screen keeps the bare path and the ``staff_console``
+    # name it had as the one console: it is what the account-menu link
+    # reverses, what the no-workspace operator is redirected to, and what
+    # the existing tests use.
     path("", views.staff_console, name="staff_console"),
+    path("plans/", views.staff_plans, name="plans"),
+    path("impersonations/", views.staff_impersonation_log, name="impersonation_log"),
     path("courtesy/<uuid:target_workspace_id>/", views.staff_toggle_courtesy, name="toggle_courtesy"),
     path("quota/<uuid:org_id>/", views.staff_set_courtesy_quota, name="set_courtesy_quota"),
 ]
