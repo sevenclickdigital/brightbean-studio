@@ -2,9 +2,18 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import environ
-from django.utils.translation import gettext_noop
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+
+# Defined here rather than imported from django.utils.translation, which is
+# what django/conf/global_settings.py does and for the same reason: that
+# module reads settings.USE_I18N on first use, so calling it while the
+# settings module is still executing re-enters the loader and aborts the
+# import half-done. ``makemessages`` extracts from the call by name, so the
+# strings below are still collected.
+def gettext_noop(s):
+    return s
 
 env = environ.Env(
     DEBUG=(bool, False),

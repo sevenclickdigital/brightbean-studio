@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 00:36+0000\n"
+"POT-Creation-Date: 2026-11-04 00:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -1037,11 +1037,11 @@ msgstr "Modo de fluxo de aprovação inválido."
 msgid "Approval workflow updated."
 msgstr "Fluxo de aprovação atualizado."
 
-#: config/settings/base.py:217
+#: config/settings/base.py:226
 msgid "Português (Brasil)"
 msgstr "Português (Brasil)"
 
-#: config/settings/base.py:218
+#: config/settings/base.py:227
 msgid "English (US)"
 msgstr "Inglês (EUA)"
 
