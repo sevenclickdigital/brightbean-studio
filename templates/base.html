@@ -860,6 +860,24 @@
                         </a>
                     </div>
 
+                    {% comment %}
+                    Operator-only, and in the account menu rather than a
+                    workspace's settings: the console spans every
+                    organization, so hanging it off one workspace would
+                    suggest it only shows that one. The view enforces
+                    is_staff on its own — this only decides who is shown
+                    the door.
+                    {% endcomment %}
+                    {% if user.is_staff %}
+                    <div class="border-t border-stone-100">
+                        <a href="{% url 'billing_staff:staff_console' %}"
+                           class="flex items-center gap-3 px-4 py-2.5 text-sm text-stone-700 hover:bg-black/[0.04] transition-colors">
+                            <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+                            {% translate "Billing administration" %}
+                        </a>
+                    </div>
+                    {% endif %}
+
                     {% get_current_language as current_language %}
                     <div class="border-t border-stone-100 px-4 py-2.5">
                         {# Posts to Django's set_language, which stores the choice on the #}

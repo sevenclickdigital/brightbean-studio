@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 06:17+0000\n"
+"POT-Creation-Date: 2026-11-04 11:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -222,19 +222,26 @@ msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
 "Your workspace is registered and we will contact you to finish the "
 "subscription."
-msgstr "A cobrança ainda não está configurada nesta instalação, então nenhum pagamento foi criado. Seu workspace está registrado e entraremos em contato para concluir a assinatura."
+msgstr ""
+"A cobrança ainda não está configurada nesta instalação, então nenhum "
+"pagamento foi criado. Seu workspace está registrado e entraremos em contato "
+"para concluir a assinatura."
 
 #: apps/billing/views.py:239 apps/billing/views.py:312
 msgid ""
 "We could not reach the payment provider. Nothing was charged — please try "
 "again in a moment."
-msgstr "Não conseguimos acessar o provedor de pagamento. Nada foi cobrado — tente novamente em instantes."
+msgstr ""
+"Não conseguimos acessar o provedor de pagamento. Nada foi cobrado — tente "
+"novamente em instantes."
 
 #: apps/billing/views.py:245
 msgid ""
 "Subscription contracted. It activates as soon as the first payment is "
 "confirmed."
-msgstr "Assinatura contratada. Ela é ativada assim que o primeiro pagamento for confirmado."
+msgstr ""
+"Assinatura contratada. Ela é ativada assim que o primeiro pagamento for "
+"confirmado."
 
 #: apps/billing/views.py:288
 #, python-format
@@ -247,14 +254,19 @@ msgstr "Escolha quanto espaço extra contratar, entre %(min)s GB e %(max)s GB."
 msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
 "Your request for %(gb)s GB was recorded and we will contact you to finish it."
-msgstr "A cobrança ainda não está configurada nesta instalação, então nenhum pagamento foi criado. Seu pedido de %(gb)s GB foi registrado e entraremos em contato para concluí-lo."
+msgstr ""
+"A cobrança ainda não está configurada nesta instalação, então nenhum "
+"pagamento foi criado. Seu pedido de %(gb)s GB foi registrado e entraremos em "
+"contato para concluí-lo."
 
 #: apps/billing/views.py:318
 #, python-format
 msgid ""
 "%(gb)s GB contracted. The space is released as soon as the payment is "
 "confirmed."
-msgstr "%(gb)s GB contratados. O espaço é liberado assim que o pagamento for confirmado."
+msgstr ""
+"%(gb)s GB contratados. O espaço é liberado assim que o pagamento for "
+"confirmado."
 
 #: apps/billing/views.py:446
 #, python-format
@@ -266,32 +278,38 @@ msgstr "O workspace \"%(name)s\" agora é cortesia e não será cobrado."
 msgid ""
 "Organization \"%(org)s\" now has more courtesy workspaces than its quota "
 "allows."
-msgstr "A organização \"%(org)s\" agora tem mais workspaces em cortesia do que a cota permite."
+msgstr ""
+"A organização \"%(org)s\" agora tem mais workspaces em cortesia do que a "
+"cota permite."
 
 #: apps/billing/views.py:458
 #, python-format
 msgid ""
 "Courtesy removed from \"%(name)s\". It needs a subscription to stay active."
-msgstr "Cortesia removida de \"%(name)s\". Agora é necessária uma assinatura para mantê-lo ativo."
+msgstr ""
+"Cortesia removida de \"%(name)s\". Agora é necessária uma assinatura para "
+"mantê-lo ativo."
 
-#: apps/billing/views.py:462
+#: apps/billing/views.py:461
 msgid "Unknown action."
 msgstr "Ação desconhecida."
 
-#: apps/billing/views.py:478
+#: apps/billing/views.py:477
 msgid "The courtesy quota must be zero or a positive whole number."
 msgstr "A cota de cortesia deve ser zero ou um número inteiro positivo."
 
-#: apps/billing/views.py:488
+#: apps/billing/views.py:487
 #, python-format
 msgid "Courtesy quota for \"%(org)s\" set to %(quota)s workspace(s)."
 msgstr "Cota de cortesia de \"%(org)s\" definida em %(quota)s workspace(s)."
 
-#: apps/billing/views.py:494
+#: apps/billing/views.py:492
 msgid ""
 "Existing courtesies above the new quota were kept — nobody starts being "
 "charged retroactively."
-msgstr "As cortesias já concedidas acima da nova cota foram mantidas — ninguém passa a ser cobrado retroativamente."
+msgstr ""
+"As cortesias já concedidas acima da nova cota foram mantidas — ninguém passa "
+"a ser cobrado retroativamente."
 
 #: apps/calendar/models.py:21
 msgid "Monday"
@@ -2617,7 +2635,7 @@ msgstr ""
 msgid "No workspaces"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:366 templates/base.html:1429
+#: templates/base.html:366 templates/base.html:1448
 msgid "Create workspace"
 msgstr "Criar workspace"
 
@@ -2711,11 +2729,17 @@ msgstr "Minha organização"
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:880
+#: templates/base.html:881 templates/billing/staff_console.html:17
+#: templates/billing/staff_console.html:22
+#: templates/layouts/workspace_settings.html:46
+msgid "Billing administration"
+msgstr "Administração de cobrança"
+
+#: templates/base.html:899
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:894
+#: templates/base.html:913
 msgid "Log out"
 msgstr "Sair"
 
@@ -2731,7 +2755,7 @@ msgstr "%(gb_amount)s GB × R$ %(unit)s/GB"
 
 #: templates/billing/_storage_quote.html:19
 #: templates/billing/subscribe_modal.html:49
-#: templates/billing/workspace_billing.html:171
+#: templates/billing/workspace_billing.html:174
 msgid "/month"
 msgstr "/mês"
 
@@ -2749,36 +2773,36 @@ msgstr "O armazenamento está %(percent)s%% cheio"
 msgid ""
 "All %(limit)s GB are in use, so new uploads will be refused. Delete files "
 "you no longer need, or contract extra storage."
-msgstr "Todos os %(limit)s GB estão em uso, então novos envios serão recusados. Exclua arquivos que você não precisa mais ou contrate espaço extra."
+msgstr ""
+"Todos os %(limit)s GB estão em uso, então novos envios serão recusados. "
+"Exclua arquivos que você não precisa mais ou contrate espaço extra."
 
 #: templates/billing/_storage_warning.html:38
 #, python-format
 msgid ""
 "%(used)s GB of %(limit)s GB used — %(remaining)s GB left. Free up space by "
 "deleting old files, or contract extra storage."
-msgstr "%(used)s GB de %(limit)s GB em uso — restam %(remaining)s GB. Libere espaço excluindo arquivos antigos ou contrate espaço extra."
+msgstr ""
+"%(used)s GB de %(limit)s GB em uso — restam %(remaining)s GB. Libere espaço "
+"excluindo arquivos antigos ou contrate espaço extra."
 
 #: templates/billing/_storage_warning.html:53
 msgid "Review the largest files"
 msgstr "Ver os arquivos maiores"
 
 #: templates/billing/_storage_warning.html:57
-#: templates/billing/workspace_billing.html:186
+#: templates/billing/workspace_billing.html:189
 msgid "Contract extra storage"
 msgstr "Contratar espaço extra"
-
-#: templates/billing/staff_console.html:17
-#: templates/billing/staff_console.html:22
-#: templates/layouts/workspace_settings.html:46
-msgid "Billing administration"
-msgstr "Administração de cobrança"
 
 #: templates/billing/staff_console.html:25
 #, python-format
 msgid ""
 "Accounts, subscriptions and courtesies. R$ %(price)s per workspace, R$ "
 "%(gb_price)s per extra GB."
-msgstr "Contas, assinaturas e cortesias. R$ %(price)s por workspace, R$ %(gb_price)s por GB extra."
+msgstr ""
+"Contas, assinaturas e cortesias. R$ %(price)s por workspace, R$ %(gb_price)s "
+"por GB extra."
 
 #: templates/billing/staff_console.html:41
 #, python-format
@@ -2821,19 +2845,19 @@ msgstr "Salvar cota"
 msgid "%(used)s / %(limit)s GB"
 msgstr "%(used)s / %(limit)s GB"
 
-#: templates/billing/staff_console.html:138
+#: templates/billing/staff_console.html:141
 msgid "Remove courtesy"
 msgstr "Remover cortesia"
 
-#: templates/billing/staff_console.html:144
+#: templates/billing/staff_console.html:147
 msgid "Grant courtesy"
 msgstr "Conceder cortesia"
 
-#: templates/billing/staff_console.html:151
+#: templates/billing/staff_console.html:154
 msgid "This account has no workspaces."
 msgstr "Esta conta não tem workspaces."
 
-#: templates/billing/staff_console.html:156
+#: templates/billing/staff_console.html:159
 msgid "No accounts yet."
 msgstr "Nenhuma conta ainda."
 
@@ -2848,7 +2872,8 @@ msgstr "Ativar este workspace"
 #: templates/billing/subscribe_modal.html:41
 #, python-format
 msgid "%(name)s is ready. Contract the monthly subscription to keep using it."
-msgstr "%(name)s está pronto. Contrate a assinatura mensal para continuar usando."
+msgstr ""
+"%(name)s está pronto. Contrate a assinatura mensal para continuar usando."
 
 #: templates/billing/subscribe_modal.html:51
 msgid "Per workspace. Every feature included."
@@ -2872,7 +2897,10 @@ msgid ""
 "Payments are not connected on this installation yet, so pressing Contract "
 "records your request without charging anything. We will get in touch to "
 "finish it."
-msgstr "Os pagamentos ainda não estão conectados nesta instalação, então clicar em Contratar registra seu pedido sem cobrar nada. Entraremos em contato para concluí-lo."
+msgstr ""
+"Os pagamentos ainda não estão conectados nesta instalação, então clicar em "
+"Contratar registra seu pedido sem cobrar nada. Entraremos em contato para "
+"concluí-lo."
 
 #: templates/billing/subscribe_modal.html:90
 #, python-format
@@ -2883,7 +2911,10 @@ msgstr "Contratar por R$ %(price)s/mês"
 msgid ""
 "Only a workspace owner or manager, or an organization admin, can contract a "
 "subscription. Ask one of them to activate this workspace."
-msgstr "Somente um proprietário ou gerente do workspace, ou um administrador da organização, pode contratar uma assinatura. Peça a uma dessas pessoas para ativar este workspace."
+msgstr ""
+"Somente um proprietário ou gerente do workspace, ou um administrador da "
+"organização, pode contratar uma assinatura. Peça a uma dessas pessoas para "
+"ativar este workspace."
 
 #: templates/billing/subscribe_modal.html:102
 msgid "Decide later"
@@ -2914,7 +2945,10 @@ msgid ""
 "Payments are not connected on this installation, so nothing can be charged "
 "right now. You can still register what you want to contract and we will get "
 "in touch to finish it."
-msgstr "Os pagamentos não estão conectados nesta instalação, então nada pode ser cobrado agora. Você ainda pode registrar o que quer contratar e entraremos em contato para concluir."
+msgstr ""
+"Os pagamentos não estão conectados nesta instalação, então nada pode ser "
+"cobrado agora. Você ainda pode registrar o que quer contratar e entraremos "
+"em contato para concluir."
 
 #: templates/billing/workspace_billing.html:48
 #: templates/intelligence/billing_settings.html:28
@@ -2933,7 +2967,9 @@ msgstr "Status"
 msgid ""
 "This workspace has no subscription yet. It activates once the first payment "
 "is confirmed."
-msgstr "Este workspace ainda não tem assinatura. Ele é ativado quando o primeiro pagamento for confirmado."
+msgstr ""
+"Este workspace ainda não tem assinatura. Ele é ativado quando o primeiro "
+"pagamento for confirmado."
 
 #: templates/billing/workspace_billing.html:75
 msgid "This workspace is a courtesy and is not charged."
@@ -2942,7 +2978,8 @@ msgstr "Este workspace é cortesia e não é cobrado."
 #: templates/billing/workspace_billing.html:80
 msgid ""
 "The last payment failed. Access returns as soon as the payment goes through."
-msgstr "O último pagamento falhou. O acesso volta assim que o pagamento for aprovado."
+msgstr ""
+"O último pagamento falhou. O acesso volta assim que o pagamento for aprovado."
 
 #: templates/billing/workspace_billing.html:86
 msgid "Monthly total"
@@ -2978,64 +3015,72 @@ msgstr "Os arquivos enviados para a galeria deste workspace contam nesta cota."
 #: templates/billing/workspace_billing.html:128
 #, python-format
 msgid "<span class=\"font-semibold\">%(used)s GB</span> of %(limit)s GB used"
-msgstr "<span class=\"font-semibold\">%(used)s GB</span> de %(limit)s GB em uso"
+msgstr ""
+"<span class=\"font-semibold\">%(used)s GB</span> de %(limit)s GB em uso"
 
-#: templates/billing/workspace_billing.html:142
+#: templates/billing/workspace_billing.html:145
 msgid "Storage used"
 msgstr "Armazenamento em uso"
 
-#: templates/billing/workspace_billing.html:150
+#: templates/billing/workspace_billing.html:153
 msgid "No space left. Delete files you no longer need, or contract more below."
-msgstr "Sem espaço. Exclua arquivos que você não precisa mais ou contrate mais abaixo."
+msgstr ""
+"Sem espaço. Exclua arquivos que você não precisa mais ou contrate mais "
+"abaixo."
 
-#: templates/billing/workspace_billing.html:152
+#: templates/billing/workspace_billing.html:155
 #, python-format
 msgid "%(remaining)s GB left. Delete old files, or contract more below."
-msgstr "Restam %(remaining)s GB. Exclua arquivos antigos ou contrate mais abaixo."
+msgstr ""
+"Restam %(remaining)s GB. Exclua arquivos antigos ou contrate mais abaixo."
 
-#: templates/billing/workspace_billing.html:154
+#: templates/billing/workspace_billing.html:157
 #, python-format
 msgid "%(remaining)s GB available."
 msgstr "%(remaining)s GB disponíveis."
 
-#: templates/billing/workspace_billing.html:160
+#: templates/billing/workspace_billing.html:163
 msgid "Extra storage contracted"
 msgstr "Espaço extra contratado"
 
-#: templates/billing/workspace_billing.html:165
-#: templates/billing/workspace_billing.html:210
+#: templates/billing/workspace_billing.html:168
+#: templates/billing/workspace_billing.html:213
 #, python-format
 msgid "%(gb_amount)s GB"
 msgstr "%(gb_amount)s GB"
 
-#: templates/billing/workspace_billing.html:176
+#: templates/billing/workspace_billing.html:179
 msgid "Space is released once each add-on's first payment is confirmed."
-msgstr "O espaço é liberado quando o primeiro pagamento de cada adicional for confirmado."
+msgstr ""
+"O espaço é liberado quando o primeiro pagamento de cada adicional for "
+"confirmado."
 
-#: templates/billing/workspace_billing.html:188
+#: templates/billing/workspace_billing.html:191
 #, python-format
 msgid ""
 "R$ %(price)s per GB per month. Choose how much you need — the price updates "
 "before you confirm."
-msgstr "R$ %(price)s por GB por mês. Escolha quanto você precisa — o preço é atualizado antes de você confirmar."
+msgstr ""
+"R$ %(price)s por GB por mês. Escolha quanto você precisa — o preço é "
+"atualizado antes de você confirmar."
 
-#: templates/billing/workspace_billing.html:203
+#: templates/billing/workspace_billing.html:206
 msgid "Amount"
 msgstr "Quantidade"
 
-#: templates/billing/workspace_billing.html:216
+#: templates/billing/workspace_billing.html:219
 msgid "Or type another amount (GB)"
 msgstr "Ou digite outra quantidade (GB)"
 
-#: templates/billing/workspace_billing.html:228
+#: templates/billing/workspace_billing.html:231
 msgid "GB per month"
 msgstr "GB por mês"
 
-#: templates/billing/workspace_billing.html:242
+#: templates/billing/workspace_billing.html:248
 msgid "Confirm and contract"
 msgstr "Confirmar e contratar"
 
-#: templates/billing/workspace_billing.html:245
+#: templates/billing/workspace_billing.html:251
 msgid "Billed monthly alongside the workspace, on the same invoice date."
 msgstr "Cobrado mensalmente junto com o workspace, na mesma data da fatura."
 
