@@ -483,6 +483,19 @@ class TestPlansScreen:
         assert context["storage_price_per_gb_cents"] == 300
         assert context["base_storage_bytes"] == 20 * GB
 
+    def test_does_not_count_subscriptions(self, client, operator, org):
+        """The per-state counts moved to Subscriptions, beside the
+        contracts they count. Two summaries of the same figures on two
+        screens is how they start disagreeing."""
+        client.force_login(operator)
+
+        assert "counts" not in client.get(reverse("billing_staff:plans")).context
+
+
+@pytest.mark.django_db
+class TestSubscriptionsScreenCounts:
+    """The per-state counts, on the screen that lists the contracts."""
+
     def test_counts_subscriptions_by_state(self, client, operator, org):
         paying = Workspace.objects.create(organization=org, name="Paying")
         comped = Workspace.objects.create(organization=org, name="Comped")
@@ -495,11 +508,27 @@ class TestPlansScreen:
         services.ensure_subscription(fresh)
 
         client.force_login(operator)
-        counts = client.get(reverse("billing_staff:plans")).context["counts"]
+        counts = client.get(reverse("billing_staff:subscriptions")).context["counts"]
 
         assert counts["active"] == 1
         assert counts["courtesy"] == 1
         assert counts["pending"] == 1
+
+    def test_the_counts_ignore_the_status_filter(self, client, operator, org):
+        """A number that moves when the list below is narrowed is not a
+        summary of anything."""
+        paying = Workspace.objects.create(organization=org, name="Paying")
+        sub = services.ensure_subscription(paying)
+        sub.status = WorkspaceSubscription.Status.ACTIVE
+        sub.save(update_fields=["status"])
+        services.ensure_subscription(Workspace.objects.create(organization=org, name="Fresh"))
+
+        client.force_login(operator)
+        url = reverse("billing_staff:subscriptions")
+        counts = client.get(url, {"status": WorkspaceSubscription.Status.ACTIVE}).context["counts"]
+
+        assert counts["active"] == 1
+        assert counts["pending"] == 1, "filtering the list must not change the summary"
 
     def test_sums_only_active_storage_addons(self, client, operator, workspace):
         """A pending add-on grants no disk, so counting it here would
@@ -510,7 +539,7 @@ class TestPlansScreen:
         services.contract_storage_addon(workspace, 50)  # left pending
 
         client.force_login(operator)
-        counts = client.get(reverse("billing_staff:plans")).context["counts"]
+        counts = client.get(reverse("billing_staff:subscriptions")).context["counts"]
 
         assert counts["active_storage_addons"] == 1
         assert counts["extra_gb_sold"] == 5
@@ -520,7 +549,7 @@ class TestPlansScreen:
         aggregate has to read 0, not None."""
         client.force_login(operator)
 
-        counts = client.get(reverse("billing_staff:plans")).context["counts"]
+        counts = client.get(reverse("billing_staff:subscriptions")).context["counts"]
 
         assert counts["extra_gb_sold"] == 0
         assert counts["active"] == 0

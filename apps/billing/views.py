@@ -628,11 +628,10 @@ def staff_plans(request):
     through the same three functions the customer-facing page reads, so
     the operator cannot be shown a price nobody is charged.
 
-    Counts come from those same services, so "12 paying workspaces" here
-    and the sum of the rows on the customers screen cannot disagree.
+    What is subscribed is counted on the Subscriptions screen, beside the
+    contracts it counts, rather than here: this screen answers what the
+    product charges.
     """
-    subscriptions = WorkspaceSubscription.objects.all()
-    addons = WorkspaceAddon.objects.filter(kind=WorkspaceAddon.Kind.EXTRA_STORAGE)
     prices = services.price_list()
 
     return render(
@@ -669,21 +668,6 @@ def staff_plans(request):
             "storage_quota_enabled": getattr(settings, "BILLING_STORAGE_QUOTA_ENABLED", False),
             # Expected states, not an incident — see the module docstring.
             "gateway_configured": bool(getattr(settings, "ASAAS_API_KEY", "")),
-            "counts": {
-                "active": subscriptions.filter(status=WorkspaceSubscription.Status.ACTIVE).count(),
-                "courtesy": subscriptions.filter(status=WorkspaceSubscription.Status.COURTESY).count(),
-                "pending": subscriptions.filter(status=WorkspaceSubscription.Status.PENDING).count(),
-                "past_due": subscriptions.filter(status=WorkspaceSubscription.Status.PAST_DUE).count(),
-                "canceled": subscriptions.filter(status=WorkspaceSubscription.Status.CANCELED).count(),
-                "active_storage_addons": addons.filter(status=WorkspaceAddon.Status.ACTIVE).count(),
-                # ``quantity`` is GB for the extra_storage kind — see
-                # WorkspaceAddon. Coalesced to 0 because SUM over no rows
-                # is NULL, and a fresh installation has no rows.
-                "extra_gb_sold": addons.filter(status=WorkspaceAddon.Status.ACTIVE).aggregate(total=Sum("quantity"))[
-                    "total"
-                ]
-                or 0,
-            },
             "admin_active": "plans",
         },
     )
@@ -904,6 +888,10 @@ def staff_subscriptions(request):
     # not a total, and "R$ 0,00 overdue" while filtered to Active would
     # be read as nobody being overdue.
     all_subs = WorkspaceSubscription.objects.select_related("workspace")
+    storage_addons = WorkspaceAddon.objects.filter(
+        kind=WorkspaceAddon.Kind.EXTRA_STORAGE,
+        status=WorkspaceAddon.Status.ACTIVE,
+    )
     contracted_cents = 0
     exempt_cents = 0
     past_due_cents = 0
@@ -959,6 +947,21 @@ def staff_subscriptions(request):
                 "contracted_cents": contracted_cents,
                 "exempt_cents": exempt_cents,
                 "past_due_cents": past_due_cents,
+            },
+            # Over every subscription, never the filtered queryset: a count
+            # that moves when the operator narrows the list below is not a
+            # summary of anything. Same reasoning as the totals above.
+            "counts": {
+                "active": all_subs.filter(status=WorkspaceSubscription.Status.ACTIVE).count(),
+                "courtesy": all_subs.filter(status=WorkspaceSubscription.Status.COURTESY).count(),
+                "pending": all_subs.filter(status=WorkspaceSubscription.Status.PENDING).count(),
+                "past_due": all_subs.filter(status=WorkspaceSubscription.Status.PAST_DUE).count(),
+                "canceled": all_subs.filter(status=WorkspaceSubscription.Status.CANCELED).count(),
+                "active_storage_addons": storage_addons.count(),
+                # ``quantity`` is GB for the extra_storage kind — see
+                # WorkspaceAddon. Coalesced to 0 because SUM over no rows
+                # is NULL, and a fresh installation has no rows.
+                "extra_gb_sold": storage_addons.aggregate(total=Sum("quantity"))["total"] or 0,
             },
             "event_rows": event_rows,
             "event_limit": BILLING_EVENT_LIMIT,

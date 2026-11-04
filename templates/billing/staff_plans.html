@@ -282,57 +282,11 @@ a plan ends up at 10 MB.
   </section>
   {% endif %}
 
-  {# ── What is actually subscribed, in the plan's own terms ── #}
-  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
-    <div class="px-5 py-4 border-b border-stone-100">
-      <h2 class="text-base font-semibold text-stone-900">{% translate "Subscriptions on this plan" %}</h2>
-      <p class="text-xs text-stone-500 mt-0.5">
-        {% translate "Counted across every account. Open Customers to act on one." %}
-      </p>
-    </div>
-
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 divide-x divide-y divide-stone-100">
-      <div class="px-5 py-4">
-        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.active }}</div>
-        <div class="text-xs text-stone-500 mt-0.5">{% translate "Paying" %}</div>
-      </div>
-      <div class="px-5 py-4">
-        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.courtesy }}</div>
-        {% comment %}
-        Names what is true of these workspaces, not a thing granted.
-
-        A distinct msgid from the Customers screen's "Exempt from
-        charges" button, which is an imperative ("Isentar de cobrança").
-        This one is a count label and has to agree with the plural
-        workspaces it counts ("Isentos de cobrança"); sharing the string
-        would print the button's infinitive as a heading.
-        {% endcomment %}
-        <div class="text-xs text-stone-500 mt-0.5">{% translate "Workspaces not charged" %}</div>
-      </div>
-      <div class="px-5 py-4">
-        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.pending }}</div>
-        <div class="text-xs text-stone-500 mt-0.5">{% translate "Awaiting first payment" %}</div>
-      </div>
-      <div class="px-5 py-4">
-        <div class="text-2xl font-semibold {% if counts.past_due %}text-amber-700{% else %}text-stone-900{% endif %} tabular-nums">{{ counts.past_due }}</div>
-        <div class="text-xs text-stone-500 mt-0.5">{% translate "Overdue" %}</div>
-      </div>
-      <div class="px-5 py-4">
-        <div class="text-2xl font-semibold text-stone-900 tabular-nums">{{ counts.canceled }}</div>
-        <div class="text-xs text-stone-500 mt-0.5">{% translate "Canceled" %}</div>
-      </div>
-    </div>
-
-    <div class="px-5 py-4 border-t border-stone-100 flex flex-wrap items-baseline gap-x-6 gap-y-2 text-sm text-stone-700">
-      <span>
-        {% blocktranslate count counter=counts.active_storage_addons %}{{ counter }} active disk add-on{% plural %}{{ counter }} active disk add-ons{% endblocktranslate %}
-      </span>
-      <span class="text-stone-400">·</span>
-      <span>
-        {% blocktranslate with amount=counts.extra_gb_sold %}{{ amount }} extra GB sold{% endblocktranslate %}
-      </span>
-    </div>
-  </section>
+  {% comment %}
+  The per-state counts used to sit here. They moved to Subscriptions,
+  where each contract is already listed — this screen answers what the
+  product charges, not who is in which state.
+  {% endcomment %}
 
 </div>
 {% endblock %}
