@@ -218,6 +218,116 @@ def ensure_billing_profile(organization):
     return profile
 
 
+def grant_account_courtesy(organization, *, quota, expires_on=None, note="", granted_by=None):
+    """Open (or extend) an account-wide exemption, optionally with a deadline.
+
+    One call rather than the operator setting a ceiling and then toggling
+    each workspace: the product owner's decision is "this account is free
+    — this many workspaces, until this day, for this reason", and splitting
+    it across two writes is how a quota ends up raised with nothing
+    actually exempted.
+
+    So this both records the budget *and* spends it, comping the account's
+    cheapest-to-decide set — its oldest workspaces, up to ``quota``. Oldest
+    first because an agency's first workspace is the one the courtesy was
+    negotiated over; a later one they create is the one they would expect
+    to pay for.
+
+    Workspaces already comped are left alone, which keeps a re-grant (a
+    renewal, say) idempotent instead of shuffling which workspace is free.
+    """
+    profile = ensure_billing_profile(organization)
+    profile.courtesy_workspace_quota = quota
+    profile.courtesy_expires_on = expires_on
+    profile.courtesy_note = note
+    profile.courtesy_granted_at = timezone.now()
+    profile.courtesy_granted_by = granted_by
+    profile.save(
+        update_fields=[
+            "courtesy_workspace_quota",
+            "courtesy_expires_on",
+            "courtesy_note",
+            "courtesy_granted_at",
+            "courtesy_granted_by",
+            "updated_at",
+        ]
+    )
+
+    workspaces = list(organization.workspaces.order_by("created_at", "id"))
+    comped = 0
+    for workspace in workspaces:
+        if comped >= quota:
+            break
+        sub = ensure_subscription(workspace)
+        if sub.status != WorkspaceSubscription.Status.COURTESY:
+            grant_courtesy(workspace, note=note)
+        comped += 1
+    return profile
+
+
+def revoke_account_courtesy(organization):
+    """Close an account's exemption and bill every workspace again.
+
+    Used both by the operator pressing "charge this account again" and by
+    the expiry job. Zeroes the budget and clears the deadline so the
+    account does not sit at "0 workspaces free until the 30th", which
+    reads as a comp that is still live.
+
+    Changes billing state only: no workspace, membership, asset or login
+    is touched. A lapsed courtesy is an invoice event, never a lockout —
+    see :func:`expire_due_courtesies`.
+    """
+    profile = ensure_billing_profile(organization)
+    profile.courtesy_workspace_quota = 0
+    profile.courtesy_expires_on = None
+    profile.save(update_fields=["courtesy_workspace_quota", "courtesy_expires_on", "updated_at"])
+
+    for workspace in organization.workspaces.all():
+        revoke_courtesy(workspace)
+    return profile
+
+
+def due_courtesy_profiles(*, today=None):
+    """Profiles whose deadline has passed and are still exempt.
+
+    ``courtesy_expires_on < today`` (strict), matching
+    ``OrganizationBillingProfile.courtesy_is_expired`` — a comp granted
+    "until the 30th" lasts all of the 30th.
+
+    Filtered on ``quota > 0`` rather than on the workspace statuses so a
+    second run the same day finds nothing: :func:`revoke_account_courtesy`
+    zeroes the quota, which is what makes the sweep idempotent.
+    """
+    if today is None:
+        today = timezone.localdate()
+    return OrganizationBillingProfile.objects.filter(
+        courtesy_expires_on__isnull=False,
+        courtesy_expires_on__lt=today,
+        courtesy_workspace_quota__gt=0,
+    ).select_related("organization")
+
+
+def expire_due_courtesies(*, today=None):
+    """Put every lapsed account back on the invoice. Returns how many.
+
+    What expiring means, exactly, and the whole reason this is a separate
+    function rather than a line in the job: it flips billing state and
+    nothing else. No workspace is archived, no asset is deleted, no
+    member loses their login. A customer whose free period ended owes
+    money — they have not done anything wrong, and waking up to a dead
+    account would be the one failure mode worse than an unpaid invoice.
+
+    Each account is committed on its own so one bad row cannot roll back
+    the rest of the sweep.
+    """
+    expired = 0
+    for profile in due_courtesy_profiles(today=today):
+        with transaction.atomic():
+            revoke_account_courtesy(profile.organization)
+        expired += 1
+    return expired
+
+
 def courtesy_quota_exceeded(organization):
     """True when an org has more comped workspaces than its quota allows.
 

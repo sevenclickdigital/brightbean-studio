@@ -422,6 +422,14 @@ class OrganizationBillingProfile(models.Model):
     spent by counting workspaces whose subscription sits in
     ``courtesy``, so an admin moves the comp between workspaces by
     flipping statuses and never has to keep two tables in agreement.
+
+    ``courtesy_expires_on`` is the deadline on that comp. It sits on the
+    account rather than on each ``WorkspaceSubscription`` for the same
+    reason the quota does: the operator grants "this account is free
+    until the 30th", one decision, and the expiry job then has one date
+    to read instead of having to agree with N per-workspace copies of
+    it. NULL means open-ended, which is what every row granted before
+    this field existed means — see the field's own comment.
     """
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -434,6 +442,16 @@ class OrganizationBillingProfile(models.Model):
     # How many of this org's workspaces may be comped. 0 = none.
     courtesy_workspace_quota = models.PositiveIntegerField(default=0)
     courtesy_note = models.CharField(max_length=255, blank=True, default="")
+
+    # The day the exemption stops. NULL means "no end date" — which is
+    # every row that predates this field, so an existing open-ended
+    # courtesy is never silently given a deadline by the migration.
+    #
+    # A DateField, not a DateTimeField: the operator grants "free until
+    # the 30th", never "until 14:35". Expiry is therefore evaluated as
+    # "today is past that day", which is also why the expiry job can run
+    # once a day instead of on the minute.
+    courtesy_expires_on = models.DateField(null=True, blank=True)
     courtesy_granted_at = models.DateTimeField(null=True, blank=True)
     courtesy_granted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -481,3 +499,31 @@ class OrganizationBillingProfile(models.Model):
     @property
     def has_courtesy_available(self):
         return self.courtesy_workspaces_remaining > 0
+
+    @property
+    def courtesy_has_deadline(self):
+        return self.courtesy_expires_on is not None
+
+    @property
+    def courtesy_is_expired(self):
+        """True once the granted day has passed.
+
+        Strictly ``<``, so a comp that expires "on the 30th" is still
+        honoured all through the 30th and only lapses on the 31st. An
+        operator typing today's date means "free for today", not "free
+        for none of today".
+        """
+        if self.courtesy_expires_on is None:
+            return False
+        return self.courtesy_expires_on < timezone.localdate()
+
+    @property
+    def courtesy_days_remaining(self):
+        """Whole days left on the deadline, or None when open-ended.
+
+        Negative once lapsed, so a screen can tell "expires tomorrow"
+        from "expired last week" without recomputing the subtraction.
+        """
+        if self.courtesy_expires_on is None:
+            return None
+        return (self.courtesy_expires_on - timezone.localdate()).days

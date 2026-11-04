@@ -1,24 +1,40 @@
 {% extends "layouts/admin_shell.html" %}
 {% load i18n billing_extras %}
 {% comment %}
-Customers: every organization, its comp budget, and each of its
-workspaces with subscription status and disk usage.
+Customers: one table row per account, with every action behind a modal.
 
-Flat rather than a drill-down because the question this page answers is
-comparative — who pays, who is comped, who is about to run out of space.
-Each organization is one card with its workspaces inside; the comp
-controls sit next to the row they act on so there is never a doubt about
-which workspace a button will comp.
+A table, not the cards this used to be. Each account was a card tall
+enough to hold two always-open forms, so two accounts filled the screen
+and fifty were unreadable — the complaint that produced this shape. The
+question the page answers is comparative ("who pays, who is exempt, who
+is filling the disk"), and comparing means reading down a column.
+
+One row per ORGANIZATION, not per workspace: the account is what gets
+charged, comped, edited and signed in as. A workspace-grained table
+would repeat the same account on consecutive lines and leave the
+operator unsure which row a button belonged to. Per-workspace detail
+(status, disk, the per-workspace comp toggle) lives in the row's modal,
+which is where it is unambiguous.
+
+The modal is opened on demand and holds all five actions, so nothing on
+this page can be fired by accident while scrolling, and the forms are
+only in the DOM when the operator asked for them. Alpine, matching the
+rest of the project's modals.
+
+Every action is a POST with a CSRF token. There is not one GET link
+among them: a GET reset would let an embedded image mail a customer a
+reset link, and a GET deactivation would let any page an operator visits
+switch a customer off.
 
 Extends layouts/admin_shell.html, not base.html. Under base.html this
 page carried the whole product interface with it — workspace switcher,
 Publish, Create Idea, the connected-channels list, the organization
 footer — all of it pointing at a workspace an operator account does not
-have. See the admin shell's own comment for why it is a separate layout
-rather than a base.html with the product parts switched off.
+have. See the admin shell's own comment for why it is a separate layout.
 
 Access is ``is_staff`` (see apps/billing/views._is_billing_staff), so
-nothing here is reachable by a customer.
+nothing here is reachable by a customer, and nothing at all by an
+impersonated session.
 {% endcomment %}
 
 {% block title %}{% translate "Customers" %} - {% translate "Administration" %} - Brightbean{% endblock %}
@@ -35,231 +51,465 @@ nothing here is reachable by a customer.
 {% endblock %}
 
 {% block content %}
-<div class="max-w-5xl space-y-6">
-
-  {% for row in rows %}
-  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
-
-    {# ── Organization header: who this is, total, courtesy budget ── #}
-    <div class="px-5 py-4 border-b border-stone-100 flex items-start justify-between gap-4 flex-wrap">
-      <div class="min-w-0">
-        <h2 class="text-base font-semibold text-stone-900">{{ row.organization.name }}</h2>
-
+<section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+  {% comment %}
+  Horizontal scroll rather than hiding columns below a breakpoint: every
+  column here is part of the comparison, and a disk figure that silently
+  disappears on a laptop is worse than one the operator has to scroll
+  to. The account column is the one that stays wide, because it is what
+  identifies the row being scrolled.
+  {% endcomment %}
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-stone-100 bg-stone-50">
+          <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Account" %}</th>
+          <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Workspaces" %}</th>
+          <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Status" %}</th>
+          <th class="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Disk" %}</th>
+          <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-stone-400">{% translate "Monthly" %}</th>
+          <th class="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wide text-stone-400">
+            <span class="sr-only">{% translate "Actions" %}</span>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in rows %}
         {% comment %}
-        The e-mails, right under the name and before anything else.
-
-        An organization name is not an identity — the real accounts in
-        this install are called "My Organization" and "Seven Click",
-        which names a product default and a company, not a customer. The
-        e-mail is what the product owner recognises, and it used to
-        appear only inside an impersonation button, so it vanished
-        entirely for an organization nobody may be impersonated into.
-
-        Every member is listed (the view no longer pre-filters); the
-        takeover button lower down is what ``may_impersonate`` gates.
+        One Alpine scope per row, holding only "is this row's modal
+        open" and which panel it shows. Per row rather than one scope
+        for the page so a row's forms are isolated and the markup stays
+        readable down the file.
         {% endcomment %}
-        {% if row.members %}
-        <ul class="mt-1.5 space-y-0.5">
-          {% for entry in row.members %}
-          <li class="text-xs text-stone-600 flex items-baseline gap-1.5 flex-wrap">
-            <span class="font-medium text-stone-800 break-all">{{ entry.membership.user.email }}</span>
-            <span class="text-stone-400">{{ entry.membership.get_org_role_display }}</span>
-            {% if not entry.may_impersonate %}
-            {# Says why there is no button beside this one, rather than #}
-            {# leaving a gap the operator has to guess at. #}
-            <span class="text-[10px] uppercase tracking-wide text-stone-400">{% translate "operator account" %}</span>
+        <tr x-data="{ open: false, panel: 'courtesy' }"
+            class="{% if not forloop.last %}border-b border-stone-100{% endif %} align-top">
+
+          {# ── Account: the org name, and the e-mail that actually identifies it ── #}
+          {% comment %}
+          The owner's e-mail under the name, because an organization name
+          is not an identity — the real accounts in this install are
+          called "My Organization" and "Seven Click", which name a
+          product default and a company, not a customer. Every other
+          member is listed inside the modal.
+          {% endcomment %}
+          <td class="px-4 py-3 min-w-[14rem]">
+            <div class="font-medium text-stone-900">{{ row.organization.name }}</div>
+            {% if row.owner %}
+            <div class="text-xs text-stone-500 break-all">{{ row.owner.membership.user.email }}</div>
+            {% if not row.owner.membership.user.is_active %}
+            <div class="text-[11px] font-medium text-red-600 mt-0.5">{% translate "Sign-in disabled" %}</div>
             {% endif %}
-          </li>
-          {% endfor %}
-        </ul>
-        {% else %}
-        <p class="text-xs text-stone-400 mt-1.5">{% translate "This account has no members." %}</p>
-        {% endif %}
+            {% else %}
+            <div class="text-xs text-stone-400">{% translate "No members" %}</div>
+            {% endif %}
+          </td>
 
-        <p class="text-xs text-stone-500 mt-2">
-          {% blocktranslate count counter=row.workspaces|length %}{{ counter }} workspace{% plural %}{{ counter }} workspaces{% endblocktranslate %}
-          ·
-          {% blocktranslate with used=row.profile.courtesy_workspaces_used quota=row.profile.courtesy_workspace_quota %}{{ used }} of {{ quota }} workspaces exempt from charges{% endblocktranslate %}
-        </p>
-        {% if row.courtesy_exceeded %}
-        <p class="text-xs text-amber-700 mt-1">
-          {% translate "More workspaces are exempt than the limit allows. The existing exemptions were kept." %}
-        </p>
-        {% endif %}
-      </div>
-      <div class="text-right">
-        <div class="text-xs font-semibold uppercase tracking-wide text-stone-400">{% translate "Billed monthly" %}</div>
-        <div class="text-lg font-semibold text-stone-900 tabular-nums">R$ {{ row.monthly_total_cents|brl }}</div>
-      </div>
-    </div>
+          <td class="px-4 py-3 text-right tabular-nums text-stone-700">{{ row.workspace_count }}</td>
 
-    {% comment %}
-    How many of this account's EXISTING workspaces go unbilled.
+          {# ── Status: the most urgent state among the account's workspaces ── #}
+          <td class="px-4 py-3">
+            {% if row.status %}
+            <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-full
+                         {% if row.status == 'active' %}bg-green-50 text-green-700
+                         {% elif row.status == 'courtesy' %}bg-indigo-50 text-indigo-700
+                         {% elif row.status == 'past_due' %}bg-amber-50 text-amber-700
+                         {% elif row.status == 'canceled' %}bg-stone-100 text-stone-600
+                         {% else %}bg-blue-50 text-blue-700{% endif %}">
+              {% if row.status == 'active' %}{% translate "Active" %}
+              {% elif row.status == 'courtesy' %}{% translate "Exempt" %}
+              {% elif row.status == 'past_due' %}{% translate "Past due" %}
+              {% elif row.status == 'canceled' %}{% translate "Canceled" %}
+              {% else %}{% translate "Pending" %}{% endif %}
+            </span>
+            {% if row.profile.courtesy_expires_on %}
+            {# The deadline belongs next to the exemption it limits — an #}
+            {# operator reading "Exempt" needs to know for how long. #}
+            <div class="text-[11px] text-stone-500 mt-1 whitespace-nowrap">
+              {% blocktranslate with date=row.profile.courtesy_expires_on|date:"SHORT_DATE_FORMAT" %}until {{ date }}{% endblocktranslate %}
+            </div>
+            {% endif %}
+            {% else %}
+            <span class="text-xs text-stone-400">—</span>
+            {% endif %}
+          </td>
 
-    The label used to read "Courtesy workspaces", which the product owner
-    read as provisioning: "it looks like it's releasing more workspaces".
-    It does not create or grant anything — ``courtesy_workspace_quota``
-    is a ceiling on how many of the workspaces the account already has
-    may be exempted from charges, and it is only ever reported, never
-    enforced (see services.courtesy_quota_exceeded).
+          {# ── Disk: the signal that predicts a support ticket ── #}
+          <td class="px-4 py-3 min-w-[9rem]">
+            {% if row.storage_limit_bytes %}
+            <div class="flex items-baseline justify-between gap-2 text-[11px] mb-1 whitespace-nowrap">
+              <span class="text-stone-500">
+                {% blocktranslate with used=row.storage_used_bytes|gb limit=row.storage_limit_bytes|gb %}{{ used }} / {{ limit }} GB{% endblocktranslate %}
+              </span>
+              <span class="tabular-nums font-semibold
+                           {% if row.storage_percent >= 100 %}text-red-600{% elif row.storage_percent >= 90 %}text-amber-600{% else %}text-stone-400{% endif %}">
+                {{ row.storage_percent|meter_percent }}%
+              </span>
+            </div>
+            <div class="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
+              <div class="h-full rounded-full
+                          {% if row.storage_percent >= 100 %}bg-red-500{% elif row.storage_percent >= 90 %}bg-amber-500{% else %}bg-stone-300{% endif %}"
+                   style="width: {{ row.storage_percent|meter_percent }}%"></div>
+            </div>
+            {% else %}
+            <span class="text-xs text-stone-400">—</span>
+            {% endif %}
+          </td>
 
-    So the label names the effect ("exempt from charges"), the help text
-    under it says whose workspaces and that none are created, and the
-    button saves a limit rather than a "quota". Read cold, with no
-    context, none of the three can suggest a new workspace appears.
-    {% endcomment %}
-    <form method="post" action="{% url 'billing_staff:set_courtesy_quota' org_id=row.organization.id %}"
-          class="px-5 py-3 bg-stone-50 border-b border-stone-100">
-      {% csrf_token %}
-      <div class="flex flex-wrap items-end gap-3">
-        <div>
-          <label for="quota-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
-            {% translate "Workspaces exempt from charges" %}
-          </label>
-          <input type="number" id="quota-{{ row.organization.id }}" name="courtesy_workspace_quota"
-                 min="0" step="1" value="{{ row.profile.courtesy_workspace_quota }}"
-                 aria-describedby="quota-help-{{ row.organization.id }}"
-                 class="form-input-styled w-20 tabular-nums">
-        </div>
-        <div class="flex-1 min-w-[12rem]">
-          <label for="note-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
-            {% translate "Reason for the exemption" %}
-          </label>
-          <input type="text" id="note-{{ row.organization.id }}" name="courtesy_note" maxlength="255"
-                 value="{{ row.profile.courtesy_note }}"
-                 placeholder="{% translate 'Partner, beta tester, internal account…' %}"
-                 class="form-input-styled w-full">
-        </div>
-        <button type="submit"
-                class="px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
-          {% translate "Save limit" %}
-        </button>
-      </div>
-      <p id="quota-help-{{ row.organization.id }}" class="text-[11px] text-stone-500 mt-2">
-        {% translate "How many of this account's existing workspaces go unbilled. This creates no workspace and releases nothing — choose which ones are exempt in the list below." %}
-      </p>
-    </form>
+          <td class="px-4 py-3 text-right tabular-nums font-medium text-stone-900 whitespace-nowrap">
+            R$ {{ row.monthly_total_cents|brl }}
+          </td>
 
-    {# ── One row per workspace ── #}
-    {% for ws in row.workspaces %}
-    <div class="px-5 py-4 {% if not forloop.last %}border-b border-stone-100{% endif %} flex flex-wrap items-center gap-4">
+          <td class="px-4 py-3 text-right">
+            <button type="button" @click="open = true; panel = 'courtesy'"
+                    class="px-3 py-1.5 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer whitespace-nowrap">
+              {% translate "Manage" %}
+            </button>
+          </td>
 
-      <div class="flex-1 min-w-[10rem]">
-        <div class="text-sm font-medium text-stone-900">{{ ws.workspace.name }}</div>
-        <div class="flex items-center gap-2 mt-1">
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full
-                       {% if ws.subscription.status == 'active' %}bg-green-50 text-green-700
-                       {% elif ws.subscription.status == 'courtesy' %}bg-indigo-50 text-indigo-700
-                       {% elif ws.subscription.status == 'past_due' %}bg-amber-50 text-amber-700
-                       {% elif ws.subscription.status == 'canceled' %}bg-stone-100 text-stone-600
-                       {% else %}bg-blue-50 text-blue-700{% endif %}">
-            {{ ws.subscription.get_status_display }}
-          </span>
-          {% if ws.workspace.is_archived %}
-          <span class="text-[11px] text-stone-400">{% translate "Archived" %}</span>
-          {% endif %}
-        </div>
-        {% if ws.subscription.courtesy_note %}
-        <div class="text-[11px] text-stone-400 mt-1">{{ ws.subscription.courtesy_note }}</div>
-        {% endif %}
-      </div>
+          {% comment %}
+          ─── The actions modal ───────────────────────────────────────
 
-      {# Disk, as a number and a bar — the signal that predicts a support ticket. #}
-      <div class="w-48">
-        <div class="flex items-baseline justify-between gap-2 text-[11px] mb-1">
-          <span class="text-stone-500">
-            {% blocktranslate with used=ws.storage.used_bytes|gb limit=ws.storage.limit_bytes|gb %}{{ used }} / {{ limit }} GB{% endblocktranslate %}
-          </span>
-          <span class="tabular-nums font-semibold
-                       {% if ws.storage.is_full %}text-red-600{% elif ws.storage.is_near_limit %}text-amber-600{% else %}text-stone-400{% endif %}">
-            {{ ws.storage.percent_used|meter_percent }}%
-          </span>
-        </div>
-        <div class="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
-          <div class="h-full rounded-full
-                      {% if ws.storage.is_full %}bg-red-500{% elif ws.storage.is_near_limit %}bg-amber-500{% else %}bg-stone-300{% endif %}"
-               style="width: {{ ws.storage.percent_used|meter_percent }}%"></div>
-        </div>
-      </div>
+          Inside the row so each row owns its own forms and ids, and
+          rendered in a cell with no padding so the fixed overlay is not
+          offset by the table's layout.
 
-      <div class="w-24 text-right text-sm tabular-nums text-stone-700">
-        R$ {{ ws.monthly_total_cents|brl }}
-      </div>
+          ``x-cloak`` keeps it invisible before Alpine boots (the rule is
+          in the admin shell's <style>), and Escape closes it — a modal
+          with no keyboard exit over a page full of destructive buttons
+          would be worse than no modal.
+          {% endcomment %}
+          <td class="p-0">
+            <template x-teleport="body">
+              <div x-show="open" x-cloak
+                   @keydown.escape.window="open = false"
+                   class="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto">
+                <div x-show="open" x-transition.opacity @click="open = false"
+                     class="fixed inset-0 bg-black/40"></div>
 
-      {% comment %}
-      The exemption toggle, acting on THIS workspace. The action is
-      explicit in the POST so a double-submit is idempotent instead of
-      flipping the comp back.
+                <div x-show="open" x-transition
+                     role="dialog" aria-modal="true"
+                     class="relative w-full max-w-lg my-8 bg-white rounded-xl shadow-xl ring-1 ring-stone-200 text-left">
 
-      Worded as charging this workspace or not, rather than
-      "grant/remove courtesy": the same reading that made the quota field
-      above look like provisioning makes "grant" sound like something is
-      being handed over. Nothing is — only whether this existing
-      workspace appears on the invoice changes.
-      {% endcomment %}
-      <form method="post" action="{% url 'billing_staff:toggle_courtesy' target_workspace_id=ws.workspace.id %}">
-        {% csrf_token %}
-        {% if ws.subscription.is_courtesy %}
-        <input type="hidden" name="action" value="revoke">
-        <button type="submit"
-                class="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
-          {% translate "Charge this workspace" %}
-        </button>
-        {% else %}
-        <input type="hidden" name="action" value="grant">
-        <button type="submit"
-                class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer">
-          {% translate "Exempt from charges" %}
-        </button>
-        {% endif %}
-      </form>
+                  <div class="flex items-start justify-between gap-4 px-5 py-4 border-b border-stone-100">
+                    <div class="min-w-0">
+                      <h2 class="text-base font-semibold text-stone-900 truncate">{{ row.organization.name }}</h2>
+                      {% if row.owner %}
+                      <p class="text-xs text-stone-500 break-all">{{ row.owner.membership.user.email }}</p>
+                      {% endif %}
+                    </div>
+                    <button type="button" @click="open = false"
+                            aria-label="{% translate 'Close' %}"
+                            class="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg text-stone-400 hover:bg-stone-100 transition-colors cursor-pointer">
+                      <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                  </div>
 
-    </div>
-    {% empty %}
-    <div class="px-5 py-4 text-sm text-stone-400">{% translate "This account has no workspaces." %}</div>
-    {% endfor %}
+                  {% comment %}
+                  Tabs, not five stacked forms. Stacking is what made the
+                  cards unreadable in the first place, and only one of
+                  these is ever the reason the modal was opened.
+                  {% endcomment %}
+                  <div class="flex gap-1 px-5 pt-3 border-b border-stone-100 overflow-x-auto">
+                    <button type="button" @click="panel = 'courtesy'"
+                            :class="panel === 'courtesy' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'"
+                            class="px-2.5 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap">
+                      {% translate "Release access" %}
+                    </button>
+                    <button type="button" @click="panel = 'edit'"
+                            :class="panel === 'edit' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'"
+                            class="px-2.5 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap">
+                      {% translate "Edit account" %}
+                    </button>
+                    <button type="button" @click="panel = 'people'"
+                            :class="panel === 'people' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'"
+                            class="px-2.5 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap">
+                      {% translate "People and access" %}
+                    </button>
+                    <button type="button" @click="panel = 'workspaces'"
+                            :class="panel === 'workspaces' ? 'border-orange-500 text-stone-900' : 'border-transparent text-stone-500 hover:text-stone-700'"
+                            class="px-2.5 py-2 text-xs font-semibold border-b-2 transition-colors cursor-pointer whitespace-nowrap">
+                      {% translate "Workspaces" %}
+                    </button>
+                  </div>
 
-    {% comment %}
-    Support impersonation. One button per account an operator may take
-    over — ``entry.may_impersonate``, decided in the view by the same
-    ``may_impersonate`` the POST enforces, so no button shown can 403 and
-    another operator's account is never offered.
+                  {# ── a) Courtesy with a deadline ── #}
+                  {% comment %}
+                  The one new concept on this screen: an exemption that
+                  ends by itself. Three inputs because all three are
+                  needed for the decision to survive the week it was made
+                  in — how many workspaces, until when, and why.
 
-    The filter is per row rather than on the list: the e-mails are
-    identification and are listed in the header for every member,
-    impersonable or not. Only the button is gated. The whole block
-    disappears when nobody here may be taken over, instead of rendering
-    an empty heading.
+                  The help text states the consequence of the date
+                  plainly, because "the account is billed again
+                  automatically" is the part an operator must not be
+                  surprised by.
+                  {% endcomment %}
+                  <div x-show="panel === 'courtesy'" class="px-5 py-4 space-y-4">
+                    <form method="post" action="{% url 'billing_staff:grant_courtesy' org_id=row.organization.id %}"
+                          class="space-y-3">
+                      {% csrf_token %}
+                      <div class="flex flex-wrap gap-3">
+                        <div>
+                          <label for="quota-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                            {% translate "Workspaces exempt from charges" %}
+                          </label>
+                          <input type="number" id="quota-{{ row.organization.id }}" name="courtesy_workspace_quota"
+                                 min="0" step="1" value="{{ row.profile.courtesy_workspace_quota }}"
+                                 class="form-input-styled w-24 tabular-nums">
+                        </div>
+                        <div>
+                          <label for="until-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                            {% translate "Exempt until" %}
+                          </label>
+                          <input type="date" id="until-{{ row.organization.id }}" name="courtesy_expires_on"
+                                 value="{{ row.profile.courtesy_expires_on|date:'Y-m-d' }}"
+                                 class="form-input-styled">
+                        </div>
+                      </div>
+                      <div>
+                        <label for="note-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                          {% translate "Reason for the exemption" %}
+                        </label>
+                        <input type="text" id="note-{{ row.organization.id }}" name="courtesy_note" maxlength="255"
+                               value="{{ row.profile.courtesy_note }}"
+                               placeholder="{% translate 'Partner, beta tester, internal account…' %}"
+                               class="form-input-styled w-full">
+                      </div>
+                      <p class="text-[11px] text-stone-500">
+                        {% translate "How many of this account's existing workspaces go unbilled, and until when. On that date the account is billed again automatically — nothing is deleted and nobody loses access. Leave the date empty for no end date." %}
+                      </p>
+                      <button type="submit"
+                              class="px-3 py-2 text-xs font-semibold text-white rounded-lg transition-colors cursor-pointer"
+                              style="background: var(--primary);">
+                        {% translate "Release access" %}
+                      </button>
+                    </form>
 
-    POST, never a link: a GET would let any page an operator visits hand
-    them someone else's session by embedding the URL.
-    {% endcomment %}
-    {% if row.has_impersonable_members %}
-    <div class="px-5 py-3 bg-stone-50 border-t border-stone-100">
-      <div class="text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-2">
-        {% translate "Sign in as, for support" %}
-      </div>
-      <div class="flex flex-wrap gap-2">
-        {% for entry in row.members %}
-        {% if entry.may_impersonate %}
-        <form method="post" action="{% url 'accounts:start_impersonation' user_id=entry.membership.user.id %}">
-          {% csrf_token %}
-          <button type="submit"
-                  class="px-3 py-1.5 text-xs font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
-            {{ entry.membership.user.email }}
-            <span class="text-stone-400">· {{ entry.membership.get_org_role_display }}</span>
-          </button>
-        </form>
-        {% endif %}
+                    {% if row.profile.courtesy_workspace_quota %}
+                    <div class="pt-3 border-t border-stone-100 space-y-2">
+                      {% if row.profile.courtesy_expires_on %}
+                      <p class="text-[11px] text-stone-500">
+                        {% blocktranslate with used=row.profile.courtesy_workspaces_used quota=row.profile.courtesy_workspace_quota date=row.profile.courtesy_expires_on|date:"SHORT_DATE_FORMAT" %}{{ used }} of {{ quota }} workspaces exempt, until {{ date }}.{% endblocktranslate %}
+                      </p>
+                      {% else %}
+                      <p class="text-[11px] text-stone-500">
+                        {% blocktranslate with used=row.profile.courtesy_workspaces_used quota=row.profile.courtesy_workspace_quota %}{{ used }} of {{ quota }} workspaces exempt, with no end date.{% endblocktranslate %}
+                      </p>
+                      {% endif %}
+                      {# Ending it now, so undoing a mistaken grant does not #}
+                      {# mean typing a date in the past. #}
+                      <form method="post" action="{% url 'billing_staff:revoke_courtesy' org_id=row.organization.id %}">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+                          {% translate "Charge this account again now" %}
+                        </button>
+                      </form>
+                    </div>
+                    {% endif %}
+
+                    {% if row.courtesy_exceeded %}
+                    <p class="text-[11px] text-amber-700">
+                      {% translate "More workspaces are exempt than the limit allows. The existing exemptions were kept." %}
+                    </p>
+                    {% endif %}
+                  </div>
+
+                  {# ── c) Edit the account ── #}
+                  <div x-show="panel === 'edit'" x-cloak class="px-5 py-4">
+                    <form method="post" action="{% url 'billing_staff:edit_account' org_id=row.organization.id %}"
+                          class="space-y-3">
+                      {% csrf_token %}
+                      <div>
+                        <label for="orgname-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                          {% translate "Account name" %}
+                        </label>
+                        <input type="text" id="orgname-{{ row.organization.id }}" name="organization_name"
+                               maxlength="100" required value="{{ row.organization.name }}"
+                               class="form-input-styled w-full">
+                      </div>
+                      {% if row.owner %}
+                      {# The owner's own fields travel with the org name in #}
+                      {# one submit: support is correcting one mistake, not #}
+                      {# filling two forms. #}
+                      <input type="hidden" name="user_id" value="{{ row.owner.membership.user.id }}">
+                      <div>
+                        <label for="username-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                          {% translate "Owner's name" %}
+                        </label>
+                        <input type="text" id="username-{{ row.organization.id }}" name="name" maxlength="255"
+                               value="{{ row.owner.membership.user.name }}"
+                               class="form-input-styled w-full">
+                      </div>
+                      <div>
+                        <label for="useremail-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+                          {% translate "Owner's e-mail" %}
+                        </label>
+                        <input type="email" id="useremail-{{ row.organization.id }}" name="email" required
+                               value="{{ row.owner.membership.user.email }}"
+                               class="form-input-styled w-full">
+                        <p class="text-[11px] text-stone-500 mt-1">
+                          {% translate "This is the address they sign in with. If another account already uses it, nothing is changed." %}
+                        </p>
+                      </div>
+                      {% endif %}
+                      <button type="submit"
+                              class="px-3 py-2 text-xs font-semibold text-white rounded-lg transition-colors cursor-pointer"
+                              style="background: var(--primary);">
+                        {% translate "Save changes" %}
+                      </button>
+                    </form>
+                  </div>
+
+                  {# ── b) password reset, d) deactivate, e) impersonate ── #}
+                  {% comment %}
+                  The three per-person actions share a panel because they
+                  are all answers to "what do I do about this human", and
+                  because listing each member once with its buttons beats
+                  three lists of the same people.
+
+                  ``may_impersonate`` and ``may_deactivate`` are decided
+                  in the view by the same rules the POSTs enforce, so no
+                  button shown here can 403 — and an operator's account
+                  appears with its e-mail and no buttons rather than
+                  silently vanishing from the list.
+                  {% endcomment %}
+                  <div x-show="panel === 'people'" x-cloak class="px-5 py-4">
+                    {% if row.members %}
+                    <ul class="divide-y divide-stone-100">
+                      {% for entry in row.members %}
+                      <li class="py-3 first:pt-0 last:pb-0">
+                        <div class="flex items-baseline gap-2 flex-wrap">
+                          <span class="text-sm font-medium text-stone-800 break-all">{{ entry.membership.user.email }}</span>
+                          <span class="text-[11px] text-stone-400">{{ entry.membership.get_org_role_display }}</span>
+                          {% if not entry.membership.user.is_active %}
+                          <span class="text-[11px] font-medium text-red-600">{% translate "Sign-in disabled" %}</span>
+                          {% endif %}
+                          {% if not entry.may_impersonate and not entry.may_deactivate %}
+                          {# Says why there are no buttons beside this one, #}
+                          {# rather than leaving a gap to guess at. #}
+                          <span class="text-[10px] uppercase tracking-wide text-stone-400">{% translate "operator account" %}</span>
+                          {% endif %}
+                        </div>
+                        <div class="flex flex-wrap gap-2 mt-2">
+                          <form method="post" action="{% url 'billing_staff:send_password_reset' target_user_id=entry.membership.user.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-2.5 py-1.5 text-xs font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+                              {% translate "Send password reset" %}
+                            </button>
+                          </form>
+
+                          {% if entry.may_deactivate %}
+                          <form method="post" action="{% url 'billing_staff:set_user_active' target_user_id=entry.membership.user.id %}">
+                            {% csrf_token %}
+                            {% if entry.membership.user.is_active %}
+                            {# Action named in the POST, so a double submit is #}
+                            {# idempotent instead of toggling back. #}
+                            <input type="hidden" name="action" value="deactivate">
+                            <button type="submit"
+                                    class="px-2.5 py-1.5 text-xs font-medium text-red-700 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors cursor-pointer">
+                              {% translate "Disable sign-in" %}
+                            </button>
+                            {% else %}
+                            <input type="hidden" name="action" value="activate">
+                            <button type="submit"
+                                    class="px-2.5 py-1.5 text-xs font-medium text-green-700 bg-white border border-green-200 rounded-lg hover:bg-green-50 transition-colors cursor-pointer">
+                              {% translate "Restore sign-in" %}
+                            </button>
+                            {% endif %}
+                          </form>
+                          {% endif %}
+
+                          {% comment %}
+                          POST, never a link: a GET would let any page an
+                          operator visits hand them someone else's
+                          session by embedding the URL.
+                          {% endcomment %}
+                          {% if entry.may_impersonate %}
+                          <form method="post" action="{% url 'accounts:start_impersonation' user_id=entry.membership.user.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-2.5 py-1.5 text-xs font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+                              {% translate "Sign in as, for support" %}
+                            </button>
+                          </form>
+                          {% endif %}
+                        </div>
+                        <p class="text-[11px] text-stone-400 mt-1.5">
+                          {% translate "The reset is e-mailed to them; nobody here sees or sets their password." %}
+                        </p>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-sm text-stone-400">{% translate "This account has no members." %}</p>
+                    {% endif %}
+                  </div>
+
+                  {# ── Per-workspace detail, with the single-workspace comp toggle ── #}
+                  {% comment %}
+                  What the cards used to show on the page itself. Kept
+                  because the account-level exemption is a budget and an
+                  operator still sometimes needs to pick which workspace
+                  it applies to — the toggle sits next to the row it acts
+                  on, so there is never a doubt which workspace a button
+                  will exempt.
+                  {% endcomment %}
+                  <div x-show="panel === 'workspaces'" x-cloak class="px-5 py-4">
+                    {% if row.workspaces %}
+                    <ul class="divide-y divide-stone-100">
+                      {% for ws in row.workspaces %}
+                      <li class="py-3 first:pt-0 last:pb-0 flex flex-wrap items-center gap-3">
+                        <div class="flex-1 min-w-[9rem]">
+                          <div class="text-sm font-medium text-stone-900">{{ ws.workspace.name }}</div>
+                          <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+                            <span class="text-[11px] text-stone-500">{{ ws.subscription.get_status_display }}</span>
+                            <span class="text-[11px] text-stone-400">
+                              {% blocktranslate with used=ws.storage.used_bytes|gb limit=ws.storage.limit_bytes|gb %}{{ used }} / {{ limit }} GB{% endblocktranslate %}
+                            </span>
+                            {% if ws.workspace.is_archived %}
+                            <span class="text-[11px] text-stone-400">{% translate "Archived" %}</span>
+                            {% endif %}
+                          </div>
+                        </div>
+                        <div class="text-sm tabular-nums text-stone-700 whitespace-nowrap">R$ {{ ws.monthly_total_cents|brl }}</div>
+                        <form method="post" action="{% url 'billing_staff:toggle_courtesy' target_workspace_id=ws.workspace.id %}">
+                          {% csrf_token %}
+                          {% if ws.subscription.is_courtesy %}
+                          <input type="hidden" name="action" value="revoke">
+                          <button type="submit"
+                                  class="px-2.5 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer whitespace-nowrap">
+                            {% translate "Charge this workspace" %}
+                          </button>
+                          {% else %}
+                          <input type="hidden" name="action" value="grant">
+                          <button type="submit"
+                                  class="px-2.5 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer whitespace-nowrap">
+                            {% translate "Exempt from charges" %}
+                          </button>
+                          {% endif %}
+                        </form>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p class="text-sm text-stone-400">{% translate "This account has no workspaces." %}</p>
+                    {% endif %}
+                  </div>
+
+                </div>
+              </div>
+            </template>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="px-4 py-6 text-sm text-stone-500">{% translate "No accounts yet." %}</td>
+        </tr>
         {% endfor %}
-      </div>
-    </div>
-    {% endif %}
-
-  </section>
-  {% empty %}
-  <p class="text-sm text-stone-500">{% translate "No accounts yet." %}</p>
-  {% endfor %}
-
-</div>
+      </tbody>
+    </table>
+  </div>
+</section>
 {% endblock %}

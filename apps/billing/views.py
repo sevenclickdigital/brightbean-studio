@@ -12,6 +12,10 @@ URL surface:
 - ``/billing/staff/impersonations/``                      : access log
 - ``/billing/staff/courtesy/<target_workspace_id>/``      : POST, comp toggle
 - ``/billing/staff/quota/<org_id>/``                      : POST, org quota
+- ``/billing/staff/accounts/<org_id>/courtesy/``          : POST, timed comp
+- ``/billing/staff/accounts/<org_id>/edit/``              : POST, name/e-mail
+- ``/billing/staff/users/<target_user_id>/reset-password/``: POST, allauth mail
+- ``/billing/staff/users/<target_user_id>/active/``       : POST, de/reactivate
 
 Two things this module is careful about, because both are states the
 product is actually in today:
@@ -31,17 +35,22 @@ from __future__ import annotations
 import functools
 import logging
 
+from allauth.account.forms import ResetPasswordForm
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.core.exceptions import PermissionDenied
+from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.validators import validate_email
 from django.db.models import Prefetch, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.utils.dateparse import parse_date
+from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
 from apps.accounts import impersonation
-from apps.accounts.models import ImpersonationSession
+from apps.accounts.models import ImpersonationSession, User
 from apps.billing import contracting, services
 from apps.billing.gateways.asaas import AsaasError, AsaasNotConfigured
 from apps.billing.models import WorkspaceAddon, WorkspaceSubscription
@@ -404,32 +413,37 @@ def _staff_required(view_func):
 @_staff_required
 @require_GET
 def staff_console(request):
-    """Customers: every organization, its comp budget, each workspace's state.
+    """Customers: one table row per account, actions behind a per-row modal.
 
-    One page rather than a drill-down because the question the product
-    owner asks it is comparative: "who is paying, who is comped, who is
-    about to run out of disk". Usage is read per workspace from the
-    billing cache, which is what every other surface reads.
+    A table, not the cards this used to be. The question is comparative —
+    "who pays, who is exempt, who is filling the disk" — and a card tall
+    enough to hold two always-open forms meant two accounts filled the
+    screen. At fifty the page was unusable, which is the complaint that
+    produced this shape.
+
+    One row per **organization**, not per workspace: the account is what
+    gets charged, comped, edited and signed in as, so a workspace-grained
+    table would repeat the same account on every line and leave the
+    operator unsure which row an action applies to. Per-workspace detail
+    (status, disk, the comp toggle) is still there, inside the row's
+    modal.
+
+    Columns, and why those: account (org name plus the owner's e-mail,
+    because "My Organization" identifies nobody and the e-mail is what the
+    product owner recognises), workspace count, status, disk, monthly
+    charge, actions. Each one answers part of the comparative question;
+    anything that did not was moved into the modal.
 
     Keeps the ``/billing/staff/`` path and the ``staff_console`` name it
     had as the single console: it is the link in the account menu, the
     redirect target for an operator with no workspace, and what the
-    existing tests reverse. Renaming it would have broken all three for
-    nothing — this is still the screen an operator wants first.
+    existing tests reverse.
 
-    Each organization lists **every** one of its members with their
-    e-mail, because the e-mail is how the product owner identifies a
-    customer — an organization name like "My Organization" identifies
-    nobody. The list used to be pre-filtered to impersonable accounts
-    only, which meant an organization whose single member is staff showed
-    a name and no human at all.
-
-    So the filter moved off the list and onto a per-row flag:
-    ``may_impersonate`` still decides who gets a *button* (an operator
-    must never be offered a takeover that would 403, notably not another
-    operator's account), while the e-mail is shown either way. Still
-    computed here rather than in the template, so the rule stays the
-    service's and the page cannot drift from it.
+    Every member is listed with their e-mail, and ``may_impersonate``
+    decides per member whether a takeover *button* appears — an operator
+    must never be offered one that would 403, notably not another
+    operator's account. Computed here rather than in the template so the
+    rule stays the service's and the page cannot drift from it.
     """
     organizations = (
         Organization.objects.all()
@@ -461,25 +475,42 @@ def staff_console(request):
                     "monthly_total_cents": services.workspace_monthly_total_cents(workspace),
                 }
             )
-        # Every member, each carrying whether a takeover is allowed. The
-        # e-mail identifies the customer and is always shown;
-        # ``may_impersonate`` only gates the button, so an organization
-        # whose only member is another operator still names a human.
+        # Every member, each carrying whether a takeover is allowed and
+        # whether this operator may deactivate them. The e-mail identifies
+        # the customer and is always shown; the flags only gate buttons,
+        # so an organization whose only member is another operator still
+        # names a human.
         members = [
             {
                 "membership": membership,
                 "may_impersonate": impersonation.may_impersonate(operator, membership.user),
+                "may_deactivate": _may_deactivate(operator, membership.user),
             }
             for membership in organization.memberships.all()
         ]
+        # The owner is the account's face in the table. Falls back to the
+        # first member so a row whose owner left still names somebody
+        # rather than showing an org name and a blank.
+        owner = next(
+            (entry for entry in members if entry["membership"].org_role == OrgMembership.OrgRole.OWNER),
+            members[0] if members else None,
+        )
         rows.append(
             {
                 "organization": organization,
                 "profile": profile,
                 "workspaces": workspace_rows,
+                "workspace_count": len(workspace_rows),
                 "monthly_total_cents": sum(w["monthly_total_cents"] for w in workspace_rows),
                 "courtesy_exceeded": services.courtesy_quota_exceeded(organization),
                 "members": members,
+                "owner": owner,
+                # Account-level rollups, so the table cell is a lookup
+                # rather than a template loop with arithmetic in it.
+                "status": _account_status(workspace_rows),
+                "storage_used_bytes": sum(w["storage"].used_bytes for w in workspace_rows),
+                "storage_limit_bytes": sum(w["storage"].limit_bytes for w in workspace_rows),
+                "storage_percent": _storage_percent(workspace_rows),
                 # Precomputed so the template does not need a filter to
                 # decide whether the takeover block has anything in it —
                 # an empty heading over no buttons is worse than nothing.
@@ -497,6 +528,74 @@ def staff_console(request):
             "admin_active": "accounts",
         },
     )
+
+
+# Order the account-level status cell resolves in: the most urgent state
+# among the account's workspaces wins, because the operator scanning the
+# column is looking for the account that needs attention, not for a
+# representative sample. Past due beats everything (someone's charge
+# failed); pending beats active (never contracted); courtesy is reported
+# last because it is a decision, not a problem.
+_STATUS_PRIORITY = (
+    WorkspaceSubscription.Status.PAST_DUE,
+    WorkspaceSubscription.Status.PENDING,
+    WorkspaceSubscription.Status.CANCELED,
+    WorkspaceSubscription.Status.ACTIVE,
+    WorkspaceSubscription.Status.COURTESY,
+)
+
+
+def _account_status(workspace_rows):
+    """The one status to show for a whole account, or "" when it has none.
+
+    Empty string rather than a fake status for an account with no
+    workspace: there is nothing to be in a state about, and inventing
+    "pending" would put an account on the operator's chase list for not
+    having done anything yet.
+    """
+    present = {row["subscription"].status for row in workspace_rows}
+    for status in _STATUS_PRIORITY:
+        if status in present:
+            return status
+    return ""
+
+
+def _storage_percent(workspace_rows):
+    """Disk used across an account's workspaces, as a percentage.
+
+    Summed then divided, not an average of percentages: one workspace at
+    100% and one empty is an account at 50% of what it bought, and
+    averaging the two would say the same thing by accident while
+    disagreeing the moment the quotas differ.
+    """
+    limit = sum(row["storage"].limit_bytes for row in workspace_rows)
+    if limit <= 0:
+        return 0.0
+    used = sum(row["storage"].used_bytes for row in workspace_rows)
+    return (used / limit) * 100
+
+
+def _may_deactivate(operator, target):
+    """Whether ``operator`` may switch ``target``'s access off.
+
+    The same two refusals ``may_impersonate`` makes, and for the same
+    reasons: an operator must not lock themselves out of the only area
+    they can use, and must not be able to disable a colleague — that is
+    privilege escalation dressed up as support, and it would leave the
+    product with no reachable operator at all if aimed at the last one.
+
+    Deliberately NOT ``may_impersonate`` itself: that one also refuses an
+    already-inactive target, and reactivating one is exactly what this
+    permits. Expressed here rather than inline in the view so the page
+    and the POST read the identical rule.
+    """
+    if operator is None or not operator.is_authenticated:
+        return False
+    if not (operator.is_active and operator.is_staff):
+        return False
+    if target is None or target.pk == operator.pk:
+        return False
+    return not target.is_staff
 
 
 @_staff_required
@@ -665,4 +764,258 @@ def staff_set_courtesy_quota(request, org_id):
             request,
             _("Workspaces already exempt above the new limit were kept — nobody starts being charged retroactively."),
         )
+    return redirect("billing_staff:staff_console")
+
+
+# ---------------------------------------------------------------------------
+# The per-account actions, all POST
+# ---------------------------------------------------------------------------
+# Five actions, each its own endpoint rather than one view switching on a
+# hidden ``action`` field: they need different permission rules (the
+# deactivation one refuses an operator target, the courtesy one does not)
+# and different validation, and a single view would have had to re-derive
+# which of those applied from the form.
+#
+# Every one is POST-only. None of them is safe to reach by navigation: a
+# GET reset would let an embedded image mail a customer's reset link, and
+# a GET deactivation would let any page an operator visits switch a
+# customer off.
+
+
+@_staff_required
+@require_POST
+def staff_grant_courtesy(request, org_id):
+    """Release an account from charges, for a stated number of days.
+
+    The timed version of the old quota field, and the one genuinely new
+    concept on this screen: an exemption with a deadline, after which the
+    account is billed again by itself. Before this, a comp granted as a
+    favour stayed free until somebody remembered it.
+
+    Three inputs, all required to mean something: how many workspaces go
+    unbilled, until when, and why. The reason is stored because in six
+    months "why is this agency free?" is a question only the note can
+    answer.
+
+    An empty date is accepted and means open-ended — the behaviour every
+    courtesy had before this field existed, kept so an operator who wants
+    a permanent comp does not have to invent a date in 2099.
+    """
+    organization = get_object_or_404(Organization, id=org_id)
+
+    try:
+        quota = int(request.POST.get("courtesy_workspace_quota", "").strip())
+    except (TypeError, ValueError):
+        quota = -1
+    if quota < 0:
+        messages.error(request, _("The number of exempt workspaces must be zero or a positive whole number."))
+        return redirect("billing_staff:staff_console")
+
+    raw_date = request.POST.get("courtesy_expires_on", "").strip()
+    expires_on = None
+    if raw_date:
+        expires_on = parse_date(raw_date)
+        if expires_on is None:
+            messages.error(request, _("Enter the end date as a valid date, or leave it empty for no end date."))
+            return redirect("billing_staff:staff_console")
+        # A deadline already past would be granted and swept away by the
+        # next expiry run, which looks to the operator like the form
+        # silently did nothing. Refused instead of "fixed".
+        if expires_on < timezone.localdate():
+            messages.error(request, _("The end date is in the past. Choose today or a later date."))
+            return redirect("billing_staff:staff_console")
+
+    services.grant_account_courtesy(
+        organization,
+        quota=quota,
+        expires_on=expires_on,
+        note=request.POST.get("courtesy_note", "").strip()[:255],
+        granted_by=request.user,
+    )
+
+    if expires_on is None:
+        messages.success(
+            request,
+            _('Account "%(org)s" has %(quota)s workspace(s) exempt from charges, with no end date.')
+            % {"org": organization.name, "quota": quota},
+        )
+    else:
+        messages.success(
+            request,
+            _('Account "%(org)s" has %(quota)s workspace(s) exempt from charges until %(date)s, '
+              "after which it is billed again automatically.")
+            % {"org": organization.name, "quota": quota, "date": date_format(expires_on, "SHORT_DATE_FORMAT")},
+        )
+    return redirect("billing_staff:staff_console")
+
+
+@_staff_required
+@require_POST
+def staff_revoke_courtesy(request, org_id):
+    """End an account's exemption now, ahead of any deadline.
+
+    The reverse of the button above, in the same modal, so an operator who
+    granted a comp by mistake does not have to set a date in the past to
+    undo it. Runs the same service the expiry job runs, which is what
+    keeps "the operator ended it" and "it ran out" from drifting apart.
+    """
+    organization = get_object_or_404(Organization, id=org_id)
+    services.revoke_account_courtesy(organization)
+    messages.success(
+        request,
+        _('Account "%(org)s" is billed again. Each workspace needs a subscription to stay active.')
+        % {"org": organization.name},
+    )
+    return redirect("billing_staff:staff_console")
+
+
+@_staff_required
+@require_POST
+def staff_edit_account(request, org_id):
+    """Rename the organization and correct its owner's name and e-mail.
+
+    The three fields support asks to fix: a typo'd signup e-mail, a
+    display name, and an organization still called "My Organization".
+
+    ``email`` is unique on ``User``, so the collision is checked here and
+    reported as a message. Letting the IntegrityError out would be a 500
+    on a mistake an operator makes routinely — two customers, one
+    mistyped address.
+    """
+    organization = get_object_or_404(Organization, id=org_id)
+
+    org_name = request.POST.get("organization_name", "").strip()
+    if not org_name:
+        messages.error(request, _("The account needs a name."))
+        return redirect("billing_staff:staff_console")
+
+    user = None
+    raw_user_id = request.POST.get("user_id", "").strip()
+    if raw_user_id:
+        # Scoped to this organization's members: the org id in the URL is
+        # what the operator chose, so a user id pointing anywhere else is
+        # either a stale page or a tampered form, and in both cases the
+        # safe answer is to refuse rather than edit a stranger.
+        membership = get_object_or_404(
+            OrgMembership.objects.select_related("user"),
+            organization=organization,
+            user_id=raw_user_id,
+        )
+        user = membership.user
+
+        email = request.POST.get("email", "").strip().lower()
+        if not email:
+            messages.error(request, _("The account owner needs an e-mail address."))
+            return redirect("billing_staff:staff_console")
+        try:
+            validate_email(email)
+        except ValidationError:
+            messages.error(request, _("That is not a valid e-mail address."))
+            return redirect("billing_staff:staff_console")
+
+        if email != user.email and User.objects.filter(email__iexact=email).exclude(pk=user.pk).exists():
+            messages.error(
+                request,
+                _("Another account already uses %(email)s. Nothing was changed.") % {"email": email},
+            )
+            return redirect("billing_staff:staff_console")
+
+        user.email = email
+        user.name = request.POST.get("name", "").strip()[:255]
+        user.save(update_fields=["email", "name", "updated_at"])
+
+    organization.name = org_name[:100]
+    organization.save(update_fields=["name", "updated_at"])
+
+    messages.success(request, _('Account "%(org)s" updated.') % {"org": organization.name})
+    if user is not None:
+        logger.info("Operator %s edited account %s / user %s", request.user.email, organization.pk, user.pk)
+    return redirect("billing_staff:staff_console")
+
+
+@_staff_required
+@require_POST
+def staff_send_password_reset(request, target_user_id):
+    """Mail the customer allauth's own password-reset link.
+
+    Deliberately the *same* flow as "Forgot your password?" on the login
+    page — ``allauth``'s ``ResetPasswordForm``, which builds the token,
+    renders the templated mail and honours the transactional-mail
+    exemption the budget backend reads. An operator-side reset written
+    here instead would be a second token scheme to keep secure, and the
+    first one to go stale.
+
+    The operator never sees or sets the password: this endpoint's entire
+    effect is that an e-mail goes to the address on the account. So there
+    is nothing to show back, which is also why the message says a mail was
+    sent rather than confirming anything about the password.
+
+    Reported as sent even when the form refuses (an inactive account has
+    no reset to send), for the same reason allauth does it on the public
+    page: the reply must not become a way to probe which addresses exist.
+    The refusal is logged.
+    """
+    target = get_object_or_404(User, pk=target_user_id)
+
+    form = ResetPasswordForm(data={"email": target.email})
+    if form.is_valid():
+        form.save(request)
+        logger.info("Operator %s sent a password reset to %s", request.user.email, target.email)
+    else:
+        logger.warning(
+            "Password reset for %s not sent: %s",
+            target.email,
+            form.errors.as_json(),
+        )
+
+    messages.success(
+        request,
+        _("A password reset e-mail was sent to %(email)s. Only they can set the new password.")
+        % {"email": target.email},
+    )
+    return redirect("billing_staff:staff_console")
+
+
+@_staff_required
+@require_POST
+def staff_set_user_active(request, target_user_id):
+    """Switch a customer's sign-in on or off. Deletes nothing.
+
+    ``is_active = False`` only: the organization, its workspaces, its
+    posts and its media all stay exactly where they are, and flipping the
+    same switch back restores access completely. That is the whole reason
+    deactivation exists as an action here rather than a deletion — support
+    needs to stop an account, and almost never to destroy one.
+
+    Refuses to touch an operator account, including the one making the
+    request, via the same rule the page uses to decide whether to draw
+    the button (``_may_deactivate``). Self-deactivation would lock the
+    operator out of the only area they can reach, and deactivating a
+    colleague is privilege escalation — aimed at the last remaining
+    operator it would leave the installation with no way in.
+    """
+    target = get_object_or_404(User, pk=target_user_id)
+    operator = impersonation.real_user(request)
+
+    if not _may_deactivate(operator, target):
+        raise PermissionDenied("You may not change this account's access.")
+
+    action = request.POST.get("action")
+    if action == "deactivate":
+        target.is_active = False
+        target.save(update_fields=["is_active", "updated_at"])
+        logger.warning("Operator %s deactivated %s", operator.email, target.email)
+        messages.success(
+            request,
+            _("%(email)s can no longer sign in. Nothing was deleted — reactivate to restore access.")
+            % {"email": target.email},
+        )
+    elif action == "activate":
+        target.is_active = True
+        target.save(update_fields=["is_active", "updated_at"])
+        logger.warning("Operator %s reactivated %s", operator.email, target.email)
+        messages.success(request, _("%(email)s can sign in again.") % {"email": target.email})
+    else:
+        messages.error(request, _("Unknown action."))
+
     return redirect("billing_staff:staff_console")
