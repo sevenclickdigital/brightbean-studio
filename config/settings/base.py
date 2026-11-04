@@ -134,6 +134,11 @@ TEMPLATES = [
                 "apps.common.context_processors.sidebar_context",
                 "apps.onboarding.context_processors.onboarding_checklist",
                 "apps.intelligence.context_processors.intelligence_flag",
+                # Supplies ``billing_storage`` only when the current
+                # workspace is at or over the 90% disk warning, so the
+                # gallery and the composer can show the banner without
+                # their views knowing about billing.
+                "apps.billing.context_processors.workspace_storage_banner",
             ],
         },
     },

@@ -503,6 +503,15 @@
 
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-5 panel-scroll relative" style="z-index: 0;">
 
+                {% comment %}
+                The 90% disk warning. The composer attaches media, so this
+                is the other screen where someone is about to hit the
+                limit — and it is better to find out here than when the
+                upload is refused mid-post. Renders nothing unless the
+                workspace is near or at its quota.
+                {% endcomment %}
+                {% if billing_storage %}{% include "billing/_storage_warning.html" %}{% endif %}
+
                 <!-- Platform account pills -->
                 <div class="flex items-center gap-2 flex-wrap">
                     {% for account in social_accounts %}

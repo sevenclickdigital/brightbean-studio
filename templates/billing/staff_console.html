@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% load i18n billing_extras %}
+{% comment %}
+The operator's billing console: every organization, its comp budget, and
+each of its workspaces with subscription status and disk usage.
+
+Flat rather than a drill-down because the question this page answers is
+comparative — who pays, who is comped, who is about to run out of space.
+Each organization is one card with its workspaces inside; the comp
+controls sit next to the row they act on so there is never a doubt about
+which workspace a button will comp.
+
+Access is ``is_staff`` (see apps/billing/views._is_billing_staff), so
+nothing here is reachable by a customer.
+{% endcomment %}
+
+{% block title %}{% translate "Billing administration" %} - Brightbean{% endblock %}
+
+{% block page_header %}
+<div class="mb-4 lg:mb-[25px]">
+  <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">
+    {% translate "Billing administration" %}
+  </h1>
+  <p class="text-sm text-stone-500 mt-1">
+    {% blocktranslate with price=workspace_price_cents|brl gb_price=storage_price_per_gb_cents|brl %}Accounts, subscriptions and courtesies. R$ {{ price }} per workspace, R$ {{ gb_price }} per extra GB.{% endblocktranslate %}
+  </p>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl space-y-6">
+
+  {% for row in rows %}
+  <section class="rounded-xl border border-stone-200 bg-white overflow-hidden">
+
+    {# ── Organization header: name, total, courtesy budget ── #}
+    <div class="px-5 py-4 border-b border-stone-100 flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <h2 class="text-base font-semibold text-stone-900">{{ row.organization.name }}</h2>
+        <p class="text-xs text-stone-500 mt-0.5">
+          {% blocktranslate count counter=row.workspaces|length %}{{ counter }} workspace{% plural %}{{ counter }} workspaces{% endblocktranslate %}
+          ·
+          {% blocktranslate with used=row.profile.courtesy_workspaces_used quota=row.profile.courtesy_workspace_quota %}{{ used }} of {{ quota }} courtesies in use{% endblocktranslate %}
+        </p>
+        {% if row.courtesy_exceeded %}
+        <p class="text-xs text-amber-700 mt-1">
+          {% translate "Over the courtesy quota. Existing courtesies were kept." %}
+        </p>
+        {% endif %}
+      </div>
+      <div class="text-right">
+        <div class="text-xs font-semibold uppercase tracking-wide text-stone-400">{% translate "Billed monthly" %}</div>
+        <div class="text-lg font-semibold text-stone-900 tabular-nums">R$ {{ row.monthly_total_cents|brl }}</div>
+      </div>
+    </div>
+
+    {# ── Courtesy quota for the whole account ── #}
+    <form method="post" action="{% url 'billing_staff:set_courtesy_quota' org_id=row.organization.id %}"
+          class="px-5 py-3 bg-stone-50 border-b border-stone-100 flex flex-wrap items-end gap-3">
+      {% csrf_token %}
+      <div>
+        <label for="quota-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+          {% translate "Courtesy workspaces" %}
+        </label>
+        <input type="number" id="quota-{{ row.organization.id }}" name="courtesy_workspace_quota"
+               min="0" step="1" value="{{ row.profile.courtesy_workspace_quota }}"
+               class="form-input-styled w-20 tabular-nums">
+      </div>
+      <div class="flex-1 min-w-[12rem]">
+        <label for="note-{{ row.organization.id }}" class="block text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-1">
+          {% translate "Reason" %}
+        </label>
+        <input type="text" id="note-{{ row.organization.id }}" name="courtesy_note" maxlength="255"
+               value="{{ row.profile.courtesy_note }}"
+               placeholder="{% translate 'Partner, beta tester, internal account…' %}"
+               class="form-input-styled w-full">
+      </div>
+      <button type="submit"
+              class="px-3 py-2 text-xs font-semibold text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+        {% translate "Save quota" %}
+      </button>
+    </form>
+
+    {# ── One row per workspace ── #}
+    {% for ws in row.workspaces %}
+    <div class="px-5 py-4 {% if not forloop.last %}border-b border-stone-100{% endif %} flex flex-wrap items-center gap-4">
+
+      <div class="flex-1 min-w-[10rem]">
+        <div class="text-sm font-medium text-stone-900">{{ ws.workspace.name }}</div>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium rounded-full
+                       {% if ws.subscription.status == 'active' %}bg-green-50 text-green-700
+                       {% elif ws.subscription.status == 'courtesy' %}bg-indigo-50 text-indigo-700
+                       {% elif ws.subscription.status == 'past_due' %}bg-amber-50 text-amber-700
+                       {% elif ws.subscription.status == 'canceled' %}bg-stone-100 text-stone-600
+                       {% else %}bg-blue-50 text-blue-700{% endif %}">
+            {{ ws.subscription.get_status_display }}
+          </span>
+          {% if ws.workspace.is_archived %}
+          <span class="text-[11px] text-stone-400">{% translate "Archived" %}</span>
+          {% endif %}
+        </div>
+        {% if ws.subscription.courtesy_note %}
+        <div class="text-[11px] text-stone-400 mt-1">{{ ws.subscription.courtesy_note }}</div>
+        {% endif %}
+      </div>
+
+      {# Disk, as a number and a bar — the signal that predicts a support ticket. #}
+      <div class="w-40">
+        <div class="flex items-baseline justify-between text-[11px] mb-1">
+          <span class="text-stone-500">
+            {% blocktranslate with used=ws.storage.used_bytes|gb limit=ws.storage.limit_bytes|gb %}{{ used }} / {{ limit }} GB{% endblocktranslate %}
+          </span>
+          <span class="tabular-nums font-semibold
+                       {% if ws.storage.is_full %}text-red-600{% elif ws.storage.is_near_limit %}text-amber-600{% else %}text-stone-400{% endif %}">
+            {{ ws.storage.percent_used|meter_percent }}%
+          </span>
+        </div>
+        <div class="h-1.5 w-full rounded-full bg-stone-100 overflow-hidden">
+          <div class="h-full rounded-full
+                      {% if ws.storage.is_full %}bg-red-500{% elif ws.storage.is_near_limit %}bg-amber-500{% else %}bg-stone-300{% endif %}"
+               style="width: {{ ws.storage.percent_used|meter_percent }}%"></div>
+        </div>
+      </div>
+
+      <div class="w-24 text-right text-sm tabular-nums text-stone-700">
+        R$ {{ ws.monthly_total_cents|brl }}
+      </div>
+
+      {# Courtesy toggle. The action is explicit in the POST so a
+         double-submit is idempotent instead of flipping the comp back. #}
+      <form method="post" action="{% url 'billing_staff:toggle_courtesy' target_workspace_id=ws.workspace.id %}">
+        {% csrf_token %}
+        {% if ws.subscription.is_courtesy %}
+        <input type="hidden" name="action" value="revoke">
+        <button type="submit"
+                class="px-3 py-1.5 text-xs font-semibold text-stone-600 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+          {% translate "Remove courtesy" %}
+        </button>
+        {% else %}
+        <input type="hidden" name="action" value="grant">
+        <button type="submit"
+                class="px-3 py-1.5 text-xs font-semibold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-colors cursor-pointer">
+          {% translate "Grant courtesy" %}
+        </button>
+        {% endif %}
+      </form>
+
+    </div>
+    {% empty %}
+    <div class="px-5 py-4 text-sm text-stone-400">{% translate "This account has no workspaces." %}</div>
+    {% endfor %}
+
+  </section>
+  {% empty %}
+  <p class="text-sm text-stone-500">{% translate "No accounts yet." %}</p>
+  {% endfor %}
+
+</div>
+{% endblock %}

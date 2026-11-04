@@ -1,0 +1,22 @@
+{% load i18n billing_extras %}
+{% comment %}
+The price of the amount currently selected, rendered by the server.
+
+Swapped into #storage-quote by htmx on every change. The figure the
+customer agrees to is therefore always one the server computed — the
+Alpine highlight on the preset buttons is cosmetic.
+{% endcomment %}
+{% if invalid %}
+<p class="text-sm text-red-600">
+  {% blocktranslate with min_gb=min_gb max_gb=max_gb %}Choose between {{ min_gb }} GB and {{ max_gb }} GB.{% endblocktranslate %}
+</p>
+{% elif quote %}
+<div class="rounded-xl bg-stone-50 border border-stone-200 px-4 py-3 flex items-baseline justify-between gap-3">
+  <span class="text-sm text-stone-600">
+    {% blocktranslate with gb_amount=quote.quantity_gb unit=quote.unit_price_cents|brl %}{{ gb_amount }} GB × R$ {{ unit }}/GB{% endblocktranslate %}
+  </span>
+  <span class="text-lg font-semibold text-stone-900 tabular-nums">
+    R$ {{ quote.total_cents|brl }}<span class="text-xs font-normal text-stone-500">{% translate "/month" %}</span>
+  </span>
+</div>
+{% endif %}

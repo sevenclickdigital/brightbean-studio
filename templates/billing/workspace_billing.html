@@ -1,0 +1,250 @@
+{% extends "layouts/workspace_settings.html" %}
+{% load i18n billing_extras %}
+{% comment %}
+Billing for one workspace: what it costs, whether it may be used, how
+much disk is left, and the only purchase the product sells on top — extra
+GB.
+
+Under the workspace settings layout because that is where "what this
+workspace is and how it is configured" already lives, and the sidebar
+there keeps Media Library one click away — the other half of the answer
+when disk runs short.
+{% endcomment %}
+
+{% block title %}{% translate "Billing" %} - {{ workspace.name }} - Brightbean{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+
+  <div class="mb-6">
+    <h1 class="text-xl sm:text-2xl font-semibold text-stone-900" style="letter-spacing: -0.01em;">{% translate "Billing" %}</h1>
+    <p class="text-sm text-stone-500 mt-1">
+      {% blocktranslate with name=workspace.name %}Subscription and storage for {{ name }}.{% endblocktranslate %}
+    </p>
+  </div>
+
+  {% if not gateway_configured %}
+  {% comment %}
+  Said up front, not only after a failed click: without ASAAS_API_KEY no
+  charge can be created, and that is the normal state of this
+  installation today rather than a fault.
+  {% endcomment %}
+  <div class="mb-6 rounded-xl border border-stone-200 bg-stone-50 px-4 py-3 flex items-start gap-3">
+    <svg class="w-5 h-5 flex-shrink-0 mt-0.5 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>
+    </svg>
+    <div>
+      <p class="text-sm font-semibold text-stone-800">{% translate "Billing is not set up yet" %}</p>
+      <p class="text-xs text-stone-600 mt-1">
+        {% translate "Payments are not connected on this installation, so nothing can be charged right now. You can still register what you want to contract and we will get in touch to finish it." %}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  {# ───────────────── Subscription ───────────────── #}
+  <section class="mb-10">
+    <h2 class="text-base font-semibold text-stone-900 mb-4">{% translate "Subscription" %}</h2>
+
+    <div class="rounded-xl border border-stone-200 bg-white p-5">
+      <div class="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-1.5">{% translate "Status" %}</div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-xs font-medium rounded-full
+                       {% if subscription.status == 'active' %}bg-green-50 text-green-700
+                       {% elif subscription.status == 'courtesy' %}bg-indigo-50 text-indigo-700
+                       {% elif subscription.status == 'past_due' %}bg-amber-50 text-amber-700
+                       {% elif subscription.status == 'canceled' %}bg-stone-100 text-stone-600
+                       {% else %}bg-blue-50 text-blue-700{% endif %}">
+            <span class="w-1.5 h-1.5 rounded-full
+                         {% if subscription.status == 'active' %}bg-green-500
+                         {% elif subscription.status == 'courtesy' %}bg-indigo-500
+                         {% elif subscription.status == 'past_due' %}bg-amber-500
+                         {% elif subscription.status == 'canceled' %}bg-stone-400
+                         {% else %}bg-blue-500{% endif %}"></span>
+            {{ subscription.get_status_display }}
+          </span>
+
+          {% if subscription.status == 'pending' %}
+          <p class="text-xs text-stone-500 mt-2 max-w-sm">
+            {% translate "This workspace has no subscription yet. It activates once the first payment is confirmed." %}
+          </p>
+          {% elif subscription.status == 'courtesy' %}
+          <p class="text-xs text-stone-500 mt-2 max-w-sm">
+            {% translate "This workspace is a courtesy and is not charged." %}
+            {% if subscription.courtesy_note %}<span class="block mt-0.5">{{ subscription.courtesy_note }}</span>{% endif %}
+          </p>
+          {% elif subscription.status == 'past_due' %}
+          <p class="text-xs text-amber-700 mt-2 max-w-sm">
+            {% translate "The last payment failed. Access returns as soon as the payment goes through." %}
+          </p>
+          {% endif %}
+        </div>
+
+        <div class="text-right">
+          <div class="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-1.5">{% translate "Monthly total" %}</div>
+          <div class="text-2xl font-semibold text-stone-900 tabular-nums">
+            R$ {{ monthly_total_cents|brl }}
+          </div>
+          <div class="text-xs text-stone-500 mt-0.5">
+            {% blocktranslate with price=subscription.price_cents|brl %}R$ {{ price }} for the workspace{% endblocktranslate %}
+            {% if addons %} + {% translate "add-ons" %}{% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if subscription.current_period_end %}
+      <div class="mt-5 pt-4 border-t border-stone-100">
+        <div class="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-1">{% translate "Current period ends" %}</div>
+        <div class="text-sm text-stone-700">{{ subscription.current_period_end|date:"d/m/Y" }}</div>
+      </div>
+      {% endif %}
+
+      {% if can_manage_billing and not subscription.is_active %}
+      <div class="mt-5 pt-4 border-t border-stone-100">
+        <a href="{% url 'billing:subscribe_modal' workspace_id=workspace.id %}"
+           class="btn-brand inline-flex items-center gap-2 px-4 py-2 text-sm">
+          {% translate "Contract this workspace" %}
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# ───────────────── Storage ───────────────── #}
+  <section id="storage" class="mb-10">
+    <h2 class="text-base font-semibold text-stone-900 mb-1">{% translate "Storage" %}</h2>
+    <p class="text-sm text-stone-500 mb-4">
+      {% translate "Files uploaded to this workspace's gallery count against this allowance." %}
+    </p>
+
+    <div class="rounded-xl border border-stone-200 bg-white p-5">
+      <div class="flex items-end justify-between gap-4 mb-2">
+        <div class="text-sm text-stone-700">
+          {% blocktranslate with used=storage.used_bytes|gb limit=storage.limit_bytes|gb %}<span class="font-semibold">{{ used }} GB</span> of {{ limit }} GB used{% endblocktranslate %}
+        </div>
+        <div class="text-sm tabular-nums font-semibold
+                    {% if storage.is_full %}text-red-600{% elif storage.is_near_limit %}text-amber-600{% else %}text-stone-500{% endif %}">
+          {{ storage.percent_used|meter_percent }}%
+        </div>
+      </div>
+
+      {# The meter. Width is clamped by ``meter_percent``; the domain object
+         keeps the raw percentage uncapped on purpose. #}
+      <div class="h-2.5 w-full rounded-full bg-stone-100 overflow-hidden"
+           role="progressbar"
+           aria-valuenow="{{ storage.percent_used|meter_percent }}"
+           aria-valuemin="0" aria-valuemax="100"
+           aria-label="{% translate 'Storage used' %}">
+        <div class="h-full rounded-full transition-all duration-300
+                    {% if storage.is_full %}bg-red-500{% elif storage.is_near_limit %}bg-amber-500{% else %}bg-orange-500{% endif %}"
+             style="width: {{ storage.percent_used|meter_percent }}%"></div>
+      </div>
+
+      <p class="text-xs mt-2 {% if storage.is_full %}text-red-600{% elif storage.is_near_limit %}text-amber-600{% else %}text-stone-500{% endif %}">
+        {% if storage.is_full %}
+          {% translate "No space left. Delete files you no longer need, or contract more below." %}
+        {% elif storage.is_near_limit %}
+          {% blocktranslate with remaining=storage.remaining_bytes|gb %}{{ remaining }} GB left. Delete old files, or contract more below.{% endblocktranslate %}
+        {% else %}
+          {% blocktranslate with remaining=storage.remaining_bytes|gb %}{{ remaining }} GB available.{% endblocktranslate %}
+        {% endif %}
+      </p>
+
+      {% if addons %}
+      <div class="mt-5 pt-4 border-t border-stone-100">
+        <div class="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">{% translate "Extra storage contracted" %}</div>
+        <ul class="space-y-1.5">
+          {% for addon in addons %}
+          <li class="flex items-center justify-between gap-3 text-sm">
+            <span class="text-stone-700">
+              {% blocktranslate with gb_amount=addon.quantity %}{{ gb_amount }} GB{% endblocktranslate %}
+              <span class="text-xs ml-1.5
+                           {% if addon.status == 'active' %}text-green-600{% else %}text-stone-400{% endif %}">
+                {{ addon.get_status_display }}
+              </span>
+            </span>
+            <span class="text-stone-600 tabular-nums">R$ {{ addon.total_price_cents|brl }}{% translate "/month" %}</span>
+          </li>
+          {% endfor %}
+        </ul>
+        <p class="text-xs text-stone-400 mt-2">
+          {% translate "Space is released once each add-on's first payment is confirmed." %}
+        </p>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  {# ───────────────── Contract extra GB ───────────────── #}
+  {% if can_manage_billing %}
+  <section class="mb-10">
+    <h2 class="text-base font-semibold text-stone-900 mb-1">{% translate "Contract extra storage" %}</h2>
+    <p class="text-sm text-stone-500 mb-4">
+      {% blocktranslate with price=storage_price_per_gb_cents|brl %}R$ {{ price }} per GB per month. Choose how much you need — the price updates before you confirm.{% endblocktranslate %}
+    </p>
+
+    {% comment %}
+    The quantity picker. Alpine drives the selection and the optimistic
+    price; the authoritative figure comes from the server fragment loaded
+    into #storage-quote, so a tampered page cannot buy at a price it made
+    up. ``unitCents`` is only ever used for the instant preview.
+    {% endcomment %}
+    <form method="post" action="{% url 'billing:contract_storage' workspace_id=workspace.id %}"
+          class="rounded-xl border border-stone-200 bg-white p-5"
+          x-data="{ quantity: {{ storage_addon_choices.0 }} }">
+      {% csrf_token %}
+
+      <div class="text-xs font-semibold uppercase tracking-wide text-stone-400 mb-2">{% translate "Amount" %}</div>
+      <div class="flex flex-wrap gap-2 mb-4">
+        {% for choice in storage_addon_choices %}
+        <button type="button"
+                @click="quantity = {{ choice }}; $refs.quantityField.value = {{ choice }}; $refs.quoteTrigger.click()"
+                :class="quantity === {{ choice }} ? 'border-orange-500 bg-orange-50 text-orange-700' : 'border-stone-200 bg-white text-stone-600 hover:bg-stone-50'"
+                class="px-4 py-2 text-sm font-semibold rounded-xl border transition-colors cursor-pointer tabular-nums">
+          {% blocktranslate with gb_amount=choice %}{{ gb_amount }} GB{% endblocktranslate %}
+        </button>
+        {% endfor %}
+      </div>
+
+      <label for="quantity_gb" class="block text-xs font-semibold uppercase tracking-wide text-stone-400 mb-1.5">
+        {% translate "Or type another amount (GB)" %}
+      </label>
+      <div class="flex items-center gap-2 mb-4">
+        <input type="number" id="quantity_gb" name="quantity_gb" x-ref="quantityField"
+               min="1" max="1000" step="1" required
+               :value="quantity"
+               @input="quantity = Number($event.target.value) || 0"
+               hx-get="{% url 'billing:storage_quote' workspace_id=workspace.id %}"
+               hx-target="#storage-quote"
+               hx-trigger="input changed delay:300ms"
+               hx-include="this"
+               class="form-input-styled w-28 tabular-nums">
+        <span class="text-sm text-stone-500">{% translate "GB per month" %}</span>
+        {# Invisible companion so the preset buttons can refresh the server
+           quote without duplicating the htmx attributes on each of them. #}
+        <button type="button" x-ref="quoteTrigger" class="hidden"
+                hx-get="{% url 'billing:storage_quote' workspace_id=workspace.id %}"
+                hx-target="#storage-quote"
+                hx-include="#quantity_gb"></button>
+      </div>
+
+      <div id="storage-quote" class="mb-4">
+        {% include "billing/_storage_quote.html" %}
+      </div>
+
+      <button type="submit" class="btn-brand inline-flex items-center gap-2 px-4 py-2 text-sm">
+        {% translate "Confirm and contract" %}
+      </button>
+      <p class="text-xs text-stone-400 mt-2">
+        {% translate "Billed monthly alongside the workspace, on the same invoice date." %}
+      </p>
+    </form>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

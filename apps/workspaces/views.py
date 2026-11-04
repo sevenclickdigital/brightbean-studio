@@ -6,6 +6,7 @@ from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.billing import services
 from apps.members.decorators import require_org_role
 from apps.members.models import OrgMembership, WorkspaceMembership
 
@@ -46,7 +47,14 @@ def workspace_create(request):
     request.user.last_workspace_id = workspace.id
     request.user.save(update_fields=["last_workspace_id"])
 
-    return redirect("calendar:calendar", workspace_id=workspace.id)
+    # A new workspace is the billable unit, so the next screen is the
+    # contracting modal rather than the calendar. ``ensure_subscription``
+    # runs here (not only in the modal) so the row exists even if the
+    # creator closes the tab — the staff console and the storage quota
+    # both read it, and a workspace with no row at all reads as having no
+    # quota at all.
+    services.ensure_subscription(workspace)
+    return redirect("billing:subscribe_modal", workspace_id=workspace.id)
 
 
 @login_required

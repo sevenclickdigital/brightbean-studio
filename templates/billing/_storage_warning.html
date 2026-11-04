@@ -1,0 +1,65 @@
+{% load i18n billing_extras %}
+{% comment %}
+The 90% warning (and the 100% block), shown wherever someone is about to
+add a file: the media library and the composer.
+
+``billing_storage`` is only in the context when there is something to say
+— see apps/billing/context_processors.py — so including this partial on a
+healthy workspace renders nothing.
+
+Both ways out are offered every time, because "you are out of space" with
+no next step is not actionable: delete old files (free, immediate) or
+contract more GB (costs money). Deleting is listed first on purpose; it
+is the cheaper answer and often the right one.
+{% endcomment %}
+{% if billing_storage %}
+<div class="mb-4 rounded-xl border px-4 py-3 flex items-start gap-3
+            {% if billing_storage.is_full %}border-red-200 bg-red-50{% else %}border-amber-200 bg-amber-50{% endif %}"
+     role="status">
+  <svg class="w-5 h-5 flex-shrink-0 mt-0.5 {% if billing_storage.is_full %}text-red-500{% else %}text-amber-500{% endif %}"
+       fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+  </svg>
+
+  <div class="flex-1 min-w-0">
+    <p class="text-sm font-semibold {% if billing_storage.is_full %}text-red-800{% else %}text-amber-800{% endif %}">
+      {% if billing_storage.is_full %}
+        {% translate "This workspace has run out of storage" %}
+      {% else %}
+        {% blocktranslate with percent=billing_storage.percent_used|meter_percent %}Storage is {{ percent }}% full{% endblocktranslate %}
+      {% endif %}
+    </p>
+
+    <p class="text-xs mt-1 {% if billing_storage.is_full %}text-red-700{% else %}text-amber-700{% endif %}">
+      {% if billing_storage.is_full %}
+        {% blocktranslate with limit=billing_storage.limit_bytes|gb %}All {{ limit }} GB are in use, so new uploads will be refused. Delete files you no longer need, or contract extra storage.{% endblocktranslate %}
+      {% else %}
+        {% blocktranslate with used=billing_storage.used_bytes|gb limit=billing_storage.limit_bytes|gb remaining=billing_storage.remaining_bytes|gb %}{{ used }} GB of {{ limit }} GB used — {{ remaining }} GB left. Free up space by deleting old files, or contract extra storage.{% endblocktranslate %}
+      {% endif %}
+    </p>
+
+    <div class="mt-2 h-1.5 w-full max-w-sm rounded-full bg-white/70 overflow-hidden">
+      <div class="h-full rounded-full {% if billing_storage.is_full %}bg-red-500{% else %}bg-amber-500{% endif %}"
+           style="width: {{ billing_storage.percent_used|meter_percent }}%"></div>
+    </div>
+
+    <div class="mt-3 flex flex-wrap items-center gap-2">
+      <a href="{% url 'media_library:index' workspace_id=request.workspace.id %}?sort=-size"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-white border border-stone-300 text-stone-700 hover:bg-stone-50 transition-colors">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+        </svg>
+        {% translate "Review the largest files" %}
+      </a>
+      <a href="{% url 'billing:workspace_billing' workspace_id=request.workspace.id %}#storage"
+         class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full btn-brand">
+        {% translate "Contract extra storage" %}
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}

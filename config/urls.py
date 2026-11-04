@@ -82,6 +82,13 @@ urlpatterns = [
     path("workspace/<uuid:workspace_id>/settings/clients/", include("apps.client_portal.urls_admin")),
     # Media Library
     path("workspace/<uuid:workspace_id>/media/", include("apps.media_library.urls")),
+    # Per-workspace billing: contracting, subscription status, extra disk.
+    path("workspace/<uuid:workspace_id>/billing/", include("apps.billing.urls")),
+    # Cross-organization billing console. Deliberately outside any
+    # org/workspace prefix — it lists every account, so there is no org in
+    # the path that a membership check could key on. Gated on is_staff in
+    # the views.
+    path("billing/staff/", include("apps.billing.staff_urls")),
     # Client Portal (Stream F)
     path("portal/", include("apps.client_portal.urls")),
     path("notifications/", include("apps.notifications.urls")),

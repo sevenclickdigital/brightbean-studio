@@ -312,6 +312,18 @@ same amount, and turn off the ancestor's scrolling so this panel owns it.
              accept="{{ accepted_file_types }}" class="hidden">
     </div>
 
+    {% comment %}
+    The 90% disk warning, directly under the Upload button — this is the
+    screen where someone is about to add the file that doesn't fit, and
+    where the "delete old files" half of the remedy actually happens.
+    Renders nothing unless the workspace is near or at its limit.
+    {% endcomment %}
+    {% if billing_storage %}
+    <div class="px-3 sm:px-4 lg:px-6 pt-4">
+      {% include "billing/_storage_warning.html" %}
+    </div>
+    {% endif %}
+
     <!-- ── Upload Dropzone / Progress ── -->
     <div x-show="uploading || dragOver" x-cloak
          class="mx-3 sm:mx-4 lg:mx-6 mt-4"
