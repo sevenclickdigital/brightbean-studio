@@ -1460,12 +1460,19 @@
 
                                 <div class="min-w-0 flex-1">
                                     <p class="text-[13px] font-medium text-stone-700 truncate" x-text="charLimits[accId]?.name"></p>
+                                    {% comment %}
+                                    status_label is already translated (the Status
+                                    choices are marked), so it stands alone rather
+                                    than being concatenated onto "Automation" —
+                                    a glued-together phrase has no msgid to
+                                    translate and reads wrong in most languages.
+                                    {% endcomment %}
                                     <p class="text-[11px] text-stone-400"
                                        x-text="automationTarget(accId)
                                            ? (automationTarget(accId).has_flow
-                                               ? 'Automation ' + automationTarget(accId).status_label.toLowerCase()
-                                               : 'Reply to comments and send a DM automatically')
-                                           : 'Save this draft to set up an automation'"></p>
+                                               ? automationTarget(accId).status_label
+                                               : cLabel('autom-idle'))
+                                           : cLabel('autom-unsaved')"></p>
                                 </div>
 
                                 <template x-if="automationTarget(accId) && automationTarget(accId).has_flow">
@@ -1485,7 +1492,7 @@
                                            ? 'border-stone-200 text-stone-600 hover:border-stone-300 hover:text-stone-800'
                                            : 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100'">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                                        <span x-text="automationTarget(accId).has_flow ? 'Edit flow' : 'Set up flow'"></span>
+                                        <span x-text="automationTarget(accId).has_flow ? cLabel('edit-flow') : cLabel('set-up-flow')"></span>
                                     </a>
                                 </template>
 
@@ -2354,6 +2361,10 @@
 {% translate "Own title for this channel…" as lbl_c_own_title %}
 {% translate "Own caption for this channel…" as lbl_c_own_caption %}
 {% translate "Customize" as lbl_c_customize %}
+{% translate "Reply to comments and send a DM automatically" as lbl_c_autom_idle %}
+{% translate "Save this draft to set up an automation" as lbl_c_autom_unsaved %}
+{% translate "Edit flow" as lbl_c_edit_flow %}
+{% translate "Set up flow" as lbl_c_set_up_flow %}
 {{ lbl_c_saved|json_script:"c-saved" }}
 {{ lbl_c_not_saved|json_script:"c-not-saved" }}
 {{ lbl_c_caption|json_script:"c-caption" }}
@@ -2368,6 +2379,10 @@
 {{ lbl_c_own_title|json_script:"c-own-title" }}
 {{ lbl_c_own_caption|json_script:"c-own-caption" }}
 {{ lbl_c_customize|json_script:"c-customize" }}
+{{ lbl_c_autom_idle|json_script:"c-autom-idle" }}
+{{ lbl_c_autom_unsaved|json_script:"c-autom-unsaved" }}
+{{ lbl_c_edit_flow|json_script:"c-edit-flow" }}
+{{ lbl_c_set_up_flow|json_script:"c-set-up-flow" }}
 {{ selected_account_ids|json_script:"composer-selected-accounts" }}
 <script nonce="{{ request.csp_nonce }}">
 // Reads a label the template translated and left in a json_script tag. Same

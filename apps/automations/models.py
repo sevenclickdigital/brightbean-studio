@@ -16,6 +16,7 @@ import uuid
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.common.managers import WorkspaceScopedManager
 
@@ -192,11 +193,11 @@ class PostAutomation(models.Model):
 
     class Status(models.TextChoices):
         #: Drawn but not yet bound to a live post — waiting on publication.
-        PENDING = "pending", "Waiting for the post to go live"
+        PENDING = "pending", _("Waiting for the post to go live")
         #: Bound to a live post id and switched on.
-        ACTIVE = "active", "Running"
+        ACTIVE = "active", _("Running")
         #: Bound, but the author switched it off.
-        PAUSED = "paused", "Paused"
+        PAUSED = "paused", _("Paused")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
