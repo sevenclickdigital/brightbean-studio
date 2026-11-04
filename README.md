@@ -562,6 +562,10 @@ included.
 
 ### Instagram (Direct, via Instagram Login)
 
+> **Hidden from the connect page.** Migration `0026_hide_instagram_login_platform` sets `PlatformVisibility.is_visible = False` for `instagram_login`. The API itself is alive - Meta serves the Instagram API with Instagram Login and has announced no retirement date - but the **App Dashboard setup for it is gone**. Apps created after the Unified Login rollout see only *API setup with Unified login* and *API setup with Facebook login*, so there is nowhere to read the **Instagram App ID** that `PLATFORM_INSTAGRAM_APP_ID` needs, and the card can never leave the "Not configured" state. Steps 1-6 below only apply to an older app that still exposes the Instagram Login setup panel.
+>
+> Going forward, the path that keeps the "no Facebook Page required" promise is the **Instagram API with Unified Login**. It is not a drop-in swap for `providers/instagram_login.py`: the host moves to `graph.facebook.com`, permissions move from `instagram_business_*` to `instagram_*`, onboarding runs through a `config_id`, and the token becomes a Business Integration System User Access Token scoped to the client's business portfolio. The provider is kept as the starting point for that work; to re-expose the card, flip `is_visible` back on in the admin.
+
 The Instagram (Direct) connector uses the **Instagram API with Instagram Login** - a separate OAuth flow from the Facebook Login-based Instagram connector above. It works with **Professional** Instagram accounts (Business or Creator) **without** requiring a linked Facebook Page.
 
 > **Account-type requirement:** Personal Instagram accounts have no API access since the Instagram Basic Display API was retired on 2024-12-04. Users must convert their account to Professional first (free, in IG Settings → *Account type and tools* → *Switch to professional account*).

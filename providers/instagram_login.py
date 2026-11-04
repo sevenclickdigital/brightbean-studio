@@ -178,8 +178,9 @@ class InstagramLoginProvider(SocialProvider):
             "state": state,
             "scope": ",".join(self.required_scopes),
             "response_type": "code",
-            "enable_fb_login": "0",
-            "force_authentication": "1",
+            # No enable_fb_login / force_authentication: Meta deprecated both
+            # for Business Login for Instagram (changelog, 2025). They are
+            # ignored today, and sending them only invites a future rejection.
         }
         return f"{AUTH_URL}?{urlencode(params)}"
 
