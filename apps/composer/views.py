@@ -979,6 +979,8 @@ def compose(request, workspace_id, post_id=None):
         "post_comments": post_comments,
         "pending_assets": pending_assets,
         "all_tags": all_tags,
+        # name -> kind, so the composer can mark which tags also get published.
+        "tag_kinds_json": json.dumps({t.name: t.kind for t in all_tags}),
         # When opened scoped to one account (?account=), the form only renders
         # that account — the save endpoints use this to leave siblings alone.
         "account_scope": account_filter if (post_id and account_filter) else "",
@@ -1622,6 +1624,18 @@ def preview(request, workspace_id):
     first_comment = request.POST.get("first_comment", "")
     selected_ids = _parse_selected_account_ids(request.POST.get("selected_accounts", ""))
 
+    # The published tags ride along at the end of the caption, so the preview
+    # has to show them — and count them against the limit — the same way
+    # PostTarget.effective_caption will when the post goes out.
+    tag_suffix = Tag.publishable_suffix(
+        workspace.id, parse_and_truncate_tag_string(request.POST.get("tags", ""))
+    )
+
+    def _with_tags(text):
+        if not tag_suffix:
+            return text
+        return f"{text}\n\n{tag_suffix}" if text.strip() else tag_suffix
+
     # Build preview data per platform
     previews = []
     if selected_ids:
@@ -1633,7 +1647,7 @@ def preview(request, workspace_id):
             override_title_key = f"override_title_{account.id}"
             override_key = f"override_caption_{account.id}"
             effective_title = request.POST.get(override_title_key, "") or title
-            effective_caption = request.POST.get(override_key, "") or caption
+            effective_caption = _with_tags(request.POST.get(override_key, "") or caption)
             char_limit = account.char_limit
             # Counted after escaping, so the badge matches what gets published.
             char_count = account.caption_wire_length(effective_caption)
@@ -3945,8 +3959,17 @@ def tag_create(request, workspace_id):
     name = request.POST.get("name", "").strip()
     if not name:
         return JsonResponse({"error": _("Tag name is required.")}, status=400)
-    tag, created = Tag.objects.get_or_create(workspace=workspace, name=name)
-    return JsonResponse({"id": str(tag.id), "name": tag.name, "created": created})
+    kind = request.POST.get("kind", Tag.Kind.INTERNAL)
+    if kind not in Tag.Kind.values:
+        return JsonResponse({"error": _("Unknown tag kind.")}, status=400)
+    tag, created = Tag.objects.get_or_create(
+        workspace=workspace, name=name, defaults={"kind": kind}
+    )
+    # An existing tag keeps its kind: the dropdown reaches here for tags that
+    # are merely being reused, and that must not rewrite how they publish.
+    return JsonResponse(
+        {"id": str(tag.id), "name": tag.name, "kind": tag.kind, "created": created}
+    )
 
 
 # ── Feeds ──────────────────────────────────────────────────────────────────

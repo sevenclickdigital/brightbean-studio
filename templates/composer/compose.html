@@ -1622,6 +1622,22 @@
                     tagDropdownOpen: false,
                     tagSearch: '',
                     allTags: [{% for tag in all_tags %}'{{ tag.name|escapejs }}'{% if not forloop.last %},{% endif %}{% endfor %}],
+                    /* name -> kind, so a chip can show what the tag will do. */
+                    tagKindByName: {{ tag_kinds_json|default:"{}" }},
+                    tagKinds: [
+                        { value: 'internal', label: cLabel('tag-kind-internal') },
+                        { value: 'hashtag', label: cLabel('tag-kind-hashtag') },
+                        { value: 'mention', label: cLabel('tag-kind-mention') },
+                    ],
+                    /* Mirrors Tag.slug_for_publishing: the networks cut a tag at
+                       the first space, so the preview has to fold it the same
+                       way or it would promise something else. */
+                    tagPreview(name, kind) {
+                        const sigil = { hashtag: '#', mention: '@' }[kind];
+                        if (!sigil) return '';
+                        const slug = (name || '').split('').filter(c => /\p{L}|\p{N}/u.test(c)).join('');
+                        return slug ? sigil + slug : '';
+                    },
                     get filteredTags() {
                         const q = this.tagSearch.toLowerCase();
                         return this.allTags.filter(t => !q || t.toLowerCase().includes(q));
@@ -1630,6 +1646,9 @@
                         const idx = this.tags.indexOf(name);
                         if (idx >= 0) { this.tags.splice(idx, 1); }
                         else { this.tags.push(name); }
+                        /* Published tags are part of the caption now, so the
+                           preview is stale the moment one is added or dropped. */
+                        this.triggerPreviewUpdate();
                     },
                     createTag() {
                         const name = this.tagSearch.trim();
@@ -1647,14 +1666,17 @@
                     removeTag(idx) { this.tags.splice(idx, 1); },
                     showCreateTagModal: false,
                     newTagName: '',
-                    _persistTag(name) {
+                    newTagKind: 'internal',
+                    _persistTag(name, kind) {
+                        kind = kind || 'internal';
                         if (!this.allTags.includes(name)) { this.allTags.push(name); this.allTags.sort(); }
                         if (!this.tags.includes(name)) { this.tags.push(name); }
+                        this.tagKindByName[name] = kind;
                         fetch('{% url "composer:tag_create" workspace_id=workspace.id %}', {
                             method: 'POST',
                             headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value, 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: 'name=' + encodeURIComponent(name),
-                        });
+                            body: 'name=' + encodeURIComponent(name) + '&kind=' + encodeURIComponent(kind),
+                        }).then(() => this.triggerPreviewUpdate?.());
                     },
                 }" @click.away="tagDropdownOpen = false">
                     <div class="flex items-center gap-2 mb-2">
@@ -1667,9 +1689,15 @@
                     <div class="flex flex-wrap items-center gap-1.5 w-full min-h-[42px] px-3 py-2 rounded-xl border border-stone-200 bg-white transition-all duration-150 cursor-pointer"
                          :class="tagDropdownOpen && 'border-orange-500 ring-2 ring-orange-100'"
                          @click="tagDropdownOpen = !tagDropdownOpen; if(tagDropdownOpen) $nextTick(() => { $refs.tagSearchInput.focus(); $refs.tagSearchInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); })">
+                        {% comment %}
+                        A published tag is tinted and carries its sigil, so the
+                        ones that leave the workspace are tellable at a glance
+                        from the ones that only file the post.
+                        {% endcomment %}
                         <template x-for="(tag, idx) in tags" :key="tag">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-stone-100 text-stone-700">
-                                <span x-text="tag"></span>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold"
+                                  :class="tagPreview(tag, tagKindByName[tag]) ? 'bg-orange-50 text-orange-700' : 'bg-stone-100 text-stone-700'">
+                                <span x-text="tagPreview(tag, tagKindByName[tag]) || tag"></span>
                                 <button type="button" @click.stop="removeTag(idx)" class="w-3.5 h-3.5 rounded-full flex items-center justify-center text-stone-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                                     <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
                                 </button>
@@ -1697,6 +1725,9 @@
                                        :checked="tags.includes(tag)"
                                        @change="toggleTag(tag)">
                                 <span x-text="tag"></span>
+                                <span class="ml-auto text-[10px] font-semibold text-orange-600"
+                                      x-show="tagPreview(tag, tagKindByName[tag])"
+                                      x-text="tagPreview(tag, tagKindByName[tag])"></span>
                             </label>
                         </template>
                         <!-- No results / Create -->
@@ -1736,16 +1767,40 @@
                             <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 p-6" @click.stop>
                                 <h3 class="text-base font-semibold text-stone-800 mb-4">{% translate "Create new tag" %}</h3>
                                 <input type="text" x-ref="newTagNameInput" x-model="newTagName"
-                                       @keydown.enter.prevent="if(newTagName.trim()) { _persistTag(newTagName.trim()); showCreateTagModal = false; newTagName = ''; }"
+                                       @keydown.enter.prevent="if(newTagName.trim()) { _persistTag(newTagName.trim(), newTagKind); showCreateTagModal = false; newTagName = ''; newTagKind = 'internal'; }"
                                        class="w-full text-sm px-3 py-2.5 rounded-xl border border-stone-200 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 transition-all"
                                        placeholder="{% translate 'Tag name...' %}">
+                                {% comment %}
+                                The kind is the whole point of the tag doing two
+                                jobs: internal keeps it to the filters, the other
+                                two also put it in the caption. Defaulting to
+                                internal means nothing reaches a post unless it
+                                was chosen deliberately.
+                                {% endcomment %}
+                                <div class="mt-3">
+                                    <label class="block text-[11px] font-semibold text-stone-400 uppercase tracking-wider mb-1.5">{% translate "Use" %}</label>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <template x-for="opt in tagKinds" :key="opt.value">
+                                            <button type="button" @click="newTagKind = opt.value"
+                                                    class="px-2 py-2 text-xs font-medium rounded-lg border transition-all cursor-pointer"
+                                                    :class="newTagKind === opt.value
+                                                        ? 'border-orange-300 bg-orange-50 text-orange-700'
+                                                        : 'border-stone-200 text-stone-500 hover:border-stone-300'">
+                                                <span x-text="opt.label"></span>
+                                            </button>
+                                        </template>
+                                    </div>
+                                    <p class="text-[11px] text-stone-400 mt-1.5"
+                                       x-show="newTagKind !== 'internal'"
+                                       x-text="cLabel('tag-kind-hint') + ': ' + tagPreview(newTagName, newTagKind)"></p>
+                                </div>
                                 <div class="flex justify-end gap-2 mt-4">
-                                    <button type="button" @click="showCreateTagModal = false; newTagName = ''"
+                                    <button type="button" @click="showCreateTagModal = false; newTagName = ''; newTagKind = 'internal'"
                                             class="px-4 py-2 text-sm font-medium text-stone-600 hover:bg-stone-100 rounded-lg cursor-pointer transition-colors">
                                         {% translate "Cancel" %}
                                     </button>
                                     <button type="button"
-                                            @click="if(newTagName.trim()) { _persistTag(newTagName.trim()); showCreateTagModal = false; newTagName = ''; }"
+                                            @click="if(newTagName.trim()) { _persistTag(newTagName.trim(), newTagKind); showCreateTagModal = false; newTagName = ''; newTagKind = 'internal'; }"
                                             class="px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors"
                                             style="background: var(--primary);"
                                             :class="newTagName.trim() ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'">
@@ -2441,6 +2496,10 @@
 {% translate "Own title for this channel…" as lbl_c_own_title %}
 {% translate "Own caption for this channel…" as lbl_c_own_caption %}
 {% translate "Customize" as lbl_c_customize %}
+{% translate "Internal" as lbl_c_tag_kind_internal %}
+{% translate "Hashtag" as lbl_c_tag_kind_hashtag %}
+{% translate "Mention" as lbl_c_tag_kind_mention %}
+{% translate "Published at the end of the caption" as lbl_c_tag_kind_hint %}
 {% translate "Reply to comments and send a DM automatically" as lbl_c_autom_idle %}
 {% translate "Save this draft to set up an automation" as lbl_c_autom_unsaved %}
 {% translate "Edit flow" as lbl_c_edit_flow %}
@@ -2459,6 +2518,10 @@
 {{ lbl_c_own_title|json_script:"c-own-title" }}
 {{ lbl_c_own_caption|json_script:"c-own-caption" }}
 {{ lbl_c_customize|json_script:"c-customize" }}
+{{ lbl_c_tag_kind_internal|json_script:"c-tag-kind-internal" }}
+{{ lbl_c_tag_kind_hashtag|json_script:"c-tag-kind-hashtag" }}
+{{ lbl_c_tag_kind_mention|json_script:"c-tag-kind-mention" }}
+{{ lbl_c_tag_kind_hint|json_script:"c-tag-kind-hint" }}
 {{ lbl_c_autom_idle|json_script:"c-autom-idle" }}
 {{ lbl_c_autom_unsaved|json_script:"c-autom-unsaved" }}
 {{ lbl_c_edit_flow|json_script:"c-edit-flow" }}

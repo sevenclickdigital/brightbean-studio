@@ -65,7 +65,21 @@ class Tag(models.Model):
 
     Tags can be applied to Posts, Ideas, and other content types.
     They are workspace-scoped so each workspace has its own tag namespace.
+
+    A tag always files the post internally. Its kind decides whether it also
+    reaches the audience: INTERNAL stays behind, HASHTAG and MENTION are
+    appended to the caption as "#name" and "@name". Keeping the two jobs in
+    one tag is the point — "natal2026" should group the campaign in the
+    calendar and tag the post, without being typed twice.
     """
+
+    class Kind(models.TextChoices):
+        #: Filing only — never reaches the published post.
+        INTERNAL = "internal", _("Internal only")
+        #: Published as #name.
+        HASHTAG = "hashtag", _("Hashtag")
+        #: Published as @name.
+        MENTION = "mention", _("Mention")
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     workspace = models.ForeignKey(
@@ -74,6 +88,12 @@ class Tag(models.Model):
         related_name="tags",
     )
     name = models.CharField(max_length=100)
+    kind = models.CharField(
+        max_length=16,
+        choices=Kind.choices,
+        default=Kind.INTERNAL,
+        help_text="Whether this tag is also published, and in what form.",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -86,6 +106,48 @@ class Tag(models.Model):
 
     def __str__(self):
         return self.name
+
+    #: Sigil each published kind carries. Absent means the tag stays internal.
+    PREFIXES = {Kind.HASHTAG: "#", Kind.MENTION: "@"}
+
+    @property
+    def rendered(self):
+        """How the tag reads in a caption, or "" when it is internal only."""
+        prefix = self.PREFIXES.get(self.kind)
+        return f"{prefix}{self.slug_for_publishing(self.name)}" if prefix else ""
+
+    @staticmethod
+    def slug_for_publishing(name):
+        """A tag name as the networks accept it after the sigil.
+
+        They break a hashtag at the first space or punctuation, so "Black
+        Friday" would publish as "#Black" and lose the rest. Folding to
+        alphanumerics keeps the whole phrase in one tag. Accented letters
+        stay: the networks handle them, and dropping them would mangle
+        Portuguese words.
+        """
+        return "".join(ch for ch in (name or "") if ch.isalnum())
+
+    @classmethod
+    def publishable_suffix(cls, workspace_id, tag_names):
+        """The "#one @two" trailer for a post's tags, in the order they were applied.
+
+        Unknown names are skipped rather than guessed at: a tag the workspace
+        does not define has no kind, and publishing it as a hashtag would put
+        a word in the post that nobody chose to publish.
+        """
+        if not tag_names:
+            return ""
+        by_name = {
+            t.name: t
+            for t in cls.objects.for_workspace(workspace_id).filter(name__in=tag_names)
+        }
+        rendered = []
+        for name in tag_names:
+            tag = by_name.get(name)
+            if tag and (text := tag.rendered) and text not in rendered:
+                rendered.append(text)
+        return " ".join(rendered)
 
 
 class IdeaGroup(models.Model):
@@ -612,10 +674,21 @@ class PlatformPost(models.Model):
 
     @property
     def effective_caption(self):
-        """Return platform-specific caption or fall back to base post caption."""
-        if self.platform_specific_caption is not None:
-            return self.platform_specific_caption
-        return self.post.caption
+        """The caption as published: the chosen text plus any published tags.
+
+        The trailer is appended here rather than at publish time so that
+        everything downstream — the character count, the limit check, the
+        preview — is measuring the text that actually goes out.
+        """
+        base = (
+            self.platform_specific_caption
+            if self.platform_specific_caption is not None
+            else self.post.caption
+        )
+        suffix = Tag.publishable_suffix(self.post.workspace_id, self.post.tags)
+        if not suffix:
+            return base
+        return f"{base}\n\n{suffix}" if base.strip() else suffix
 
     @property
     def effective_first_comment(self):
