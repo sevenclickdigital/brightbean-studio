@@ -153,6 +153,34 @@ nothing here is reachable by a customer.
     <div class="px-5 py-4 text-sm text-stone-400">{% translate "This account has no workspaces." %}</div>
     {% endfor %}
 
+    {% comment %}
+    Support impersonation. One button per account in this organization.
+    The list is already filtered in the view by ``may_impersonate``, so
+    operator accounts never appear here and no button shown can 403.
+
+    POST, never a link: a GET would let any page an operator visits hand
+    them someone else's session by embedding the URL.
+    {% endcomment %}
+    {% if row.members %}
+    <div class="px-5 py-3 bg-stone-50 border-t border-stone-100">
+      <div class="text-[11px] font-semibold uppercase tracking-wide text-stone-400 mb-2">
+        {% translate "Sign in as, for support" %}
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for membership in row.members %}
+        <form method="post" action="{% url 'accounts:start_impersonation' user_id=membership.user.id %}">
+          {% csrf_token %}
+          <button type="submit"
+                  class="px-3 py-1.5 text-xs font-medium text-stone-700 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors cursor-pointer">
+            {{ membership.user.email }}
+            <span class="text-stone-400">· {{ membership.get_org_role_display }}</span>
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
   </section>
   {% empty %}
   <p class="text-sm text-stone-500">{% translate "No accounts yet." %}</p>

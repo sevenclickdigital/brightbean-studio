@@ -106,3 +106,67 @@ class Session(models.Model):
 
     def __str__(self):
         return f"Session for {self.user.email}"
+
+
+class ImpersonationSession(models.Model):
+    """One row per time an operator took over a customer's account.
+
+    Lives in ``accounts`` rather than ``billing`` because what it records
+    is an identity event, not a money event: who was authenticated as
+    whom. The staff console happens to be where an operator starts one,
+    but the same audit question ("who read this customer's inbox on
+    Tuesday?") would be asked if impersonation were reachable from
+    anywhere else, and ``accounts`` owns ``User`` and the session.
+
+    Both sides are ``SET_NULL`` with the email snapshotted beside them:
+    the whole point of the trail is to survive the accounts it describes.
+    A deleted customer must not take the record of who looked inside
+    their account with them.
+
+    ``ended_at`` NULL means the takeover is still open — the operator has
+    not pressed "stop", or their session expired while inside. That is a
+    findable state on purpose; a row that silently closed itself would
+    make "was anyone in this account at 14:00?" unanswerable.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    impersonator = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="impersonations_started",
+    )
+    impersonated = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="impersonations_received",
+    )
+
+    # Snapshots, so the trail still names both parties after either
+    # account is deleted.
+    impersonator_email = models.EmailField(blank=True, default="")
+    impersonated_email = models.EmailField(blank=True, default="")
+
+    started_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
+
+    # Where the operator came from. Useful when reconstructing an
+    # incident; never used to make an access decision.
+    ip_address = models.GenericIPAddressField(blank=True, null=True)
+
+    class Meta:
+        db_table = "accounts_impersonation_session"
+        ordering = ["-started_at"]
+        indexes = [
+            models.Index(fields=["impersonated", "-started_at"]),
+            models.Index(fields=["impersonator", "-started_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.impersonator_email} as {self.impersonated_email} at {self.started_at:%Y-%m-%d %H:%M}"
+
+    @property
+    def is_open(self):
+        return self.ended_at is None

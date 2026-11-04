@@ -38,11 +38,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_GET, require_POST
 
+from apps.accounts import impersonation
 from apps.billing import contracting, services
 from apps.billing.gateways.asaas import AsaasError, AsaasNotConfigured
 from apps.billing.models import WorkspaceAddon
 from apps.billing.storage_usage import storage_status
-from apps.members.models import WorkspaceMembership
+from apps.members.models import OrgMembership, WorkspaceMembership
 from apps.organizations.models import Organization
 from apps.workspaces.models import Workspace
 
@@ -325,7 +326,7 @@ def contract_storage(request, workspace_id):
 # ---------------------------------------------------------------------------
 
 
-def _is_billing_staff(user):
+def _is_billing_staff(request):
     """Gate for the cross-organization billing console.
 
     ``is_staff``, not ``require_org_permission``: every org-scoped
@@ -339,8 +340,16 @@ def _is_billing_staff(user):
     ``is_staff`` is the account flag Django already reserves for
     operators, is what ``/admin/`` uses, and is not something a customer
     can set on themselves through the product.
+
+    Asked via ``impersonation.is_operator`` rather than reading
+    ``request.user.is_staff`` directly, because the two answers differ in
+    one case that matters: while an operator is impersonating a customer
+    for support, this console must be closed. Letting it through would
+    mean the session acting as the customer everywhere else could comp a
+    workspace or read every other account's billing, and the audit trail
+    would record the customer's identity doing it.
     """
-    return bool(user.is_active and user.is_staff)
+    return impersonation.is_operator(request)
 
 
 def _staff_required(view_func):
@@ -356,7 +365,7 @@ def _staff_required(view_func):
 
     @functools.wraps(view_func)
     def _wrapped(request, *args, **kwargs):
-        if not _is_billing_staff(request.user):
+        if not _is_billing_staff(request):
             raise PermissionDenied("Staff access required.")
         return view_func(request, *args, **kwargs)
 
@@ -372,6 +381,11 @@ def staff_console(request):
     owner asks it is comparative: "who is paying, who is comped, who is
     about to run out of disk". Usage is read per workspace from the
     billing cache, which is what every other surface reads.
+
+    Each organization also lists the accounts an operator may take over
+    for support. The candidates are filtered here, by the same
+    ``may_impersonate`` the view enforces, so the page never offers a
+    button that would 403 — notably not another operator's account.
     """
     organizations = (
         Organization.objects.all()
@@ -379,10 +393,16 @@ def staff_console(request):
             Prefetch(
                 "workspaces",
                 queryset=Workspace.objects.select_related("billing_subscription").order_by("name"),
-            )
+            ),
+            Prefetch(
+                "memberships",
+                queryset=OrgMembership.objects.select_related("user").order_by("user__email"),
+            ),
         )
         .order_by("name")
     )
+
+    operator = impersonation.real_user(request)
 
     rows = []
     for organization in organizations:
@@ -404,6 +424,15 @@ def staff_console(request):
                 "workspaces": workspace_rows,
                 "monthly_total_cents": sum(w["monthly_total_cents"] for w in workspace_rows),
                 "courtesy_exceeded": services.courtesy_quota_exceeded(organization),
+                # Only accounts this operator may actually take over.
+                # Other operators are excluded here, not hidden in the
+                # template, so the rule is the service's and the page
+                # cannot drift from it.
+                "members": [
+                    membership
+                    for membership in organization.memberships.all()
+                    if impersonation.may_impersonate(operator, membership.user)
+                ],
             }
         )
 

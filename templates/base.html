@@ -211,6 +211,9 @@
     {% block extra_head %}{% endblock %}
 </head>
 <body class="text-gray-900 min-h-screen" style="background: var(--surface-page);">
+    {# First thing in the body, so an operator cannot scroll past it or #}
+    {# miss it behind a modal. Renders nothing outside an impersonation. #}
+    {% include "accounts/_impersonation_banner.html" %}
     {% csrf_token %}
     <script nonce="{{ request.csp_nonce }}">
         document.body.addEventListener('htmx:configRequest', function(event) {
@@ -867,8 +870,15 @@
                     suggest it only shows that one. The view enforces
                     is_staff on its own — this only decides who is shown
                     the door.
+
+                    ``not impersonation`` because the view refuses an
+                    impersonated session (apps.billing.views._is_billing_staff):
+                    an operator wearing a customer's account would
+                    otherwise be shown a link that 403s, and worse, be
+                    invited to act as an operator from inside a
+                    customer's identity.
                     {% endcomment %}
-                    {% if user.is_staff %}
+                    {% if user.is_staff and not impersonation %}
                     <div class="border-t border-stone-100">
                         <a href="{% url 'billing_staff:staff_console' %}"
                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-stone-700 hover:bg-black/[0.04] transition-colors">

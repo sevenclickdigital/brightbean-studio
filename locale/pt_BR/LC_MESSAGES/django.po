@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 11:11+0000\n"
+"POT-Creation-Date: 2026-11-04 11:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -18,63 +18,63 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/views.py:94
+#: apps/accounts/views.py:111
 msgid "Photo removed."
 msgstr "Foto removida."
 
-#: apps/accounts/views.py:106
+#: apps/accounts/views.py:123
 msgid "Photo must be a JPEG, PNG, WebP, or GIF image."
 msgstr "A foto deve ser uma imagem JPEG, PNG, WebP ou GIF."
 
-#: apps/accounts/views.py:112
+#: apps/accounts/views.py:129
 msgid "Photo must be under 2 MB."
 msgstr "A foto deve ter menos de 2 MB."
 
-#: apps/accounts/views.py:128
+#: apps/accounts/views.py:145
 msgid "Photo must be at least 180×180 pixels."
 msgstr "A foto deve ter no mínimo 180×180 pixels."
 
-#: apps/accounts/views.py:131
+#: apps/accounts/views.py:148
 msgid "Could not read image file."
 msgstr "Não foi possível ler o arquivo de imagem."
 
-#: apps/accounts/views.py:142
+#: apps/accounts/views.py:159
 msgid "Photo updated."
 msgstr "Foto atualizada."
 
-#: apps/accounts/views.py:149
+#: apps/accounts/views.py:166
 msgid "Name cannot be empty."
 msgstr "O nome não pode ficar em branco."
 
-#: apps/accounts/views.py:154
+#: apps/accounts/views.py:171
 msgid "Name updated."
 msgstr "Nome atualizado."
 
-#: apps/accounts/views.py:164
+#: apps/accounts/views.py:181
 msgid "Current password is required."
 msgstr "A senha atual é obrigatória."
 
-#: apps/accounts/views.py:168
+#: apps/accounts/views.py:185
 msgid "Current password is incorrect."
 msgstr "A senha atual está incorreta."
 
-#: apps/accounts/views.py:172
+#: apps/accounts/views.py:189
 msgid "New password cannot be empty."
 msgstr "A nova senha não pode ficar em branco."
 
-#: apps/accounts/views.py:176
+#: apps/accounts/views.py:193
 msgid "New password must be at least 8 characters."
 msgstr "A nova senha deve ter no mínimo 8 caracteres."
 
-#: apps/accounts/views.py:180
+#: apps/accounts/views.py:197
 msgid "New passwords do not match."
 msgstr "As senhas não coincidem."
 
-#: apps/accounts/views.py:186
+#: apps/accounts/views.py:203
 msgid "Password changed."
 msgstr "Senha alterada."
 
-#: apps/accounts/views.py:216
+#: apps/accounts/views.py:233
 #, python-format
 msgid ""
 "You are the sole owner of: %(orgs)s. Transfer ownership or delete the "
@@ -83,15 +83,31 @@ msgstr ""
 "Você é o único proprietário de: %(orgs)s. Transfira a propriedade ou exclua "
 "a organização antes de excluir sua conta."
 
-#: apps/accounts/views.py:226
+#: apps/accounts/views.py:243
 msgid "Your account has been deleted."
 msgstr "Sua conta foi excluída."
 
-#: apps/accounts/views.py:242
+#: apps/accounts/views.py:259
 msgid "You must agree to the Terms of Service and Privacy Policy to continue."
 msgstr ""
 "Você precisa aceitar os Termos de Serviço e a Política de Privacidade para "
 "continuar."
+
+#: apps/accounts/views_impersonation.py:59
+#, python-format
+msgid ""
+"You are now using %(email)s's account. Everything you do happens as them."
+msgstr ""
+"Você está usando a conta de %(email)s. Tudo o que você fizer acontece como "
+"essa pessoa."
+
+#: apps/accounts/views_impersonation.py:84
+msgid "Your operator session has ended. Please sign in again."
+msgstr "Sua sessão de operador foi encerrada. Entre novamente."
+
+#: apps/accounts/views_impersonation.py:88
+msgid "You are back in your own account."
+msgstr "Você voltou para sua própria conta."
 
 #: apps/api_keys/views.py:470
 #, python-format
@@ -217,7 +233,7 @@ msgstr ""
 "Este workspace usou todos os %(limit)s GB de armazenamento. Exclua arquivos "
 "que você não precisa mais ou contrate espaço extra para continuar enviando."
 
-#: apps/billing/views.py:230
+#: apps/billing/views.py:231
 msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
 "Your workspace is registered and we will contact you to finish the "
@@ -227,7 +243,7 @@ msgstr ""
 "pagamento foi criado. Seu workspace está registrado e entraremos em contato "
 "para concluir a assinatura."
 
-#: apps/billing/views.py:239 apps/billing/views.py:312
+#: apps/billing/views.py:240 apps/billing/views.py:313
 msgid ""
 "We could not reach the payment provider. Nothing was charged — please try "
 "again in a moment."
@@ -235,7 +251,7 @@ msgstr ""
 "Não conseguimos acessar o provedor de pagamento. Nada foi cobrado — tente "
 "novamente em instantes."
 
-#: apps/billing/views.py:245
+#: apps/billing/views.py:246
 msgid ""
 "Subscription contracted. It activates as soon as the first payment is "
 "confirmed."
@@ -243,13 +259,13 @@ msgstr ""
 "Assinatura contratada. Ela é ativada assim que o primeiro pagamento for "
 "confirmado."
 
-#: apps/billing/views.py:288
+#: apps/billing/views.py:289
 #, python-format
 msgid ""
 "Choose how much extra storage to contract, between %(min)s GB and %(max)s GB."
 msgstr "Escolha quanto espaço extra contratar, entre %(min)s GB e %(max)s GB."
 
-#: apps/billing/views.py:302
+#: apps/billing/views.py:303
 #, python-format
 msgid ""
 "Billing is not set up on this installation yet, so no charge was created. "
@@ -259,7 +275,7 @@ msgstr ""
 "pagamento foi criado. Seu pedido de %(gb)s GB foi registrado e entraremos em "
 "contato para concluí-lo."
 
-#: apps/billing/views.py:318
+#: apps/billing/views.py:319
 #, python-format
 msgid ""
 "%(gb)s GB contracted. The space is released as soon as the payment is "
@@ -268,12 +284,12 @@ msgstr ""
 "%(gb)s GB contratados. O espaço é liberado assim que o pagamento for "
 "confirmado."
 
-#: apps/billing/views.py:446
+#: apps/billing/views.py:475
 #, python-format
 msgid "Workspace \"%(name)s\" is now a courtesy and will not be charged."
 msgstr "O workspace \"%(name)s\" agora é cortesia e não será cobrado."
 
-#: apps/billing/views.py:451
+#: apps/billing/views.py:480
 #, python-format
 msgid ""
 "Organization \"%(org)s\" now has more courtesy workspaces than its quota "
@@ -282,7 +298,7 @@ msgstr ""
 "A organização \"%(org)s\" agora tem mais workspaces em cortesia do que a "
 "cota permite."
 
-#: apps/billing/views.py:458
+#: apps/billing/views.py:487
 #, python-format
 msgid ""
 "Courtesy removed from \"%(name)s\". It needs a subscription to stay active."
@@ -290,20 +306,20 @@ msgstr ""
 "Cortesia removida de \"%(name)s\". Agora é necessária uma assinatura para "
 "mantê-lo ativo."
 
-#: apps/billing/views.py:461
+#: apps/billing/views.py:490
 msgid "Unknown action."
 msgstr "Ação desconhecida."
 
-#: apps/billing/views.py:477
+#: apps/billing/views.py:506
 msgid "The courtesy quota must be zero or a positive whole number."
 msgstr "A cota de cortesia deve ser zero ou um número inteiro positivo."
 
-#: apps/billing/views.py:487
+#: apps/billing/views.py:516
 #, python-format
 msgid "Courtesy quota for \"%(org)s\" set to %(quota)s workspace(s)."
 msgstr "Cota de cortesia de \"%(org)s\" definida em %(quota)s workspace(s)."
 
-#: apps/billing/views.py:492
+#: apps/billing/views.py:521
 msgid ""
 "Existing courtesies above the new quota were kept — nobody starts being "
 "charged retroactively."
@@ -1207,11 +1223,11 @@ msgstr "Modo de fluxo de aprovação inválido."
 msgid "Approval workflow updated."
 msgstr "Fluxo de aprovação atualizado."
 
-#: config/settings/base.py:232
+#: config/settings/base.py:236
 msgid "Português (Brasil)"
 msgstr "Português (Brasil)"
 
-#: config/settings/base.py:233
+#: config/settings/base.py:237
 msgid "English (US)"
 msgstr "Inglês (EUA)"
 
@@ -1245,6 +1261,19 @@ msgstr ""
 #: templates/account/signup_closed.html:33
 msgid "Back to sign in"
 msgstr "Voltar para o login"
+
+#: templates/accounts/_impersonation_banner.html:32
+#, python-format
+msgid ""
+"You are using %(email)s's account for support. Everything you do happens as "
+"them."
+msgstr ""
+"Você está usando a conta de %(email)s para dar suporte. Tudo o que você "
+"fizer acontece como essa pessoa."
+
+#: templates/accounts/_impersonation_banner.html:42
+msgid "Return to my account"
+msgstr "Voltar para minha conta"
 
 #: templates/accounts/dashboard.html:30
 msgid "No workspaces yet"
@@ -1530,7 +1559,7 @@ msgstr "Todas as publicações"
 
 #: templates/analytics/_page_header.html:6 templates/analytics/index.html:4
 #: templates/analytics/no_accounts.html:4
-#: templates/analytics/no_accounts.html:10 templates/base.html:688
+#: templates/analytics/no_accounts.html:10 templates/base.html:691
 msgid "Analytics"
 msgstr "Análises"
 
@@ -1604,7 +1633,7 @@ msgstr "Todos"
 msgid "All time"
 msgstr "Todo o período"
 
-#: templates/analytics/_post_table.html:50 templates/base.html:412
+#: templates/analytics/_post_table.html:50 templates/base.html:415
 msgid "Post"
 msgstr "Publicação"
 
@@ -1682,7 +1711,7 @@ msgstr "Não configurado"
 msgid "Automation settings"
 msgstr "Configurações da automação"
 
-#: templates/automations/flow_builder.html:150 templates/base.html:863
+#: templates/automations/flow_builder.html:150 templates/base.html:866
 #: templates/organizations/partials/workspace_card.html:35
 #: templates/settings_manager/index.html:3
 #: templates/settings_manager/index.html:6
@@ -2329,7 +2358,7 @@ msgid "Create rule"
 msgstr "Criar regra"
 
 #: templates/automations/list.html:4 templates/automations/list.html:11
-#: templates/base.html:675
+#: templates/base.html:678
 msgid "Automations"
 msgstr "Automações"
 
@@ -2631,40 +2660,40 @@ msgstr ""
 "Confira os tipos de correspondência das palavras-chave, o escopo das "
 "publicações e a lista de exclusão — a exclusão prevalece sobre a inclusão."
 
-#: templates/base.html:357
+#: templates/base.html:360
 msgid "No workspaces"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:366 templates/base.html:1448
+#: templates/base.html:369 templates/base.html:1458
 msgid "Create workspace"
 msgstr "Criar workspace"
 
-#: templates/base.html:377
+#: templates/base.html:380
 msgid "Workspace settings"
 msgstr "Configurações do workspace"
 
-#: templates/base.html:394
+#: templates/base.html:397
 msgid "New"
 msgstr "Novo"
 
-#: templates/base.html:413
+#: templates/base.html:416
 msgid "Publish content to a channel"
 msgstr "Publicar conteúdo em um canal"
 
-#: templates/base.html:422
+#: templates/base.html:425
 msgid "Idea"
 msgstr "Ideia"
 
-#: templates/base.html:423
+#: templates/base.html:426
 msgid "Capture a content idea"
 msgstr "Registrar uma ideia de conteúdo"
 
-#: templates/base.html:451 templates/base.html:655
+#: templates/base.html:454 templates/base.html:658
 #: templates/composer/create_landing.html:587
 msgid "Create Idea"
 msgstr "Criar ideia"
 
-#: templates/base.html:476 templates/composer/compose.html:1061
+#: templates/base.html:479 templates/composer/compose.html:1061
 #: templates/composer/compose.html:1706
 #: templates/composer/create_landing.html:445
 #: templates/composer/create_landing.html:612
@@ -2674,12 +2703,12 @@ msgstr "Criar ideia"
 msgid "Tags"
 msgstr "Tags"
 
-#: templates/base.html:563 templates/composer/create_landing.html:702
+#: templates/base.html:566 templates/composer/create_landing.html:702
 #: templates/composer/create_landing.html:902
 msgid "Add another file"
 msgstr "Adicionar outro arquivo"
 
-#: templates/base.html:621 templates/composer/compose.html:1782
+#: templates/base.html:624 templates/composer/compose.html:1782
 #: templates/composer/compose.html:1792
 #: templates/composer/create_landing.html:478
 #: templates/composer/create_landing.html:487
@@ -2689,57 +2718,57 @@ msgstr "Adicionar outro arquivo"
 msgid "Create new tag"
 msgstr "Criar nova tag"
 
-#: templates/base.html:651 templates/calendar/calendar.html:8
+#: templates/base.html:654 templates/calendar/calendar.html:8
 #: templates/calendar/calendar.html:369 templates/calendar/calendar.html:397
 #: templates/composer/compose.html:2519
 msgid "Publish"
 msgstr "Publicar"
 
-#: templates/base.html:659
+#: templates/base.html:662
 msgid "Social Inbox"
 msgstr "Caixa de entrada"
 
-#: templates/base.html:671 templates/media_library/library_index.html:12
+#: templates/base.html:674 templates/media_library/library_index.html:12
 msgid "Gallery"
 msgstr "Galeria"
 
-#: templates/base.html:681 templates/notifications/history.html:4
+#: templates/base.html:684 templates/notifications/history.html:4
 #: templates/notifications/history.html:12
 #: templates/notifications/partials/drawer.html:5
 msgid "Notifications"
 msgstr "Notificações"
 
-#: templates/base.html:706
+#: templates/base.html:709
 msgid "Intelligence"
 msgstr "Inteligência"
 
-#: templates/base.html:714 templates/organizations/cross_calendar.html:188
+#: templates/base.html:717 templates/organizations/cross_calendar.html:188
 msgid "Channels"
 msgstr "Canais"
 
-#: templates/base.html:781
+#: templates/base.html:784
 msgid "More channels"
 msgstr "Mais canais"
 
-#: templates/base.html:846
+#: templates/base.html:849
 msgid "My Organization"
 msgstr "Minha organização"
 
-#: templates/base.html:854
+#: templates/base.html:857
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:881 templates/billing/staff_console.html:17
+#: templates/base.html:891 templates/billing/staff_console.html:17
 #: templates/billing/staff_console.html:22
-#: templates/layouts/workspace_settings.html:46
+#: templates/layouts/workspace_settings.html:50
 msgid "Billing administration"
 msgstr "Administração de cobrança"
 
-#: templates/base.html:899
+#: templates/base.html:909
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:913
+#: templates/base.html:923
 msgid "Log out"
 msgstr "Sair"
 
@@ -2857,7 +2886,11 @@ msgstr "Conceder cortesia"
 msgid "This account has no workspaces."
 msgstr "Esta conta não tem workspaces."
 
-#: templates/billing/staff_console.html:159
+#: templates/billing/staff_console.html:169
+msgid "Sign in as, for support"
+msgstr "Entrar como, para dar suporte"
+
+#: templates/billing/staff_console.html:188
 msgid "No accounts yet."
 msgstr "Nenhuma conta ainda."
 
@@ -5543,7 +5576,7 @@ msgid "Per-org subscription, billed monthly. Cancel anytime."
 msgstr ""
 "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
 
-#: templates/layouts/workspace_settings.html:43
+#: templates/layouts/workspace_settings.html:47
 msgid "Administration"
 msgstr "Administração"
 

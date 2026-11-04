@@ -7,6 +7,8 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.accounts import impersonation
+
 
 def health_check(request):
     """Health check endpoint at /health/."""
@@ -41,6 +43,21 @@ def dashboard(request):
         user.last_workspace_id = membership.workspace.id
         user.save(update_fields=["last_workspace_id"])
         return redirect("calendar:calendar", workspace_id=membership.workspace.id)
+
+    # An operator account owns nothing on purpose — no organization, no
+    # workspace, so nothing to bill (see
+    # apps/accounts/management/commands/create_operator.py). The
+    # "create a workspace" screen below is therefore exactly wrong for
+    # them: it is an invitation to become a customer, which is the
+    # coupling the separate operator account exists to undo. Send them to
+    # the console they logged in to use.
+    #
+    # Checked through ``impersonation.is_operator`` rather than
+    # ``user.is_staff``: an operator impersonating a customer who happens
+    # to have no workspace must see what that customer sees, not be
+    # bounced to a console their session may not open.
+    if impersonation.is_operator(request):
+        return redirect("billing_staff:staff_console")
 
     return render(request, "accounts/dashboard.html")
 

@@ -139,6 +139,10 @@ TEMPLATES = [
                 # gallery and the composer can show the banner without
                 # their views knowing about billing.
                 "apps.billing.context_processors.workspace_storage_banner",
+                # Supplies ``impersonation`` only while an operator is
+                # inside a customer's account, so the banner in base.html
+                # can make that impossible to miss.
+                "apps.accounts.context_processors.impersonation_banner",
             ],
         },
     },

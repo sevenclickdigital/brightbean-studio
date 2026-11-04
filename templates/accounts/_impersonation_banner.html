@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %}
+  Shown only while an operator is inside a customer's account
+  (``impersonation`` comes from apps.accounts.context_processors).
+
+  Deliberately loud, deliberately at the very top of <body>, and
+  deliberately not dismissible: the failure this prevents is an operator
+  forgetting whose account they are in and publishing a post, deleting an
+  asset or answering a DM as the customer. A banner that could be closed
+  would be closed, and nothing else on the page looks any different
+  during a takeover.
+
+  position: sticky rather than fixed so it never covers content, and it
+  stays visible as the page scrolls.
+{% endcomment %}
+{% if impersonation %}
+<div style="
+    position: sticky; top: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    flex-wrap: wrap; gap: 12px;
+    padding: 10px 16px;
+    background: #7f1d1d; color: #fff;
+    font-size: 0.8125rem; line-height: 1.4;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.25);
+">
+    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+        <path d="M12 9v4"/><path d="M12 17h.01"/>
+        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+    </svg>
+    <span>
+        {% blocktranslate with email=impersonation.impersonated.email %}You are using {{ email }}'s account for support. Everything you do happens as them.{% endblocktranslate %}
+    </span>
+    <form method="post" action="{% url 'accounts:stop_impersonation' %}" style="margin: 0;">
+        {% csrf_token %}
+        <button type="submit" style="
+            padding: 4px 12px;
+            background: #fff; color: #7f1d1d;
+            border: none; border-radius: 6px;
+            font-size: 0.8125rem; font-weight: 600;
+            cursor: pointer;
+        ">{% translate "Return to my account" %}</button>
+    </form>
+</div>
+{% endif %}
