@@ -726,6 +726,33 @@ BILLING_WORKSPACE_BASE_STORAGE_BYTES = env.int(
 # changes.
 BILLING_STORAGE_PRICE_PER_GB_CENTS = env.int("BILLING_STORAGE_PRICE_PER_GB_CENTS", default=200)
 
+
+# ---------------------------------------------------------------------------
+# Asaas (payment gateway behind the billing above)
+# ---------------------------------------------------------------------------
+# All three default to empty: the product owner has not issued credentials
+# yet. The client refuses to call out when the key is missing rather than
+# firing an unauthenticated request, and the webhook refuses to act when
+# the token is missing rather than trusting an anonymous POST — so an
+# unconfigured deployment is inert instead of half-working.
+
+ASAAS_API_KEY = env("ASAAS_API_KEY", default="")
+
+# Sandbox by default. Production must be opted into explicitly, so a
+# deployment that forgets this variable bills play money instead of
+# charging real customers from a staging box.
+ASAAS_API_BASE = env("ASAAS_API_BASE", default="https://api-sandbox.asaas.com/v3")
+
+# The token Asaas echoes back in the ``asaas-access-token`` header of every
+# webhook delivery, configured alongside the webhook URL in their panel.
+# Asaas's own docs warn against reusing the API key here, so this is a
+# separate secret.
+ASAAS_WEBHOOK_TOKEN = env("ASAAS_WEBHOOK_TOKEN", default="")
+
+# Seconds to wait on an Asaas HTTP call. Short enough that a gateway stall
+# doesn't hold a web worker through a user's checkout click.
+ASAAS_TIMEOUT_SECONDS = env.int("ASAAS_TIMEOUT_SECONDS", default=20)
+
 # Webhook verification
 FACEBOOK_WEBHOOK_VERIFY_TOKEN = env("FACEBOOK_WEBHOOK_VERIFY_TOKEN", default="")
 INSTAGRAM_LOGIN_WEBHOOK_VERIFY_TOKEN = env("INSTAGRAM_LOGIN_WEBHOOK_VERIFY_TOKEN", default="")
