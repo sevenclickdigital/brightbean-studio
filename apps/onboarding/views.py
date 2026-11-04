@@ -34,6 +34,7 @@ from apps.social_accounts.oauth_aliases import from_url_slug, redirect_uri_from_
 from apps.social_accounts.oauth_pkce import issue_pkce_verifier, pkce_kwargs
 from apps.social_accounts.provider_factory import _get_provider_for_platform
 from apps.social_accounts.views import (
+    AccountLimitReached,
     _create_or_update_account,
     _get_configured_platforms,
     _normalize_mastodon_instance_url,
@@ -492,32 +493,41 @@ def connection_oauth_callback(request, platform):
                         avatar_url=page.get("picture", ""),
                         follower_count=page.get("followers_count", 0),
                     )
-                    account = _create_or_update_account(
-                        workspace_id=workspace_id,
-                        platform=platform,
-                        profile=page_profile,
-                        access_token=access_token,
-                        # The Page token IS the credential. Storing the user
-                        # token alongside it as a generic refresh token would
-                        # later have the refresh path overwrite a Page token
-                        # with a user token — the wrong identity entirely.
-                        refresh_token=None,
-                        # A Page token derived from a long-lived user token does
-                        # not expire, so no expiry is the truthful record. But
-                        # when the promotion fell back we are holding the
-                        # short-lived token, and a Page token minted from it
-                        # dies with it — store that expiry or the health and
-                        # publish checks skip the account until it just fails.
-                        expires_in=None if promoted else tokens.expires_in,
-                        facebook_user_access_token=tokens.access_token if platform == "instagram" else None,
-                        facebook_user_token_expires_at=user_expires_at,
-                        # Instagram-via-Facebook receives its webhooks through
-                        # the linked Page, so remember which Page to subscribe.
-                        webhook_target_id=page.get("page_id", ""),
-                        messaging_access=False
-                        if platform == "instagram" and not page.get("access_token")
-                        else page.get("can_message"),
-                    )
+                    try:
+                        account = _create_or_update_account(
+                            workspace_id=workspace_id,
+                            platform=platform,
+                            profile=page_profile,
+                            access_token=access_token,
+                            # The Page token IS the credential. Storing the user
+                            # token alongside it as a generic refresh token would
+                            # later have the refresh path overwrite a Page token
+                            # with a user token — the wrong identity entirely.
+                            refresh_token=None,
+                            # A Page token derived from a long-lived user token does
+                            # not expire, so no expiry is the truthful record. But
+                            # when the promotion fell back we are holding the
+                            # short-lived token, and a Page token minted from it
+                            # dies with it — store that expiry or the health and
+                            # publish checks skip the account until it just fails.
+                            expires_in=None if promoted else tokens.expires_in,
+                            facebook_user_access_token=tokens.access_token if platform == "instagram" else None,
+                            facebook_user_token_expires_at=user_expires_at,
+                            # Instagram-via-Facebook receives its webhooks through
+                            # the linked Page, so remember which Page to subscribe.
+                            webhook_target_id=page.get("page_id", ""),
+                            messaging_access=False
+                            if platform == "instagram" and not page.get("access_token")
+                            else page.get("can_message"),
+                        )
+                    except AccountLimitReached as exc:
+                        # This path connects every Page the grant reaches, so it
+                        # is the one most likely to cross the per-platform cap
+                        # mid-loop. Letting it propagate would discard the Pages
+                        # already connected and report a generic failure.
+                        skipped.append(f"{name} ({exc})")
+                        logger.warning("Connection link %s: refusing %s for %s: %s", link.id, platform, name, exc)
+                        continue
                     ConnectionLinkUsage.objects.get_or_create(
                         connection_link=link,
                         social_account=account,
@@ -551,6 +561,11 @@ def connection_oauth_callback(request, platform):
             social_account=account,
         )
 
+    except AccountLimitReached as exc:
+        # A refusal with a reason the client can act on, unlike the blanket
+        # "please try again" below — retrying is precisely what cannot help.
+        logger.warning("Connection link refused %s: %s", platform, exc)
+        request.session["connection_link_error"] = str(exc)
     except Exception:
         logger.exception("Connection link OAuth callback failed for %s", platform)
         # Store error in session to display on connection page
@@ -642,6 +657,9 @@ def connection_bluesky_connect(request, token):
             social_account=account,
         )
 
+    except AccountLimitReached as exc:
+        logger.warning("Connection link refused Bluesky: %s", exc)
+        request.session["connection_link_error"] = str(exc)
     except Exception:
         logger.exception("Connection link Bluesky connection failed")
         request.session["connection_link_error"] = (

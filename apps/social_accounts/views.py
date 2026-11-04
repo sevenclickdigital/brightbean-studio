@@ -43,6 +43,18 @@ OAUTH_STATE_MAX_AGE = 600  # 10 minutes
 OAUTH_SESSION_KEY = "social_oauth"
 
 
+class AccountLimitReached(PermissionDenied):
+    """The workspace is at its per-platform cap for this platform.
+
+    A PermissionDenied so that it keeps passing through the callback's
+    ``except (BadSignature, PermissionDenied): raise`` guard instead of being
+    absorbed by the blanket handler's "please try again" — retrying is the one
+    thing that cannot help. Its own class because the surrounding raises are
+    authorization failures that should end on a 403, while this is a product
+    limit whose whole value is the sentence explaining it.
+    """
+
+
 def _get_visible_platform_choices():
     """Return PlatformCredential.Platform.choices filtered to visible platforms.
 
@@ -442,6 +454,10 @@ def oauth_callback(request, platform):
         )
         messages.success(request, _("Connected %(name)s successfully.") % {"name": profile.name})
 
+    except AccountLimitReached as exc:
+        # Ahead of the re-raise below, which would answer a product limit with a
+        # bare 403 page and drop the one sentence that explains it.
+        messages.error(request, str(exc))
     except (signing.BadSignature, PermissionDenied):
         raise
     except QuotaExceededError as exc:
@@ -537,22 +553,34 @@ def select_account(request):
                 avatar_url=page.get("picture", ""),
                 follower_count=page.get("followers_count", 0),
             )
-            _create_or_update_account(
-                workspace_id=workspace_id,
-                platform=platform,
-                profile=profile,
-                access_token=access_token,
-                refresh_token=user_tokens.get("refresh_token"),
-                expires_in=user_tokens.get("expires_in"),
-                facebook_user_access_token=user_tokens.get("access_token", "") if platform == "instagram" else None,
-                facebook_user_token_expires_at=user_tokens.get("user_expires_at"),
-                # Instagram-via-Facebook receives its webhooks through the
-                # linked Page, so remember which Page to subscribe.
-                webhook_target_id=page.get("page_id", ""),
-                messaging_access=False
-                if platform == "instagram" and not page.get("access_token")
-                else page.get("can_message"),
-            )
+            try:
+                _create_or_update_account(
+                    workspace_id=workspace_id,
+                    platform=platform,
+                    profile=profile,
+                    access_token=access_token,
+                    refresh_token=user_tokens.get("refresh_token"),
+                    expires_in=user_tokens.get("expires_in"),
+                    facebook_user_access_token=user_tokens.get("access_token", "")
+                    if platform == "instagram"
+                    else None,
+                    facebook_user_token_expires_at=user_tokens.get("user_expires_at"),
+                    # Instagram-via-Facebook receives its webhooks through the
+                    # linked Page, so remember which Page to subscribe.
+                    webhook_target_id=page.get("page_id", ""),
+                    messaging_access=False
+                    if platform == "instagram" and not page.get("access_token")
+                    else page.get("can_message"),
+                )
+            except AccountLimitReached as exc:
+                # Picking several Pages at once can cross the per-platform cap
+                # part-way through. Connect what fits and name what didn't,
+                # rather than discarding the whole selection over the last row.
+                messages.error(
+                    request,
+                    _("Could not connect %(name)s: %(reason)s") % {"name": page["name"], "reason": exc},
+                )
+                continue
             connected.append(page["name"])
 
     request.session.pop("oauth_page_select", None)
@@ -607,6 +635,15 @@ def connect_bluesky(request, workspace_id):
         )
         messages.success(request, _("Connected %(name)s on Bluesky.") % {"name": profile.name})
 
+    except AccountLimitReached as exc:
+        # The credentials were fine, so the generic clause's advice to re-check
+        # them would send the user hunting for a problem that isn't there.
+        messages.error(request, str(exc))
+        return render(
+            request,
+            "social_accounts/bluesky_connect.html",
+            {"workspace_id": workspace_id},
+        )
     except Exception:
         logger.exception("Bluesky connection failed")
         messages.error(
@@ -657,6 +694,9 @@ def connect_devto(request, workspace_id):
             access_token=api_key,
         )
         messages.success(request, _("Connected %(name)s on DEV.to.") % {"name": profile.name})
+    except AccountLimitReached as exc:
+        messages.error(request, str(exc))
+        return render(request, "social_accounts/devto_connect.html", {"workspace_id": workspace_id})
     except Exception:
         logger.exception("DEV.to connection failed")
         messages.error(request, _("Failed to connect DEV.to account. Check your API key."))
@@ -1067,6 +1107,30 @@ def _create_or_update_account(
             "facebook_user_token_expires_at": facebook_user_token_expires_at,
             "analytics_status": SocialAccount.AnalyticsStatus.CHECKING,
         }
+
+    # Cap how many accounts of one platform a workspace connects. Counted only
+    # when this grant would add a row: an existing account must go through even
+    # at or above the cap, or "Reconnect" would be dead for exactly the
+    # workspaces most likely to need it — including every workspace that was
+    # already over the cap when it was introduced.
+    is_new = not SocialAccount.objects.filter(
+        workspace_id=workspace_id,
+        platform=platform,
+        account_platform_id=profile.platform_id,
+    ).exists()
+    if is_new:
+        connected = SocialAccount.objects.filter(workspace_id=workspace_id, platform=platform).count()
+        if connected >= settings.MAX_ACCOUNTS_PER_PLATFORM:
+            raise AccountLimitReached(
+                _(
+                    "This workspace already has the maximum of %(limit)s %(platform)s accounts. "
+                    "Disconnect one before connecting another."
+                )
+                % {
+                    "limit": settings.MAX_ACCOUNTS_PER_PLATFORM,
+                    "platform": SocialAccount(platform=platform).get_platform_display(),
+                }
+            )
 
     account, created = SocialAccount.objects.update_or_create(
         workspace_id=workspace_id,

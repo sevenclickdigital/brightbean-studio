@@ -10,6 +10,7 @@ from unittest.mock import MagicMock, patch
 from urllib.parse import parse_qs, urlparse
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
@@ -177,6 +178,10 @@ class TestConnectionLinkPageTokens:
         assert "Page Two" in error
         assert "Page One" not in error
 
+    # Five channels is what makes "separate credentials per channel" worth
+    # asserting, and the per-platform cap would otherwise refuse the last two —
+    # turning this into a test of the cap rather than of the credentials.
+    @override_settings(MAX_ACCOUNTS_PER_PLATFORM=5)
     @pytest.mark.parametrize("promoted,expiry_seconds", [(True, 5184000), (False, 3600)])
     def test_instagram_link_preserves_separate_credentials_for_all_channels(
         self, client, workspace, connection_link, promoted, expiry_seconds

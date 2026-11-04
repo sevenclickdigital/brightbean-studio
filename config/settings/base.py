@@ -688,6 +688,14 @@ INBOX_PLATFORM_MIN_POLL_SECONDS = {"youtube": env.int("INBOX_YOUTUBE_MIN_POLL_SE
 # whole change exists to fix.
 INBOX_DEEP_SWEEP_SECONDS = env.int("INBOX_DEEP_SWEEP_SECONDS", default=7 * 24 * 60 * 60)
 
+# How many accounts of one platform a single workspace may connect. A product
+# rule rather than a per-workspace field, because it is uniform for now and a
+# column would invite editing it one workspace at a time before anyone has
+# decided it should vary. Enforced only against NEW connections
+# (apps.social_accounts.views._create_or_update_account), so a workspace already
+# over the cap keeps every account it has and can still reconnect them.
+MAX_ACCOUNTS_PER_PLATFORM = env.int("MAX_ACCOUNTS_PER_PLATFORM", default=3)
+
 # Webhook verification
 FACEBOOK_WEBHOOK_VERIFY_TOKEN = env("FACEBOOK_WEBHOOK_VERIFY_TOKEN", default="")
 INSTAGRAM_LOGIN_WEBHOOK_VERIFY_TOKEN = env("INSTAGRAM_LOGIN_WEBHOOK_VERIFY_TOKEN", default="")

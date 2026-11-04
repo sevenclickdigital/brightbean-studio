@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 00:58+0000\n"
+"POT-Creation-Date: 2026-11-04 03:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -703,27 +703,27 @@ msgstr "Enviado"
 msgid "Notification preferences saved."
 msgstr "Preferências de notificação salvas."
 
-#: apps/onboarding/views.py:140
+#: apps/onboarding/views.py:141
 msgid "Connection link created."
 msgstr "Link de conexão criado."
 
-#: apps/onboarding/views.py:156
+#: apps/onboarding/views.py:157
 msgid "Connection link revoked."
 msgstr "Link de conexão revogado."
 
-#: apps/onboarding/views.py:170
+#: apps/onboarding/views.py:171
 msgid "Email address is required."
 msgstr "O e-mail é obrigatório."
 
-#: apps/onboarding/views.py:174
+#: apps/onboarding/views.py:175
 msgid "This connection link is no longer active."
 msgstr "Este link de conexão não está mais ativo."
 
-#: apps/onboarding/views.py:205
+#: apps/onboarding/views.py:206
 msgid "We could not send that link right now. Please try again shortly."
 msgstr "Não foi possível enviar o link agora. Tente novamente em instantes."
 
-#: apps/onboarding/views.py:209
+#: apps/onboarding/views.py:210
 #, python-format
 msgid "Connection link sent to %(email)s."
 msgstr "Link de conexão enviado para %(email)s."
@@ -801,11 +801,11 @@ msgstr "Desconectada"
 msgid "Error"
 msgstr "Erro"
 
-#: apps/social_accounts/views.py:228
+#: apps/social_accounts/views.py:240
 msgid "This platform is not available."
 msgstr "Esta plataforma não está disponível."
 
-#: apps/social_accounts/views.py:234
+#: apps/social_accounts/views.py:246
 #, python-format
 msgid ""
 "Platform credentials for %(platform)s are not configured. Please contact "
@@ -814,28 +814,28 @@ msgstr ""
 "As credenciais da plataforma %(platform)s não estão configuradas. Fale com o "
 "administrador."
 
-#: apps/social_accounts/views.py:290
+#: apps/social_accounts/views.py:302
 #, python-format
 msgid "OAuth error: %(error)s"
 msgstr "Erro de OAuth: %(error)s"
 
-#: apps/social_accounts/views.py:301
+#: apps/social_accounts/views.py:313
 msgid "Missing authorization code or state parameter."
 msgstr "Código de autorização ou parâmetro de estado ausente."
 
-#: apps/social_accounts/views.py:308
+#: apps/social_accounts/views.py:320
 msgid "Invalid or expired OAuth state. Please try again."
 msgstr "Estado de OAuth inválido ou expirado. Tente novamente."
 
-#: apps/social_accounts/views.py:314
+#: apps/social_accounts/views.py:326
 msgid "OAuth session mismatch. Please try again."
 msgstr "A sessão de OAuth não confere. Tente novamente."
 
-#: apps/social_accounts/views.py:319
+#: apps/social_accounts/views.py:331
 msgid "Platform mismatch in OAuth callback."
 msgstr "A plataforma não confere no retorno do OAuth."
 
-#: apps/social_accounts/views.py:396
+#: apps/social_accounts/views.py:408
 msgid ""
 "No LinkedIn Company Pages were found for your account. Only Company Pages "
 "you administer can be connected — personal profiles connect via the LinkedIn "
@@ -849,7 +849,7 @@ msgstr ""
 "proprietário dela para conceder acesso de Admin em LinkedIn → Admin tools → "
 "Manage admins e conecte novamente."
 
-#: apps/social_accounts/views.py:405
+#: apps/social_accounts/views.py:417
 msgid ""
 "No Google Business locations were found for your account. Only verified "
 "locations can be connected. If you expected to see one, check that it is "
@@ -861,7 +861,7 @@ msgstr ""
 "confirme que ela está verificada e que esta conta do Google tem acesso a ela "
 "em Google Business Profile → Businesses e conecte novamente."
 
-#: apps/social_accounts/views.py:414
+#: apps/social_accounts/views.py:426
 msgid ""
 "No Instagram Business accounts were found for your account. Only Instagram "
 "Business or Creator accounts linked to a Facebook Page can be connected "
@@ -873,7 +873,7 @@ msgstr ""
 "uma página do Facebook. Se você esperava ver uma conta, confirme que ela "
 "está vinculada a uma página que você administra e conecte novamente."
 
-#: apps/social_accounts/views.py:421
+#: apps/social_accounts/views.py:433
 msgid ""
 "No Facebook Pages were found for your account. Only Pages can be connected — "
 "personal profiles are not supported by the Facebook API. If you expected to "
@@ -886,24 +886,24 @@ msgstr ""
 "remover o app em Configurações do Facebook → Integrações comerciais, depois "
 "conecte novamente."
 
-#: apps/social_accounts/views.py:443
+#: apps/social_accounts/views.py:455
 #, python-format
 msgid "Connected %(name)s successfully."
 msgstr "%(name)s conectada com sucesso."
 
-#: apps/social_accounts/views.py:459
+#: apps/social_accounts/views.py:475
 msgid "Failed to connect account. Please try again."
 msgstr "Não foi possível conectar a conta. Tente novamente."
 
-#: apps/social_accounts/views.py:475
+#: apps/social_accounts/views.py:491
 msgid "No accounts to select. Please start over."
 msgstr "Nenhuma conta para selecionar. Comece de novo."
 
-#: apps/social_accounts/views.py:502
+#: apps/social_accounts/views.py:518
 msgid "Please select at least one account."
 msgstr "Selecione ao menos uma conta."
 
-#: apps/social_accounts/views.py:520
+#: apps/social_accounts/views.py:536
 #, python-format
 msgid ""
 "Could not connect %(name)s: your Facebook access cannot create content for "
@@ -912,7 +912,7 @@ msgstr ""
 "Não foi possível conectar %(name)s: seu acesso no Facebook não permite criar "
 "conteúdo para esta página."
 
-#: apps/social_accounts/views.py:528
+#: apps/social_accounts/views.py:544
 #, python-format
 msgid ""
 "Could not connect %(name)s: the platform did not provide an account token."
@@ -920,79 +920,93 @@ msgstr ""
 "Não foi possível conectar %(name)s: a plataforma não forneceu um token de "
 "conta."
 
-#: apps/social_accounts/views.py:562
+#: apps/social_accounts/views.py:581
+#, python-format
+msgid "Could not connect %(name)s: %(reason)s"
+msgstr "Não foi possível conectar %(name)s: %(reason)s"
+
+#: apps/social_accounts/views.py:590
 #, python-format
 msgid "Connected: %(names)s"
 msgstr "Conectadas: %(names)s"
 
-#: apps/social_accounts/views.py:587
+#: apps/social_accounts/views.py:615
 msgid "Handle and app password are required."
 msgstr "Usuário e senha de app são obrigatórios."
 
-#: apps/social_accounts/views.py:608
+#: apps/social_accounts/views.py:636
 #, python-format
 msgid "Connected %(name)s on Bluesky."
 msgstr "%(name)s conectada no Bluesky."
 
-#: apps/social_accounts/views.py:614
+#: apps/social_accounts/views.py:651
 msgid "Failed to connect Bluesky account. Check your handle and app password."
 msgstr ""
 "Não foi possível conectar a conta do Bluesky. Confira o usuário e a senha de "
 "app."
 
-#: apps/social_accounts/views.py:643
+#: apps/social_accounts/views.py:680
 msgid "A DEV.to API key is required."
 msgstr "A chave de API do DEV.to é obrigatória."
 
-#: apps/social_accounts/views.py:659
+#: apps/social_accounts/views.py:696
 #, python-format
 msgid "Connected %(name)s on DEV.to."
 msgstr "%(name)s conectada no DEV.to."
 
-#: apps/social_accounts/views.py:662
+#: apps/social_accounts/views.py:702
 msgid "Failed to connect DEV.to account. Check your API key."
 msgstr "Não foi possível conectar a conta do DEV.to. Confira sua chave de API."
 
-#: apps/social_accounts/views.py:687
+#: apps/social_accounts/views.py:727
 msgid "Instance URL is required."
 msgstr "A URL da instância é obrigatória."
 
-#: apps/social_accounts/views.py:696
+#: apps/social_accounts/views.py:736
 msgid "Invalid instance URL. Private or reserved addresses are not allowed."
 msgstr ""
 "URL de instância inválida. Endereços privados ou reservados não são "
 "permitidos."
 
-#: apps/social_accounts/views.py:729
+#: apps/social_accounts/views.py:769
 #, python-format
 msgid "Failed to register with %(url)s. Check the URL."
 msgstr "Não foi possível registrar em %(url)s. Confira a URL."
 
-#: apps/social_accounts/views.py:833
+#: apps/social_accounts/views.py:873
 #, python-format
 msgid "Reconnect %(label)s first — its connection isn't healthy."
 msgstr "Reconecte %(label)s primeiro — a conexão não está saudável."
 
-#: apps/social_accounts/views.py:849
+#: apps/social_accounts/views.py:889
 #, python-format
 msgid "Real-time updates are back on for %(label)s."
 msgstr "As atualizações em tempo real voltaram a funcionar para %(label)s."
 
-#: apps/social_accounts/views.py:851
+#: apps/social_accounts/views.py:891
 msgid "Couldn't set up real-time updates. Please try again."
 msgstr ""
 "Não foi possível ativar as atualizações em tempo real. Tente novamente."
 
-#: apps/social_accounts/views.py:880
+#: apps/social_accounts/views.py:920
 #, python-format
 msgid "Disconnected %(name)s. YouTube data was deleted immediately."
 msgstr ""
 "%(name)s desconectada. Os dados do YouTube foram excluídos imediatamente."
 
-#: apps/social_accounts/views.py:925
+#: apps/social_accounts/views.py:965
 #, python-format
 msgid "Disconnected %(name)s."
 msgstr "%(name)s desconectada."
+
+#: apps/social_accounts/views.py:1126
+#, python-format
+msgid ""
+"This workspace already has the maximum of %(limit)s %(platform)s accounts. "
+"Disconnect one before connecting another."
+msgstr ""
+"Este workspace já tem o máximo de %(limit)s contas do %(platform)s. "
+"Desconecte uma antes de conectar outra."
 
 #: apps/workspaces/views.py:80
 msgid "Cannot archive the last workspace in the organization."
