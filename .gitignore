@@ -223,3 +223,6 @@ theme/static/css/dist/
 # Local seed scripts (not for version control)
 /seed_ad_analytics.py
 /seed_ad_calendar.py
+
+# Local copies of production data — never commit (tokens, customer messages)
+_local_dumps/
