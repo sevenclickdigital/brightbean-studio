@@ -42,7 +42,8 @@ what the views enforce — this link is a convenience, never the access
 control.
 
 It leaves this layout entirely: the area it opens renders in
-layouts/admin_shell.html, with no workspace navigation around it.
+layouts/admin_shell.html, which swaps this navigation for the
+administrative one while keeping the rest of the product's chrome.
 
 Hidden during an impersonation: the views refuse an impersonated session
 outright, so showing the link would only offer a 403 while suggesting the

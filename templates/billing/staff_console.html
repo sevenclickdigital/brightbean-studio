@@ -26,11 +26,11 @@ among them: a GET reset would let an embedded image mail a customer a
 reset link, and a GET deactivation would let any page an operator visits
 switch a customer off.
 
-Extends layouts/admin_shell.html, not base.html. Under base.html this
-page carried the whole product interface with it — workspace switcher,
-Publish, Create Idea, the connected-channels list, the organization
-footer — all of it pointing at a workspace an operator account does not
-have. See the admin shell's own comment for why it is a separate layout.
+Extends layouts/admin_shell.html, which is base.html with the
+administrative navigation in place of the product's — the same
+arrangement layouts/settings.html uses. Extending base.html directly
+would bring Publish, Create Idea and the connected-channels list along,
+all pointing at a workspace an operator account does not have.
 
 Access is ``is_staff`` (see apps/billing/views._is_billing_staff), so
 nothing here is reachable by a customer, and nothing at all by an

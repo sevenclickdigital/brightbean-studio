@@ -302,7 +302,25 @@
                x-init="$el.classList.remove('sidebar-initial'); document.documentElement.classList.remove('sidebar-is-collapsed'); $nextTick(() => $el.classList.add('transition-all', 'duration-200'))"
                @click="if (window.innerWidth < 1024 && $event.target.closest('a')) { mobileMenuOpen = false }">
 
-            <!-- Workspace switcher (top of sidebar) -->
+            {% comment %}
+            Workspace switcher (top of sidebar) — only where there is
+            something to switch between.
+
+            A session with no workspace at all (an operator account,
+            which owns neither organization nor workspace by design —
+            apps/accounts/management/commands/create_operator.py) got a
+            control that opened onto "No workspaces" and, under it, a
+            workspace-settings link for a workspace it does not have.
+            A dropdown whose only content is the word for its own
+            emptiness is worse than no dropdown.
+
+            Keyed on having workspaces, not on who the user is: the
+            condition that matters is whether the control leads anywhere.
+            Staff who are also customers (the local test accounts are)
+            keep the switcher on every page, administrative ones
+            included.
+            {% endcomment %}
+            {% if sidebar_workspaces or request.workspace %}
             <div class="relative border-b border-stone-100" x-data="{ wsOpen: false }">
                 <button @click="wsOpen = !wsOpen"
                         class="sidebar-ws-btn w-full flex items-center gap-2.5 px-4 py-3.5 text-left hover:bg-black/[0.04] transition-colors cursor-pointer rounded-br-lg"
@@ -383,6 +401,17 @@
                 </div>
 
             </div>
+            {% else %}
+            {# The same header slot, without a control: the sidebar still #}
+            {# needs its top line and its border, only nothing to open. #}
+            <div class="border-b border-stone-100">
+                <div class="w-full flex items-center gap-2.5 px-4 py-3.5 text-left"
+                     :class="sidebarCollapsed ? 'justify-center px-0' : 'gap-2.5 px-4'">
+                    <div class="sidebar-logo-mark flex-shrink-0">P</div>
+                    <span class="flex-1 font-bold text-[0.9375rem] tracking-tight text-stone-900 truncate" x-show="!sidebarCollapsed" x-cloak>Brightbean</span>
+                </div>
+            </div>
+            {% endif %}
 
             <!-- + New CTA -->
             {% if request.workspace %}
@@ -801,9 +830,21 @@
                             <svg class="w-4 h-4 text-stone-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                         </div>
                         {% endif %}
+                        {% comment %}
+                        Two lines, organization over person — unless
+                        there is no organization, in which case the
+                        person moves up rather than sitting under the
+                        words "My Organization", which for a session
+                        with no OrgMembership (an operator account) was
+                        simply false.
+                        {% endcomment %}
                         <div class="flex-1 min-w-0 text-left">
-                            <p class="text-sm font-semibold text-stone-800 truncate">{{ request.org.name|default:"My Organization" }}</p>
+                            {% if request.org %}
+                            <p class="text-sm font-semibold text-stone-800 truncate">{{ request.org.name }}</p>
                             <p class="text-[11px] text-stone-400 truncate">{% if user.name %}{{ user.name }}{% else %}{{ user.email }}{% endif %}</p>
+                            {% else %}
+                            <p class="text-sm font-semibold text-stone-800 truncate">{% if user.name %}{{ user.name }}{% else %}{{ user.email }}{% endif %}</p>
+                            {% endif %}
                         </div>
                     </button>
                     <button @click="sidebarCollapsed = true"
@@ -842,9 +883,21 @@
                     <!-- User info -->
                     <div class="px-4 pt-4 pb-3">
                         <p class="text-sm text-stone-500 truncate">{{ user.email }}</p>
-                        <p class="text-sm font-semibold text-stone-900 mt-1">{{ request.org.name|default:_("My Organization") }}</p>
+                        {% if request.org %}
+                        <p class="text-sm font-semibold text-stone-900 mt-1">{{ request.org.name }}</p>
+                        {% endif %}
                     </div>
 
+                    {% comment %}
+                    Manage Team — shown only where it works. ``members:list``
+                    sits behind ``require_org_role`` (apps/members/decorators.py),
+                    so for a session with no OrgMembership it answers 403:
+                    the only button on the menu that refused the person who
+                    pressed it. Keyed on the membership that carries it, the
+                    same condition layouts/settings.html uses for its whole
+                    Organization section.
+                    {% endcomment %}
+                    {% if request.org_membership %}
                     <!-- Manage Team button -->
                     <div class="px-4 pb-3">
                         <a href="{% url 'members:list' %}"
@@ -853,6 +906,7 @@
                             {% translate "Manage Team" %}
                         </a>
                     </div>
+                    {% endif %}
 
                     <div class="border-t border-stone-100">
                         <!-- Settings -->
@@ -872,11 +926,15 @@
                     is shown the door.
 
                     The door, not the room: this leads into
-                    layouts/admin_shell.html, which has none of the
-                    product navigation around it. An operator account owns
-                    no workspace, so every link in this sidebar is dead
-                    for them — that is the whole reason the admin area is
-                    a separate shell.
+                    layouts/admin_shell.html, which is this same shell
+                    with the administrative navigation in place of the
+                    product's — the arrangement layouts/settings.html
+                    uses, and what the product owner asked for over the
+                    dark separate shell that preceded it. The product
+                    links an operator cannot use are not there because
+                    the whole of ``sidebar_nav`` is replaced; the rest of
+                    the chrome adapts to a session with no workspace by
+                    the conditions above.
 
                     ``not impersonation`` because the views refuse an
                     impersonated session (apps.billing.views._is_billing_staff):

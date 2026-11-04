@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 13:34+0000\n"
+"POT-Creation-Date: 2026-11-04 14:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -253,18 +253,22 @@ msgstr "O preço por workspace não é um valor válido. Informe no formato 50,0
 
 #: apps/billing/services.py:186
 msgid "The price per workspace cannot be negative. Use 0 to charge nothing."
-msgstr "O preço por workspace não pode ser negativo. Use 0 para não cobrar nada."
+msgstr ""
+"O preço por workspace não pode ser negativo. Use 0 para não cobrar nada."
 
 #: apps/billing/services.py:187
 msgid ""
 "The price per workspace cannot have fractions of a cent. Use at most two "
 "decimals."
-msgstr "O preço por workspace não pode ter fração de centavo. Use no máximo duas casas decimais."
+msgstr ""
+"O preço por workspace não pode ter fração de centavo. Use no máximo duas "
+"casas decimais."
 
 #: apps/billing/services.py:188
 msgid ""
 "That price per workspace is too high to be intentional. Check the amount."
-msgstr "Esse preço por workspace é alto demais para ser intencional. Confira o valor."
+msgstr ""
+"Esse preço por workspace é alto demais para ser intencional. Confira o valor."
 
 #: apps/billing/services.py:191
 msgid "Enter how much disk is included, in GB."
@@ -282,7 +286,9 @@ msgstr "O disco incluído não pode ser negativo. Use 0 para não incluir nenhum
 msgid ""
 "That amount of included disk is too high to be intentional. Check the value, "
 "in GB."
-msgstr "Essa quantidade de disco incluído é alta demais para ser intencional. Confira o valor, em GB."
+msgstr ""
+"Essa quantidade de disco incluído é alta demais para ser intencional. "
+"Confira o valor, em GB."
 
 #: apps/billing/services.py:198
 msgid "Enter the price per extra GB, in reais."
@@ -295,18 +301,23 @@ msgstr "O preço por GB extra não é um valor válido. Informe no formato 2,00.
 #: apps/billing/services.py:200
 msgid ""
 "The price per extra GB cannot be negative. Use 0 to give extra disk away."
-msgstr "O preço por GB extra não pode ser negativo. Use 0 para ceder disco extra sem cobrar."
+msgstr ""
+"O preço por GB extra não pode ser negativo. Use 0 para ceder disco extra sem "
+"cobrar."
 
 #: apps/billing/services.py:201
 msgid ""
 "The price per extra GB cannot have fractions of a cent. Use at most two "
 "decimals."
-msgstr "O preço por GB extra não pode ter fração de centavo. Use no máximo duas casas decimais."
+msgstr ""
+"O preço por GB extra não pode ter fração de centavo. Use no máximo duas "
+"casas decimais."
 
 #: apps/billing/services.py:202
 msgid ""
 "That price per extra GB is too high to be intentional. Check the amount."
-msgstr "Esse preço por GB extra é alto demais para ser intencional. Confira o valor."
+msgstr ""
+"Esse preço por GB extra é alto demais para ser intencional. Confira o valor."
 
 #: apps/billing/storage_usage.py:89
 #, python-format
@@ -376,7 +387,9 @@ msgstr "Os preços já eram esses valores, então nada foi alterado."
 msgid ""
 "Prices updated. Only subscriptions and add-ons contracted from now on use "
 "the new values — nobody who already bought is re-priced."
-msgstr "Preços atualizados. Somente assinaturas e adicionais contratados de agora em diante usam os novos valores — ninguém que já comprou é reprecificado."
+msgstr ""
+"Preços atualizados. Somente assinaturas e adicionais contratados de agora em "
+"diante usam os novos valores — ninguém que já comprou é reprecificado."
 
 #: apps/billing/views.py:1034
 #, python-format
@@ -1742,7 +1755,7 @@ msgstr "Todas as publicações"
 
 #: templates/analytics/_page_header.html:6 templates/analytics/index.html:4
 #: templates/analytics/no_accounts.html:4
-#: templates/analytics/no_accounts.html:10 templates/base.html:691
+#: templates/analytics/no_accounts.html:10 templates/base.html:721
 msgid "Analytics"
 msgstr "Análises"
 
@@ -1817,7 +1830,7 @@ msgstr "Todos"
 msgid "All time"
 msgstr "Todo o período"
 
-#: templates/analytics/_post_table.html:50 templates/base.html:415
+#: templates/analytics/_post_table.html:50 templates/base.html:445
 msgid "Post"
 msgstr "Publicação"
 
@@ -1895,7 +1908,7 @@ msgstr "Não configurado"
 msgid "Automation settings"
 msgstr "Configurações da automação"
 
-#: templates/automations/flow_builder.html:150 templates/base.html:866
+#: templates/automations/flow_builder.html:150 templates/base.html:923
 #: templates/organizations/partials/workspace_card.html:35
 #: templates/settings_manager/index.html:3
 #: templates/settings_manager/index.html:6
@@ -2547,7 +2560,7 @@ msgid "Create rule"
 msgstr "Criar regra"
 
 #: templates/automations/list.html:4 templates/automations/list.html:11
-#: templates/base.html:678
+#: templates/base.html:708
 msgid "Automations"
 msgstr "Automações"
 
@@ -2851,40 +2864,40 @@ msgstr ""
 "Confira os tipos de correspondência das palavras-chave, o escopo das "
 "publicações e a lista de exclusão — a exclusão prevalece sobre a inclusão."
 
-#: templates/base.html:360
+#: templates/base.html:379
 msgid "No workspaces"
 msgstr "Nenhum workspace"
 
-#: templates/base.html:369 templates/base.html:1465
+#: templates/base.html:388 templates/base.html:1526
 msgid "Create workspace"
 msgstr "Criar workspace"
 
-#: templates/base.html:380
+#: templates/base.html:399
 msgid "Workspace settings"
 msgstr "Configurações do workspace"
 
-#: templates/base.html:397
+#: templates/base.html:427
 msgid "New"
 msgstr "Novo"
 
-#: templates/base.html:416
+#: templates/base.html:446
 msgid "Publish content to a channel"
 msgstr "Publicar conteúdo em um canal"
 
-#: templates/base.html:425
+#: templates/base.html:455
 msgid "Idea"
 msgstr "Ideia"
 
-#: templates/base.html:426
+#: templates/base.html:456
 msgid "Capture a content idea"
 msgstr "Registrar uma ideia de conteúdo"
 
-#: templates/base.html:454 templates/base.html:658
+#: templates/base.html:484 templates/base.html:688
 #: templates/composer/create_landing.html:587
 msgid "Create Idea"
 msgstr "Criar ideia"
 
-#: templates/base.html:479 templates/composer/compose.html:1061
+#: templates/base.html:509 templates/composer/compose.html:1061
 #: templates/composer/compose.html:1706
 #: templates/composer/create_landing.html:445
 #: templates/composer/create_landing.html:612
@@ -2894,12 +2907,12 @@ msgstr "Criar ideia"
 msgid "Tags"
 msgstr "Tags"
 
-#: templates/base.html:566 templates/composer/create_landing.html:702
+#: templates/base.html:596 templates/composer/create_landing.html:702
 #: templates/composer/create_landing.html:902
 msgid "Add another file"
 msgstr "Adicionar outro arquivo"
 
-#: templates/base.html:624 templates/composer/compose.html:1782
+#: templates/base.html:654 templates/composer/compose.html:1782
 #: templates/composer/compose.html:1792
 #: templates/composer/create_landing.html:478
 #: templates/composer/create_landing.html:487
@@ -2909,61 +2922,56 @@ msgstr "Adicionar outro arquivo"
 msgid "Create new tag"
 msgstr "Criar nova tag"
 
-#: templates/base.html:654 templates/calendar/calendar.html:8
+#: templates/base.html:684 templates/calendar/calendar.html:8
 #: templates/calendar/calendar.html:369 templates/calendar/calendar.html:397
 #: templates/composer/compose.html:2519
 msgid "Publish"
 msgstr "Publicar"
 
-#: templates/base.html:662
+#: templates/base.html:692
 msgid "Social Inbox"
 msgstr "Caixa de entrada"
 
-#: templates/base.html:674 templates/media_library/library_index.html:12
+#: templates/base.html:704 templates/media_library/library_index.html:12
 msgid "Gallery"
 msgstr "Galeria"
 
-#: templates/base.html:684 templates/notifications/history.html:4
+#: templates/base.html:714 templates/notifications/history.html:4
 #: templates/notifications/history.html:12
 #: templates/notifications/partials/drawer.html:5
 msgid "Notifications"
 msgstr "Notificações"
 
-#: templates/base.html:709
+#: templates/base.html:739
 msgid "Intelligence"
 msgstr "Inteligência"
 
-#: templates/base.html:717 templates/organizations/cross_calendar.html:188
+#: templates/base.html:747 templates/organizations/cross_calendar.html:188
 msgid "Channels"
 msgstr "Canais"
 
-#: templates/base.html:784
+#: templates/base.html:814
 msgid "More channels"
 msgstr "Mais canais"
 
-#: templates/base.html:849
-msgid "My Organization"
-msgstr "Minha organização"
-
-#: templates/base.html:857
+#: templates/base.html:913
 msgid "Manage Team"
 msgstr "Gerenciar equipe"
 
-#: templates/base.html:898 templates/billing/staff_console.html:40
+#: templates/base.html:959 templates/billing/staff_console.html:40
 #: templates/billing/staff_impersonations.html:19
 #: templates/billing/staff_plans.html:25
 #: templates/billing/staff_subscriptions.html:32
-#: templates/layouts/admin_shell.html:39 templates/layouts/admin_shell.html:90
-#: templates/layouts/admin_shell.html:215 templates/layouts/settings.html:70
-#: templates/layouts/workspace_settings.html:51
+#: templates/layouts/admin_shell.html:38 templates/layouts/settings.html:70
+#: templates/layouts/workspace_settings.html:52
 msgid "Administration"
 msgstr "Administração"
 
-#: templates/base.html:916 templates/layouts/admin_shell.html:185
+#: templates/base.html:977
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/base.html:930 templates/layouts/admin_shell.html:198
+#: templates/base.html:991
 msgid "Log out"
 msgstr "Sair"
 
@@ -3021,7 +3029,7 @@ msgstr "Contratar espaço extra"
 
 #: templates/billing/staff_console.html:40
 #: templates/billing/staff_console.html:45
-#: templates/layouts/admin_shell.html:102
+#: templates/layouts/admin_shell.html:46
 msgid "Customers"
 msgstr "Clientes"
 
@@ -3087,7 +3095,7 @@ msgid "%(used)s / %(limit)s GB"
 msgstr "%(used)s / %(limit)s GB"
 
 #: templates/billing/staff_console.html:168
-#: templates/layouts/admin_shell.html:97
+#: templates/layouts/admin_shell.html:41
 msgid "Manage"
 msgstr "Gerenciar"
 
@@ -3229,7 +3237,7 @@ msgstr "Nenhuma conta ainda."
 
 #: templates/billing/staff_impersonations.html:19
 #: templates/billing/staff_impersonations.html:24
-#: templates/layouts/admin_shell.html:123
+#: templates/layouts/admin_shell.html:67
 msgid "Access log"
 msgstr "Registro de acessos"
 
@@ -3258,7 +3266,6 @@ msgstr[1] ""
 "sessões expiraram por dentro."
 
 #: templates/billing/staff_impersonations.html:52
-#: templates/layouts/admin_shell.html:148
 msgid "Operator"
 msgstr "Operador"
 
@@ -3300,7 +3307,7 @@ msgstr ""
 "que o iniciou."
 
 #: templates/billing/staff_plans.html:25 templates/billing/staff_plans.html:30
-#: templates/layouts/admin_shell.html:108
+#: templates/layouts/admin_shell.html:52
 msgid "Plan and prices"
 msgstr "Plano e preços"
 
@@ -3319,7 +3326,9 @@ msgstr "Preços"
 msgid ""
 "List prices, read only when a subscription or an add-on is contracted. "
 "Changing one never re-prices a customer who already bought."
-msgstr "Preços de tabela, lidos apenas quando uma assinatura ou um adicional é contratado. Alterar um deles nunca reprecifica quem já comprou."
+msgstr ""
+"Preços de tabela, lidos apenas quando uma assinatura ou um adicional é "
+"contratado. Alterar um deles nunca reprecifica quem já comprou."
 
 #: templates/billing/staff_plans.html:69
 msgid "Price per workspace"
@@ -3345,7 +3354,8 @@ msgstr "Alterado em %(when)s."
 msgid ""
 "Nobody has set this yet — it is the value this installation was deployed "
 "with."
-msgstr "Ninguém definiu isso ainda — é o valor com que esta instalação foi publicada."
+msgstr ""
+"Ninguém definiu isso ainda — é o valor com que esta instalação foi publicada."
 
 #: templates/billing/staff_plans.html:106
 msgid "Disk included"
@@ -3371,14 +3381,19 @@ msgstr "Preço do adicional, cobrado mensalmente além do workspace."
 msgid ""
 "Not decided yet — the deployed value is a stand-in so the add-on flow works "
 "end to end."
-msgstr "Ainda não definido — o valor publicado é provisório, só para o fluxo de adicionais funcionar de ponta a ponta."
+msgstr ""
+"Ainda não definido — o valor publicado é provisório, só para o fluxo de "
+"adicionais funcionar de ponta a ponta."
 
 #: templates/billing/staff_plans.html:167
 msgid ""
 "Changing a price affects only subscriptions and add-ons contracted "
 "afterwards. Everyone who already bought keeps the price they bought at — "
 "nobody is re-priced."
-msgstr "Alterar um preço afeta somente as assinaturas e os adicionais contratados depois. Quem já comprou mantém o preço pelo qual comprou — ninguém é reprecificado."
+msgstr ""
+"Alterar um preço afeta somente as assinaturas e os adicionais contratados "
+"depois. Quem já comprou mantém o preço pelo qual comprou — ninguém é "
+"reprecificado."
 
 #: templates/billing/staff_plans.html:172
 msgid "Save prices"
@@ -3428,7 +3443,9 @@ msgstr "Histórico de preços"
 msgid ""
 "The most recent changes to the list above. Nothing here changed anyone's "
 "existing bill."
-msgstr "As alterações mais recentes na lista acima. Nada aqui alterou a fatura de quem já é cliente."
+msgstr ""
+"As alterações mais recentes na lista acima. Nada aqui alterou a fatura de "
+"quem já é cliente."
 
 #: templates/billing/staff_plans.html:270
 #, python-format
@@ -3484,14 +3501,15 @@ msgstr "%(amount)s GB extras vendidos"
 
 #: templates/billing/staff_subscriptions.html:32
 #: templates/billing/staff_subscriptions.html:37
-#: templates/layouts/admin_shell.html:117
+#: templates/layouts/admin_shell.html:61
 msgid "Subscriptions"
 msgstr "Assinaturas"
 
 #: templates/billing/staff_subscriptions.html:40
 msgid ""
 "Every contract individually, and what the payment provider has reported."
-msgstr "Cada contrato individualmente, e o que o provedor de pagamento informou."
+msgstr ""
+"Cada contrato individualmente, e o que o provedor de pagamento informou."
 
 #: templates/billing/staff_subscriptions.html:53
 msgid "Contracted per month"
@@ -3513,7 +3531,9 @@ msgstr "Assinaturas que o provedor não conseguiu cobrar."
 msgid ""
 "These are contracted amounts, not amounts received. What was actually "
 "collected comes from the payment provider and is listed under Charges below."
-msgstr "Estes são valores contratados, não valores recebidos. O que foi efetivamente arrecadado vem do provedor de pagamento e está listado em Cobranças, abaixo."
+msgstr ""
+"Estes são valores contratados, não valores recebidos. O que foi efetivamente "
+"arrecadado vem do provedor de pagamento e está listado em Cobranças, abaixo."
 
 #: templates/billing/staff_subscriptions.html:85
 msgid "Contracts"
@@ -3560,7 +3580,9 @@ msgstr "Nenhuma assinatura está nesse estado."
 msgid ""
 "No workspace has a subscription row yet. One is created the first time a "
 "workspace's billing is opened."
-msgstr "Nenhum workspace tem registro de assinatura ainda. Um é criado na primeira vez que o faturamento de um workspace é aberto."
+msgstr ""
+"Nenhum workspace tem registro de assinatura ainda. Um é criado na primeira "
+"vez que o faturamento de um workspace é aberto."
 
 #: templates/billing/staff_subscriptions.html:200
 msgid "Charges"
@@ -3570,7 +3592,9 @@ msgstr "Cobranças"
 msgid ""
 "What the payment provider reported, newest first. Amounts are the provider's "
 "own figures, not ours."
-msgstr "O que o provedor de pagamento informou, do mais recente ao mais antigo. Os valores são os números do próprio provedor, não os nossos."
+msgstr ""
+"O que o provedor de pagamento informou, do mais recente ao mais antigo. Os "
+"valores são os números do próprio provedor, não os nossos."
 
 #: templates/billing/staff_subscriptions.html:212
 #: templates/notifications/preferences.html:34
@@ -3595,20 +3619,27 @@ msgstr "Mostrando os %(shown)s eventos mais recentes de %(total)s."
 msgid ""
 "The payment provider has not reported anything yet. Charges appear here as "
 "soon as it does."
-msgstr "O provedor de pagamento ainda não informou nada. As cobranças aparecem aqui assim que ele informar."
+msgstr ""
+"O provedor de pagamento ainda não informou nada. As cobranças aparecem aqui "
+"assim que ele informar."
 
 #: templates/billing/staff_subscriptions.html:290
 msgid ""
 "No charges yet, because the payment provider has no credentials on this "
 "installation."
-msgstr "Nenhuma cobrança ainda, porque o provedor de pagamento não tem credenciais nesta instalação."
+msgstr ""
+"Nenhuma cobrança ainda, porque o provedor de pagamento não tem credenciais "
+"nesta instalação."
 
 #: templates/billing/staff_subscriptions.html:293
 msgid ""
 "Contracting records what a customer asked for and charges nobody. Nothing "
 "has been billed or collected, and the totals above are what would be billed "
 "once the provider is set up."
-msgstr "Contratar registra o que o cliente pediu e não cobra ninguém. Nada foi faturado nem arrecadado, e os totais acima são o que seria faturado quando o provedor estiver configurado."
+msgstr ""
+"Contratar registra o que o cliente pediu e não cobra ninguém. Nada foi "
+"faturado nem arrecadado, e os totais acima são o que seria faturado quando o "
+"provedor estiver configurado."
 
 #: templates/billing/subscribe_modal.html:20
 msgid "Contract workspace"
@@ -6274,20 +6305,16 @@ msgid "Per-org subscription, billed monthly. Cancel anytime."
 msgstr ""
 "Assinatura por organização, cobrada mensalmente. Cancele quando quiser."
 
-#: templates/layouts/admin_shell.html:162
+#: templates/layouts/admin_shell.html:77
+msgid "Product"
+msgstr "Produto"
+
+#: templates/layouts/admin_shell.html:80
 msgid "Back to the product"
 msgstr "Voltar para o produto"
 
-#: templates/layouts/admin_shell.html:170
-msgid "My account"
-msgstr "Minha conta"
-
-#: templates/layouts/admin_shell.html:212
-msgid "Open the administration menu"
-msgstr "Abrir o menu da administração"
-
 #: templates/layouts/settings.html:73
-#: templates/layouts/workspace_settings.html:54
+#: templates/layouts/workspace_settings.html:55
 msgid "Administrative area"
 msgstr "Área administrativa"
 
@@ -7946,3 +7973,12 @@ msgstr "Participações no workspace"
 #: templates/workspaces/settings.html:223
 msgid "Yes, delete this workspace"
 msgstr "Sim, excluir este workspace"
+
+#~ msgid "My Organization"
+#~ msgstr "Minha organização"
+
+#~ msgid "My account"
+#~ msgstr "Minha conta"
+
+#~ msgid "Open the administration menu"
+#~ msgstr "Abrir o menu da administração"

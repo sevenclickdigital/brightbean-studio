@@ -337,7 +337,7 @@ a plan ends up at 10 MB.
 </div>
 {% endblock %}
 
-{% block extra_body %}
+{% block extra_js %}
 {% comment %}
 The currency mask. Deliberately small and dependency-free rather than a
 masking library: it has one job, and the backend does not trust its
@@ -349,13 +349,20 @@ validation.
 Registered on alpine:init because Alpine is loaded with `defer`, so this
 inline script runs first and the component has to be waiting for it.
 
+In ``extra_js`` rather than the old shell's ``extra_body``: base.html is
+the layout now, and that is the block it offers after Alpine's tag. It
+carries ``nonce`` because CSP_INCLUDE_NONCE_IN lists script-src
+(config/settings/base.py), which makes the nonce the only thing that
+lets an inline script run — the standalone shell had no nonce on this
+script at all, so the mask was silently dead there.
+
 pt-BR formatting is hardcoded here, unlike everywhere else in this
 project, because the field it masks is the one the operator types money
 into and this administration area is Brazilian-operator-only. The
 backend parser accepts both conventions regardless, which is what keeps
 that from being a trap.
 {% endcomment %}
-<script>
+<script nonce="{{ request.csp_nonce }}">
   document.addEventListener('alpine:init', () => {
     Alpine.data('brlField', () => ({
       // Reformats from the digits alone, so the caret cannot end up

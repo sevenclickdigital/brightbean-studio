@@ -1,17 +1,24 @@
-"""The isolated administrative area: who reaches it, and what it survives.
+"""The administrative area: who reaches it, and what it survives.
 
 Four screens behind ``_staff_required`` — Customers (the old single
-console), Plan and prices, Subscriptions, Access log — rendered in
-``templates/layouts/admin_shell.html`` instead of ``base.html``.
+console), Plan and prices, Subscriptions, Access log — rendered through
+``templates/layouts/admin_shell.html``, which is ``base.html`` with the
+administrative navigation in place of the product's (the arrangement
+``templates/layouts/settings.html`` uses).
+
+That layout used to be a standalone dark shell that did NOT extend
+base.html, and these tests asserted exactly that. The product owner
+rejected the separate look, so what is asserted changed with it: the
+administrative layout is still in the chain and still ahead of
+base.html, and the product navigation still cannot appear — now because
+the one block that holds it is overridden and the state it needs
+(workspace, organization, channels) is empty for an operator, which the
+tests below check directly.
 
 What is asserted here is behaviour, permission outcome and context
 state. Nothing asserts on rendered wording or markup: the interface
 renders in pt-BR, the words are not a contract, and this project already
-carries a pile of tests broken by exactly that mistake. The one thing the
-isolation claim needs is checked structurally rather than textually —
-which *template* answered, and the fact that the page renders at all for
-an account with no workspace, which is what a stray ``request.workspace``
-dereference in the chrome would break.
+carries a pile of tests broken by exactly that mistake.
 """
 
 from __future__ import annotations
@@ -359,17 +366,63 @@ class TestExemptionLimitIsNotProvisioning:
 @pytest.mark.django_db
 class TestTheAreaIsIsolatedFromTheProduct:
     @pytest.mark.parametrize("name", ADMIN_SCREENS)
-    def test_rendered_through_the_admin_shell_not_the_product_base(self, client, operator, name):
-        """The product chrome lives in base.html, outside any block this
-        area could override; the whole fix is that these pages no longer
-        inherit from it."""
+    def test_rendered_through_the_admin_layout(self, client, operator, name):
+        """Every screen goes through layouts/admin_shell.html, which is
+        what carries the administrative navigation.
+
+        This used to also assert ``"base.html" not in used``, because the
+        area was a standalone dark shell that deliberately did not
+        inherit the product's. The product owner rejected that: the area
+        should look like the rest of the product, the way Settings does.
+        So admin_shell.html now extends base.html and overrides
+        ``sidebar_nav`` — base.html in the chain is the arrangement, not
+        a regression. What still has to hold is that a screen cannot
+        reach base.html WITHOUT going through the admin layout, which is
+        the half that keeps the product's own navigation out.
+        """
         client.force_login(operator)
 
         response = client.get(reverse(name))
 
-        used = {template.name for template in response.templates}
+        used = [template.name for template in response.templates]
         assert "layouts/admin_shell.html" in used
-        assert "base.html" not in used
+        assert "base.html" in used
+        # The admin layout is rendered before base.html in the chain:
+        # a screen extending base.html directly would not list it.
+        assert used.index("layouts/admin_shell.html") < used.index("base.html")
+
+    @pytest.mark.parametrize("name", ADMIN_SCREENS)
+    def test_the_product_navigation_cannot_be_built_for_the_operator(self, client, operator, name):
+        """The product's sidebar links are all workspace-scoped, and the
+        chrome around ``sidebar_nav`` is keyed on the same state. With no
+        workspace and no organization on the request, none of those
+        regions has anything to render — which is why overriding one
+        block is enough and base.html needs no rule about this area.
+
+        State, not markup: these are the three conditions base.html
+        branches on.
+        """
+        client.force_login(operator)
+
+        request = client.get(reverse(name)).wsgi_request
+
+        assert getattr(request, "workspace", None) is None
+        assert request.org is None
+        assert request.org_membership is None
+
+    @pytest.mark.parametrize("name", ADMIN_SCREENS)
+    def test_the_sidebar_has_no_channels_or_workspaces_to_offer(self, client, operator, name):
+        """The two lists base.html renders outside ``sidebar_nav`` (the
+        workspace switcher) and inside it (connected channels) come from
+        apps/common/context_processors.py, which populates neither
+        without a workspace. Empty is what makes the shared shell safe
+        here."""
+        client.force_login(operator)
+
+        context = client.get(reverse(name)).context
+
+        assert list(context["sidebar_workspaces"]) == []
+        assert list(context["sidebar_channels"]) == []
 
     @pytest.mark.parametrize("name", ADMIN_SCREENS)
     def test_renders_with_no_workspace_on_the_request(self, client, operator, name):

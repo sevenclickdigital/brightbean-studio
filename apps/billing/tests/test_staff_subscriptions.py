@@ -511,8 +511,10 @@ class TestTheEmptyState:
         assert response.context["event_rows"] == []
 
     def test_renders_through_the_admin_shell(self, client, operator):
-        """Under base.html this page would carry the whole product
-        interface, pointing at a workspace an operator does not have."""
+        """Extending base.html directly would bring the product's own
+        navigation along, pointing at a workspace an operator does not
+        have; the admin layout replaces that one block. See
+        test_admin_area.py for the full structural claim."""
         client.force_login(operator)
 
         templates = [t.name for t in client.get(reverse(URL)).templates if t.name]
