@@ -159,34 +159,28 @@ Context: previews (list of dicts with account, title, caption, first_comment, ch
             {% endif %}
             {% if media_items %}
             {% if media_items|length > 1 %}
-            {# ─── Carousel ─── #}
-            <div class="relative bg-stone-100 overflow-hidden" style="aspect-ratio: 16/9;" x-data="{ slide: 0, count: {{ media_items|length }} }">
-                {% for m in media_items %}
-                <div x-show="slide === {{ forloop.counter0 }}" class="absolute inset-0">
+            {% comment %}
+            Facebook does not swipe a feed post any more — it lays the photos
+            out in a grid whose shape comes from how many there are, and from
+            the first one's orientation. Five tiles at most; the rest are
+            counted on the last one. The classes below are spelled out per
+            count rather than computed, so each layout can be read against a
+            real post.
+            {% endcomment %}
+            <div class="fb-grid fb-grid--{{ fb_grid_items|length }}{% if media_items.0.is_portrait %} fb-grid--lead-portrait{% endif %}">
+                {% for m in fb_grid_items %}
+                <div class="fb-grid__cell">
                     {% if m.is_video %}
-                    <video src="{{ m.url }}#t=0.5" class="w-full h-full object-cover" muted preload="metadata"></video>
-                    <div class="absolute inset-0 flex items-center justify-center"><div class="w-14 h-14 rounded-full bg-black/40 flex items-center justify-center"><svg class="w-6 h-6 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></div></div>
+                    <video src="{{ m.url }}#t=0.5" muted preload="metadata"></video>
+                    <div class="absolute inset-0 flex items-center justify-center"><div class="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center"><svg class="w-5 h-5 text-white ml-0.5" fill="currentColor" viewBox="0 0 20 20"><path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/></svg></div></div>
                     {% else %}
-                    <img src="{{ m.url }}" class="w-full h-full object-cover" alt="">
+                    <img src="{{ m.url }}" alt="">
+                    {% endif %}
+                    {% if forloop.last and fb_grid_overflow %}
+                    <div class="fb-grid__more">+{{ fb_grid_overflow }}</div>
                     {% endif %}
                 </div>
                 {% endfor %}
-                <!-- Counter badge -->
-                <div class="absolute top-3 right-3 bg-black/60 text-white text-[11px] font-medium px-2 py-0.5 rounded-full z-10" x-text="(slide + 1) + '/' + count"></div>
-                <!-- Left arrow -->
-                <button type="button" x-show="slide > 0" @click.stop="slide = Math.max(0, slide - 1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white transition-colors z-10 cursor-pointer">
-                    <svg class="w-3.5 h-3.5 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-                </button>
-                <!-- Right arrow -->
-                <button type="button" x-show="slide < count - 1" @click.stop="slide = Math.min(count - 1, slide + 1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-white/90 shadow flex items-center justify-center hover:bg-white transition-colors z-10">
-                    <svg class="w-3.5 h-3.5 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-                </button>
-                <!-- Dot indicators -->
-                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-                    {% for m in media_items %}
-                    <button type="button" @click.stop="slide = {{ forloop.counter0 }}" class="w-1.5 h-1.5 rounded-full transition-colors" :class="slide === {{ forloop.counter0 }} ? 'bg-[#1877F2]' : 'bg-white/60'"></button>
-                    {% endfor %}
-                </div>
             </div>
             {% else %}
             {# ─── Single media ─── #}

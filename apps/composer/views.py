@@ -69,6 +69,31 @@ logger = logging.getLogger(__name__)
 
 MAX_CSV_UPLOAD_BYTES = 5 * 1024 * 1024  # 5 MB cap on CSV planner imports
 
+# Facebook's feed grid tops out at five tiles; anything past that is counted
+# on the fifth as "+N". Mirrored in the preview so the composer shows what
+# the feed will show.
+FACEBOOK_GRID_MAX_TILES = 5
+
+
+def _preview_media_item(asset):
+    """One attachment as the preview templates expect it."""
+    return {
+        "url": asset.file.url if asset.file else "",
+        "is_video": asset.is_video,
+        "filename": asset.filename,
+        # Facebook picks its grid from the first photo's shape, so the
+        # preview needs the orientation to pick the same one.
+        "is_portrait": bool(asset.width and asset.height and asset.height > asset.width),
+    }
+
+
+def _facebook_grid_context(media_items):
+    """Tiles the Facebook preview shows, and the count hidden behind the last."""
+    return {
+        "fb_grid_items": media_items[:FACEBOOK_GRID_MAX_TILES],
+        "fb_grid_overflow": max(0, len(media_items) - FACEBOOK_GRID_MAX_TILES),
+    }
+
 # Shown when every posting slot within the lookahead horizon is already taken.
 # Lazy: this is evaluated at import, before a request has picked the language.
 _QUEUE_FULL_MSG = gettext_lazy(
@@ -892,25 +917,9 @@ def compose(request, workspace_id, post_id=None):
     ]
 
     # Build media_items for the initial preview render
-    media_items = []
-    for att in media_attachments:
-        asset = att.media_asset
-        media_items.append(
-            {
-                "url": asset.file.url if asset.file else "",
-                "is_video": asset.is_video,
-                "filename": asset.filename,
-            }
-        )
+    media_items = [_preview_media_item(att.media_asset) for att in media_attachments]
     if not media_items:
-        for asset in pending_assets:
-            media_items.append(
-                {
-                    "url": asset.file.url if asset.file else "",
-                    "is_video": asset.is_video,
-                    "filename": asset.filename,
-                }
-            )
+        media_items = [_preview_media_item(asset) for asset in pending_assets]
 
     # Resolve thumbnail/cover image URLs for per-account assets already saved
     thumb_ids = [
@@ -946,6 +955,7 @@ def compose(request, workspace_id, post_id=None):
         "platform_extras": platform_extras,
         "media_attachments": media_attachments,
         "media_items": media_items,
+        **_facebook_grid_context(media_items),
         "char_limits": char_limits,
         "automation_targets": automation_targets,
         "default_first_comment": default_first_comment,
@@ -1654,14 +1664,7 @@ def preview(request, workspace_id):
         try:
             post_obj = Post.objects.get(id=post_id_str, workspace=workspace)
             for att in post_obj.media_attachments.select_related("media_asset").all():
-                asset = att.media_asset
-                media_items.append(
-                    {
-                        "url": asset.file.url if asset.file else "",
-                        "is_video": asset.is_video,
-                        "filename": asset.filename,
-                    }
-                )
+                media_items.append(_preview_media_item(att.media_asset))
         except Post.DoesNotExist:
             pass
 
@@ -1671,13 +1674,7 @@ def preview(request, workspace_id):
         pending_ids = request.session.get(session_key, [])
         if pending_ids:
             for asset in MediaAsset.objects.filter(id__in=pending_ids, workspace=workspace):
-                media_items.append(
-                    {
-                        "url": asset.file.url if asset.file else "",
-                        "is_video": asset.is_video,
-                        "filename": asset.filename,
-                    }
-                )
+                media_items.append(_preview_media_item(asset))
 
     return render(
         request,
@@ -1686,6 +1683,7 @@ def preview(request, workspace_id):
             "previews": previews,
             "workspace": workspace,
             "media_items": media_items,
+            **_facebook_grid_context(media_items),
         },
     )
 

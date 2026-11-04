@@ -333,6 +333,72 @@
     /* One attachment is not a carousel, so the badge would say nothing. */
     #media-list .media-thumb:only-of-type .order-badge { display: none; }
 
+    /* ── Facebook feed grid ──────────────────────────────────────────
+       Facebook stopped swiping multi-photo posts: it tiles them, and the
+       tiling is picked from the photo count plus the first photo's
+       orientation. Five tiles is the ceiling — a sixth photo becomes "+1"
+       on the fifth. Each count is written out as its own template so the
+       layout can be compared against a real post rather than inferred.
+
+       Lives here rather than in the partial because htmx swaps the panel's
+       innards on every keystroke; the stylesheet should not ride along. */
+    .fb-grid {
+        display: grid;
+        gap: 2px;
+        background: #FFFFFF;
+        overflow: hidden;
+    }
+    .fb-grid__cell { position: relative; overflow: hidden; background: #F5F5F4; }
+    .fb-grid__cell img,
+    .fb-grid__cell video {
+        width: 100%; height: 100%;
+        object-fit: cover; display: block;
+    }
+    /* The count sits over the last tile, dimming it the way the feed does. */
+    .fb-grid__more {
+        position: absolute; inset: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(0,0,0,0.45);
+        color: #FFFFFF; font-size: 30px; font-weight: 600;
+        letter-spacing: -0.02em;
+    }
+
+    /* Two: side by side. A landscape lead reads better stacked. */
+    .fb-grid--2 { grid-template-columns: 1fr 1fr; aspect-ratio: 16/9; }
+    .fb-grid--2.fb-grid--lead-portrait { aspect-ratio: 1/1; }
+
+    /* Three: the lead takes a full side, the other two split the rest. */
+    .fb-grid--3 {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        aspect-ratio: 1/1;
+    }
+    .fb-grid--3 .fb-grid__cell:first-child { grid-row: span 2; }
+    /* A portrait lead turns the split horizontal: wide photo up top. */
+    .fb-grid--3.fb-grid--lead-portrait { aspect-ratio: 4/3; }
+    .fb-grid--3.fb-grid--lead-portrait .fb-grid__cell:first-child {
+        grid-row: auto; grid-column: span 2;
+    }
+
+    /* Four: the even 2x2. */
+    .fb-grid--4 {
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        aspect-ratio: 1/1;
+    }
+
+    /* Five and up: two across the top, three along the bottom. */
+    .fb-grid--5 {
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: 1.25fr 1fr;
+        aspect-ratio: 1/1;
+    }
+    .fb-grid--5 .fb-grid__cell:nth-child(1),
+    .fb-grid--5 .fb-grid__cell:nth-child(2) { grid-column: span 3; }
+    .fb-grid--5 .fb-grid__cell:nth-child(3),
+    .fb-grid--5 .fb-grid__cell:nth-child(4),
+    .fb-grid--5 .fb-grid__cell:nth-child(5) { grid-column: span 2; }
+
     /* Preview panel cards */
     .preview-card {
         background: #FFFFFF;
