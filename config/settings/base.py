@@ -77,6 +77,7 @@ LOCAL_APPS = [
     "apps.approvals",
     "apps.client_portal",
     "apps.onboarding",
+    "apps.billing",
     # Always installed (migrations consistent across deployments). URLs +
     # templates short-circuit when ``settings.INTELLIGENCE_ENABLED`` is False,
     # so self-hosters who don't set the Intelligence env vars get no
@@ -695,6 +696,35 @@ INBOX_DEEP_SWEEP_SECONDS = env.int("INBOX_DEEP_SWEEP_SECONDS", default=7 * 24 * 
 # (apps.social_accounts.views._create_or_update_account), so a workspace already
 # over the cap keeps every account it has and can still reconnect them.
 MAX_ACCOUNTS_PER_PLATFORM = env.int("MAX_ACCOUNTS_PER_PLATFORM", default=3)
+
+
+# ---------------------------------------------------------------------------
+# Billing (per-workspace subscription)
+# ---------------------------------------------------------------------------
+# A workspace is the billable unit: one plan with every feature, charged
+# monthly per workspace. Disk is the only limited resource, and extra disk
+# is sold as an add-on.
+#
+# These are the LIST prices, read only when a subscription or add-on is
+# contracted. Each row snapshots the price it was sold at, so raising a
+# value here never re-prices an existing customer.
+
+# R$ 50,00/month per workspace, in cents. Money is always integer cents.
+BILLING_WORKSPACE_PRICE_CENTS = env.int("BILLING_WORKSPACE_PRICE_CENTS", default=5000)
+
+# Disk included with every workspace, in bytes. 10 GB (decimal, matching
+# how the extra-GB add-on is sold).
+BILLING_WORKSPACE_BASE_STORAGE_BYTES = env.int(
+    "BILLING_WORKSPACE_BASE_STORAGE_BYTES",
+    default=10 * 1_000_000_000,
+)
+
+# Price of one extra GB per month, in cents. PLACEHOLDER — the product
+# owner has not set this yet. R$ 2,00 is a stand-in so the add-on flow is
+# exercisable end to end; it must be confirmed before the add-on is sold
+# to anyone, and the value only affects add-ons contracted after it
+# changes.
+BILLING_STORAGE_PRICE_PER_GB_CENTS = env.int("BILLING_STORAGE_PRICE_PER_GB_CENTS", default=200)
 
 # Webhook verification
 FACEBOOK_WEBHOOK_VERIFY_TOKEN = env("FACEBOOK_WEBHOOK_VERIFY_TOKEN", default="")

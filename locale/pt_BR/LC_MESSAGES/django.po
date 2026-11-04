@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-04 03:13+0000\n"
+"POT-Creation-Date: 2026-11-04 03:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -144,6 +144,59 @@ msgstr "Em execução"
 #: apps/automations/models.py:200
 msgid "Paused"
 msgstr "Pausada"
+
+#: apps/billing/models.py:68 apps/billing/models.py:218
+#: apps/composer/models.py:477 apps/composer/models.py:830
+#: templates/automations/log.html:71
+msgid "Pending"
+msgstr "Pendente"
+
+#: apps/billing/models.py:69 apps/billing/models.py:219
+#: templates/intelligence/billing_settings.html:52
+msgid "Active"
+msgstr "Ativa"
+
+#: apps/billing/models.py:70
+msgid "Past due"
+msgstr "Inadimplente"
+
+#: apps/billing/models.py:71 apps/billing/models.py:220
+msgid "Canceled"
+msgstr "Cancelada"
+
+#: apps/billing/models.py:72
+msgid "Courtesy"
+msgstr "Cortesia"
+
+#: apps/billing/models.py:215
+msgid "Extra storage"
+msgstr "Armazenamento extra"
+
+#: apps/billing/models.py:307
+msgid "workspace storage add-on"
+msgstr "adicional de armazenamento do workspace"
+
+#: apps/billing/models.py:308
+msgid "workspace storage add-ons"
+msgstr "adicionais de armazenamento do workspace"
+
+#: apps/billing/models.py:351
+msgid "Received"
+msgstr "Recebido"
+
+#: apps/billing/models.py:352
+msgid "Processed"
+msgstr "Processado"
+
+#: apps/billing/models.py:353
+msgid "Ignored"
+msgstr "Ignorado"
+
+#: apps/billing/models.py:354 apps/composer/models.py:414
+#: apps/composer/models.py:479 apps/composer/models.py:833
+#: apps/inbox/models.py:140 templates/inbox/partials/_draft_reply_item.html:6
+msgid "Failed"
+msgstr "Falhou"
 
 #: apps/calendar/models.py:21
 msgid "Monday"
@@ -348,12 +401,6 @@ msgstr "Publicando"
 msgid "Published"
 msgstr "Publicado"
 
-#: apps/composer/models.py:414 apps/composer/models.py:479
-#: apps/composer/models.py:833 apps/inbox/models.py:140
-#: templates/inbox/partials/_draft_reply_item.html:6
-msgid "Failed"
-msgstr "Falhou"
-
 #: apps/composer/models.py:415
 msgid "On Hold"
 msgstr "Em espera"
@@ -361,11 +408,6 @@ msgstr "Em espera"
 #: apps/composer/models.py:476
 msgid "Not requested"
 msgstr "Não solicitado"
-
-#: apps/composer/models.py:477 apps/composer/models.py:830
-#: templates/automations/log.html:71
-msgid "Pending"
-msgstr "Pendente"
 
 #: apps/composer/models.py:478
 msgid "Posted"
@@ -1051,11 +1093,11 @@ msgstr "Modo de fluxo de aprovação inválido."
 msgid "Approval workflow updated."
 msgstr "Fluxo de aprovação atualizado."
 
-#: config/settings/base.py:226
+#: config/settings/base.py:227
 msgid "Português (Brasil)"
 msgstr "Português (Brasil)"
 
-#: config/settings/base.py:227
+#: config/settings/base.py:228
 msgid "English (US)"
 msgstr "Inglês (EUA)"
 
@@ -4934,10 +4976,6 @@ msgstr "Assinatura"
 #: templates/intelligence/billing_settings.html:32
 msgid "Plan"
 msgstr "Plano"
-
-#: templates/intelligence/billing_settings.html:52
-msgid "Active"
-msgstr "Ativa"
 
 #: templates/intelligence/billing_settings.html:52
 msgid "canceling"
