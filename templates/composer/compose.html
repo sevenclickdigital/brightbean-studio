@@ -2170,18 +2170,29 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
         <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" @click="showMediaPicker = false"></div>
-        <div class="relative bg-white rounded-2xl shadow-xl border border-stone-200 w-[calc(100vw-1rem)] sm:w-[640px] mx-2 sm:mx-0 max-h-[85vh] sm:max-h-[70vh] overflow-hidden"
+        {% comment %}
+        Sized like the media library screen rather than a small dialog: this
+        holds the same search, folders, grid and pagination, and a selection
+        of several images needs the room. The body is a flex column so the
+        picker's own footer stays put while the grid scrolls under it.
+        {% endcomment %}
+        {% comment %}
+        Width is a plain max-w: Tailwind drops the inner calc() out of
+        w-[min(1100px,calc(100vw-4rem))], emitting the invalid
+        `min(1100px,100vw - 4rem)` and losing the width entirely.
+        {% endcomment %}
+        <div class="relative bg-white rounded-2xl shadow-xl border border-stone-200 flex flex-col w-full max-w-[1100px] h-[calc(100vh-2rem)] sm:h-[85vh] mx-2 sm:mx-4 overflow-hidden"
              x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
-            <div class="px-4 sm:px-6 py-4 border-b border-stone-100 flex items-center justify-between">
+            <div class="px-4 sm:px-6 py-4 border-b border-stone-100 flex items-center justify-between shrink-0">
                 <h2 class="text-base font-semibold text-stone-900">{% translate "Media Library" %}</h2>
                 <button @click="showMediaPicker = false"
                         class="w-8 h-8 rounded-lg border border-stone-200 text-stone-400 hover:text-stone-600 hover:border-stone-300 flex items-center justify-center transition-all duration-150 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <div class="p-4 sm:p-6 overflow-y-auto max-h-[calc(85vh-72px)] sm:max-h-[calc(70vh-72px)]"
+            <div class="flex-1 min-h-0 flex flex-col"
                  hx-get="{% if post %}{% url 'composer:media_picker_post' workspace_id=workspace.id post_id=post.id %}{% else %}{% url 'composer:media_picker' workspace_id=workspace.id %}{% endif %}"
                  hx-trigger="intersect once"
                  hx-swap="innerHTML">

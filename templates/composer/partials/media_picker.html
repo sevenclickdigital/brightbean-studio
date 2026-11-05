@@ -1,60 +1,310 @@
 {% comment %}
-Media Library picker modal content - loaded via HTMX.
-Context: assets, workspace, post (optional).
+Media Library picker modal - loaded via HTMX from composer.views.media_picker.
+
+The library's own screen, in selection mode: same search, type filters,
+folders, sort and pagination, reusing media_library/_asset_grid.html and
+_asset_card.html with ``picker_mode``. Clicking a thumbnail toggles it; the
+footer inserts the whole selection at once, in the order it was picked.
+
+Context: page, workspace, post (optional), folders, file_types,
+accepted_file_types, picker_mode, plus the filter params from
+media_library.views.filtered_assets.
 {% endcomment %}
 {% load i18n %}
 
-{% if assets %}
-<div class="grid grid-cols-4 gap-3">
-    {% for asset in assets %}
-    <div class="group relative rounded-xl overflow-hidden border border-stone-200 aspect-square cursor-pointer hover:border-orange-400 hover:shadow-md transition-all duration-150"
-         {% if post %}
-         hx-post="{% url 'composer:attach_media' workspace_id=workspace.id post_id=post.id %}"
-         {% else %}
-         hx-post="{% url 'composer:attach_pending_media' workspace_id=workspace.id %}"
-         {% endif %}
-         hx-vals='{"media_asset_id": "{{ asset.id }}"}'
-         hx-target="#media-list"
-         hx-swap="beforeend"
-         @click="showMediaPicker = false">
-        {% if asset.thumbnail %}
-        <img src="{{ asset.thumbnail.url }}" class="w-full h-full object-cover" alt="{{ asset.filename }}">
-        {% elif asset.is_video and asset.file %}
-        <video src="{{ asset.file.url }}#t=0.5" class="w-full h-full object-cover" muted preload="metadata"></video>
-        {% elif asset.file %}
-        <img src="{{ asset.file.url }}" class="w-full h-full object-cover" alt="{{ asset.filename }}">
-        {% else %}
-        <div class="w-full h-full bg-stone-100 flex items-center justify-center">
-            <svg class="w-8 h-8 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
-        </div>
-        {% endif %}
-        <!-- Overlay on hover -->
-        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-150 flex items-center justify-center">
-            <div class="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 shadow-sm">
-                <svg class="w-4 h-4 text-stone-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            </div>
-        </div>
-        {% if asset.is_video %}
-        <div class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 rounded text-[10px] font-bold text-white bg-black/60 backdrop-blur-sm">
-            {{ asset.duration|floatformat:0 }}s
-        </div>
-        {% endif %}
-        {% if asset.is_shared %}
-        <span class="absolute top-1 right-1 px-1.5 py-0.5 rounded text-[10px] font-bold text-white"
-              style="background: rgba(20,184,166,0.9); letter-spacing: 0.06em;">{% translate "SHARED" %}</span>
-        {% endif %}
-        <div class="absolute bottom-0 left-0 right-0 p-1.5 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150">
-            <span class="text-[10px] text-white font-medium truncate block">{{ asset.filename }}</span>
-        </div>
-    </div>
-    {% endfor %}
-</div>
+{% if post %}
+  {% url 'composer:media_picker_post' workspace_id=workspace.id post_id=post.id as picker_url %}
+  {% url 'composer:attach_media_batch_post' workspace_id=workspace.id post_id=post.id as insert_url %}
+  {% url 'composer:upload_media_post' workspace_id=workspace.id post_id=post.id as picker_upload_url %}
 {% else %}
-<div class="text-center py-12">
-    <div class="w-14 h-14 mx-auto rounded-2xl bg-stone-100 flex items-center justify-center mb-3">
-        <svg class="w-6 h-6 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-    </div>
-    <p class="text-sm font-medium text-stone-500 mb-1">{% translate "No media yet" %}</p>
-    <p class="text-xs text-stone-400">{% translate "Upload files to your media library to use them here" %}</p>
-</div>
+  {% url 'composer:media_picker' workspace_id=workspace.id as picker_url %}
+  {% url 'composer:attach_media_batch' workspace_id=workspace.id as insert_url %}
+  {% url 'composer:upload_media' workspace_id=workspace.id as picker_upload_url %}
 {% endif %}
+
+{% comment %}
+The gallery's own card/pill/folder styling. Carried with the partial rather
+than added to compose.html's head: this body is swapped in by HTMX, so the
+rules have to arrive with it.
+{% endcomment %}
+{% include "media_library/_library_styles.html" %}
+
+<div class="flex flex-col h-full" x-data="mediaPicker()">
+
+  <!-- ── Toolbar: search, type filters, sort, upload ─────────── -->
+  <div class="flex items-center gap-2 flex-wrap px-4 sm:px-6 py-3 border-b shrink-0"
+       style="border-color: var(--surface-2, #F5F5F4);">
+
+    <!-- Search -->
+    <div class="relative flex-1 min-w-[160px] sm:max-w-xs">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      <input type="search"
+             name="q"
+             value="{{ query }}"
+             placeholder="{% translate 'Search media...' %}"
+             class="input-focus w-full pl-9 pr-4 py-2 text-sm border rounded-lg outline-none"
+             style="border-color: var(--border, #E7E5E4); background: var(--surface-0, #FFF);"
+             hx-get="{{ picker_url }}"
+             hx-trigger="keyup changed delay:400ms, search"
+             hx-target="#picker-asset-grid"
+             hx-swap="innerHTML"
+             hx-include="[name='picker-sort'], [name='picker-type'], [name='picker-folder']">
+    </div>
+
+    {% comment %}
+    The non-search filters ride along as hidden inputs so hx-include can
+    carry them on every request: picking a type, then searching, has to keep
+    the type. Alpine owns their values; HTMX only reads them.
+    {% endcomment %}
+    <input type="hidden" name="picker-type" :value="type">
+    <input type="hidden" name="picker-folder" :value="folder">
+
+    <!-- Type filters -->
+    <div class="flex items-center gap-1.5 overflow-x-auto flex-nowrap">
+      <button type="button"
+              @click="type = ''"
+              class="ml-filter-pill shrink-0"
+              :class="type === '' && 'active'"
+              hx-get="{{ picker_url }}"
+              hx-target="#picker-asset-grid"
+              hx-swap="innerHTML"
+              hx-include="[name='q'], [name='picker-sort'], [name='picker-folder']">{% translate "All" %}</button>
+      {% for type_val, type_label in file_types %}
+      <button type="button"
+              @click="type = '{{ type_val }}'"
+              class="ml-filter-pill shrink-0"
+              :class="type === '{{ type_val }}' && 'active'"
+              hx-get="{{ picker_url }}?type={{ type_val }}"
+              hx-target="#picker-asset-grid"
+              hx-swap="innerHTML"
+              hx-include="[name='q'], [name='picker-sort'], [name='picker-folder']">{{ type_label }}</button>
+      {% endfor %}
+    </div>
+
+    <div class="flex-1"></div>
+
+    <!-- Sort -->
+    <select name="picker-sort"
+            class="text-xs border rounded-lg pl-3 pr-7 py-2 outline-none cursor-pointer appearance-none"
+            style="border-color: var(--border, #E7E5E4); color: var(--text-secondary, #57534E); background-image: url(&quot;data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%2378716C' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E&quot;); background-repeat: no-repeat; background-position: right 8px center;"
+            hx-get="{{ picker_url }}"
+            hx-trigger="change"
+            hx-target="#picker-asset-grid"
+            hx-swap="innerHTML"
+            hx-include="[name='q'], [name='picker-type'], [name='picker-folder']">
+      <option value="-date" {% if current_sort == '-date' or current_sort == '-created_at' %}selected{% endif %}>{% translate "Newest first" %}</option>
+      <option value="date" {% if current_sort == 'date' %}selected{% endif %}>{% translate "Oldest first" %}</option>
+      <option value="name" {% if current_sort == 'name' %}selected{% endif %}>{% translate "Name A-Z" %}</option>
+      <option value="-name" {% if current_sort == '-name' %}selected{% endif %}>{% translate "Name Z-A" %}</option>
+      <option value="-size" {% if current_sort == '-size' %}selected{% endif %}>{% translate "Largest first" %}</option>
+      <option value="size" {% if current_sort == 'size' %}selected{% endif %}>{% translate "Smallest first" %}</option>
+    </select>
+
+    {% comment %}
+    Upload posts straight to the composer's own endpoint, which attaches the
+    file to the post (or the pending session) as well as storing it — so a
+    file picked up here lands in the post without a second trip through the
+    grid. ``uploadsComplete`` refreshes the grid so it also shows up there.
+    {% endcomment %}
+    <button type="button" @click="$refs.pickerFile.click()"
+            class="inline-flex items-center gap-1.5 px-4 py-1.5 text-sm font-semibold text-orange-600 bg-orange-50 border border-orange-200 rounded-full hover:bg-orange-100 hover:border-orange-300 transition-all duration-150 cursor-pointer shrink-0">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      {% translate "Upload" %}
+    </button>
+    <input type="file" x-ref="pickerFile" multiple class="hidden"
+           accept="{{ accepted_file_types }}"
+           @change="upload($event.target.files, '{{ picker_upload_url }}')">
+  </div>
+
+  <!-- ── Body: folders + grid ────────────────────────────────── -->
+  <div class="flex flex-1 min-h-0">
+
+    <!-- Folders -->
+    <aside class="hidden sm:block w-44 shrink-0 border-r overflow-y-auto py-3 px-2"
+           style="border-color: var(--surface-2, #F5F5F4);">
+      <button type="button"
+              @click="folder = ''"
+              class="ml-folder-item w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer"
+              :class="folder === '' && 'active'"
+              hx-get="{{ picker_url }}"
+              hx-target="#picker-asset-grid"
+              hx-swap="innerHTML"
+              hx-include="[name='q'], [name='picker-sort'], [name='picker-type']">
+        <svg class="w-4 h-4 shrink-0" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="truncate">{% translate "All media" %}</span>
+      </button>
+
+      <button type="button"
+              @click="folder = ''"
+              class="ml-folder-item w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer"
+              hx-get="{{ picker_url }}?starred=1"
+              hx-target="#picker-asset-grid"
+              hx-swap="innerHTML"
+              hx-include="[name='q'], [name='picker-sort'], [name='picker-type']">
+        <svg class="w-4 h-4 shrink-0" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+        <span class="truncate">{% translate "Favorites" %}</span>
+      </button>
+
+      {% if folders %}
+      <div class="mt-3 pt-3 border-t" style="border-color: var(--surface-2, #F5F5F4);">
+        <p class="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider" style="color: var(--text-ghost, #A8A29E);">{% translate "Folders" %}</p>
+        {% for folder_item in folders %}
+        <button type="button"
+                @click="folder = '{{ folder_item.id }}'"
+                class="ml-folder-item w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm cursor-pointer"
+                :class="folder === '{{ folder_item.id }}' && 'active'"
+                hx-get="{{ picker_url }}?folder={{ folder_item.id }}"
+                hx-target="#picker-asset-grid"
+                hx-swap="innerHTML"
+                hx-include="[name='q'], [name='picker-sort'], [name='picker-type']">
+          <svg class="w-4 h-4 shrink-0" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          <span class="truncate">{{ folder_item.name }}</span>
+        </button>
+        {% for subfolder in folder_item.subfolders.all %}
+        <button type="button"
+                @click="folder = '{{ subfolder.id }}'"
+                class="ml-folder-item w-full text-left flex items-center gap-2 pl-7 pr-3 py-1.5 rounded-lg text-sm cursor-pointer"
+                :class="folder === '{{ subfolder.id }}' && 'active'"
+                hx-get="{{ picker_url }}?folder={{ subfolder.id }}"
+                hx-target="#picker-asset-grid"
+                hx-swap="innerHTML"
+                hx-include="[name='q'], [name='picker-sort'], [name='picker-type']">
+          <svg class="w-4 h-4 shrink-0" style="color: var(--text-ghost, #A8A29E);" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+          <span class="truncate">{{ subfolder.name }}</span>
+        </button>
+        {% endfor %}
+        {% endfor %}
+      </div>
+      {% endif %}
+    </aside>
+
+    <!-- Grid -->
+    <div id="picker-asset-grid" class="flex-1 overflow-y-auto p-4 sm:p-5 min-h-0">
+      {% include "media_library/_asset_grid.html" %}
+    </div>
+  </div>
+
+  <!-- ── Footer: selection count + insert ─────────────────────── -->
+  {% comment %}
+  Always on screen, never scrolling away: the complaint this replaces was
+  having to scroll back up after reaching the end of the list.
+  {% endcomment %}
+  <div class="flex items-center justify-between gap-3 px-4 sm:px-6 py-3 border-t shrink-0"
+       style="border-color: var(--surface-2, #F5F5F4); background: var(--surface-1, #FAFAF9);">
+    <div class="flex items-center gap-3 min-w-0">
+      <span class="text-sm" style="color: var(--text-secondary, #57534E);"
+            x-text="picked.length === 0
+                    ? '{% translate "No media selected" %}'
+                    : picked.length === 1
+                      ? '{% translate "1 selected" %}'
+                      : picked.length + ' {% translate "selected" %}'"></span>
+      <button type="button" x-show="picked.length > 0" @click="picked = []"
+              class="text-xs font-medium underline cursor-pointer"
+              style="color: var(--text-tertiary, #78716C);">
+        {% translate "Clear" %}
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button type="button" @click="showMediaPicker = false"
+              class="px-4 py-2 text-sm font-medium rounded-lg border transition-colors cursor-pointer"
+              style="border-color: var(--border, #E7E5E4); color: var(--text-secondary, #57534E);">
+        {% translate "Cancel" %}
+      </button>
+      <button type="button"
+              :disabled="picked.length === 0"
+              :class="picked.length === 0 && 'opacity-40 cursor-not-allowed'"
+              class="px-5 py-2 text-sm font-semibold text-white rounded-lg transition-colors cursor-pointer"
+              style="background: var(--primary-600, #EA580C);"
+              @click="insert('{{ insert_url }}')">
+        <span x-text="picked.length > 1
+                      ? '{% translate "Insert" %} (' + picked.length + ')'
+                      : '{% translate "Insert" %}'"></span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  {% comment %}
+  Defined on each load of this partial rather than in compose.html: the modal
+  body is swapped in by HTMX, and Alpine initialises the x-data above the
+  moment it lands. Guarded so repeat opens don't redefine it.
+  {% endcomment %}
+  window.mediaPicker = window.mediaPicker || function () {
+    return {
+      // Ordered: index 0 is the first thumbnail clicked and leads the carousel.
+      picked: [],
+      type: '{{ current_type|default:"" }}',
+      folder: '{{ current_folder|default:"" }}',
+
+      isPicked(id) { return this.picked.includes(id); },
+
+      // 1-based, and '' for anything unpicked so the badge renders empty.
+      pickedPosition(id) {
+        const i = this.picked.indexOf(id);
+        return i === -1 ? '' : i + 1;
+      },
+
+      toggle(id) {
+        const i = this.picked.indexOf(id);
+        if (i === -1) {
+          this.picked.push(id);
+        } else {
+          // Splice, not filter: the numbers after it have to close up.
+          this.picked.splice(i, 1);
+        }
+      },
+
+      insert(url) {
+        if (!this.picked.length) return;
+        {% comment %}
+        Posted by hand rather than through htmx.ajax: the IDs have to arrive
+        as a repeated media_asset_ids field for request.POST.getlist to see
+        the whole selection, and htmx flattens an array value into one
+        comma-joined string. The HTML comes back as the new thumbnails and is
+        appended to the composer's media list; HX-Trigger on the response
+        refreshes the preview.
+        {% endcomment %}
+        const body = new FormData();
+        this.picked.forEach(id => body.append('media_asset_ids', id));
+        fetch(url, {
+          method: 'POST',
+          headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+          body,
+        })
+          .then(response => {
+            if (!response.ok) throw new Error('insert failed');
+            return response.text();
+          })
+          .then(html => {
+            const list = document.getElementById('media-list');
+            if (list) list.insertAdjacentHTML('beforeend', html);
+            htmx.process(list);
+            window.dispatchEvent(new CustomEvent('previewUpdate'));
+            this.picked = [];
+            this.showMediaPicker = false;
+          });
+      },
+
+      upload(files, url) {
+        if (!files || !files.length) return;
+        const uploads = Array.from(files).map(file => {
+          const body = new FormData();
+          body.append('file', file);
+          return fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value },
+            body,
+          });
+        });
+        Promise.all(uploads).then(() => {
+          htmx.trigger('body', 'uploadsComplete');
+          // The upload endpoint already attached each file, so the composer's
+          // own media list needs refreshing too.
+          window.dispatchEvent(new CustomEvent('previewUpdate'));
+        });
+      },
+    };
+  };
+</script>

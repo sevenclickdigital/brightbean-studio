@@ -15,6 +15,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.cache import cache, caches
 from django.core.exceptions import PermissionDenied, SuspiciousOperation, ValidationError
+from django.core.paginator import Paginator
 from django.db import models, transaction
 from django.http import FileResponse, Http404, HttpResponse, JsonResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -1707,26 +1708,52 @@ def preview(request, workspace_id):
 @login_required
 @require_GET
 def media_picker(request, workspace_id, post_id=None):
-    """Modal picker for selecting media from the library."""
+    """Modal picker for selecting media from the library.
+
+    Runs the library's own search/filter/sort/paginate pipeline
+    (``media_library.views.filtered_assets``) and renders the library's own
+    asset grid, so the picker shows the same media library the user already
+    knows instead of a parallel one. ``picker_mode`` turns the shared partials
+    from a manager into a selector: the cards carry a checkbox and no
+    star/detail actions, and every HTMX URL points back here.
+
+    Responds with the grid alone for HTMX requests driven by search, a filter
+    pill, sort or pagination; the full modal body otherwise.
+    """
+    from apps.media_library.models import MediaFolder
+    from apps.media_library.validators import get_accepted_file_types
+    from apps.media_library.views import ASSETS_PER_PAGE, filtered_assets
+
     workspace = _get_workspace(request, workspace_id)
-    from apps.media_library.models import MediaAsset
 
     post = None
     if post_id:
         post = get_object_or_404(Post, id=post_id, workspace=workspace)
 
-    assets = MediaAsset.objects.for_workspace_with_shared(workspace.id, workspace.organization_id).order_by(
-        "-created_at"
-    )[:50]
-    return render(
-        request,
-        "composer/partials/media_picker.html",
-        {
-            "assets": assets,
-            "workspace": workspace,
-            "post": post,
-        },
-    )
+    qs, filters = filtered_assets(request, workspace)
+    page = Paginator(qs, ASSETS_PER_PAGE).get_page(request.GET.get("page", 1))
+
+    context = {
+        "page": page,
+        "workspace": workspace,
+        "post": post,
+        "picker_mode": True,
+        "file_types": MediaAsset.MediaType.choices,
+        "accepted_file_types": get_accepted_file_types(),
+        **filters,
+    }
+
+    # The grid alone for search/filter/sort/paginate; the whole body on open.
+    # Without the header check, typing in the search box would swap the modal's
+    # own chrome (search field included) into the grid container.
+    if request.headers.get("HX-Target") == "picker-asset-grid":
+        return render(request, "media_library/_asset_grid.html", context)
+
+    context["folders"] = MediaFolder.objects.filter(
+        workspace=workspace,
+        parent_folder__isnull=True,
+    ).prefetch_related("subfolders__subfolders")
+    return render(request, "composer/partials/media_picker.html", context)
 
 
 @login_required
@@ -2486,6 +2513,79 @@ def attach_pending_media(request, workspace_id):
             "workspace": workspace,
         },
     )
+    response["HX-Trigger"] = "previewUpdate"
+    return response
+
+
+@login_required
+@require_POST
+def attach_media_batch(request, workspace_id, post_id=None):
+    """Attach every asset the picker selected, in the order they were picked.
+
+    One request for the whole selection rather than one per asset: picking
+    eight images used to mean eight round trips, each appending a single
+    thumbnail, with the post's media order left to however they happened to
+    land. Here the caller's order is the carousel's order.
+
+    ``media_asset_ids`` arrives as a repeated POST field, already ordered by
+    when each checkbox was ticked.
+    """
+    workspace = _get_workspace(request, workspace_id)
+
+    post = None
+    if post_id:
+        post = get_object_or_404(Post, id=post_id, workspace=workspace)
+
+    # Anything that isn't a UUID is dropped here rather than handed to the
+    # ORM, which raises ValidationError on a malformed id and would turn one
+    # bad value into a 500 for the whole selection.
+    asset_ids = [aid for aid in request.POST.getlist("media_asset_ids") if _is_valid_uuid(aid)]
+    if not asset_ids:
+        return JsonResponse({"error": "media_asset_ids required"}, status=400)
+
+    # One query for the whole selection, then re-sorted into the order the
+    # user clicked — the DB returns them in whatever order it likes, and that
+    # order is what the carousel would otherwise be built from. Unknown IDs
+    # (deleted mid-session, or another workspace's) simply fall out.
+    visible = MediaAsset.objects.for_workspace_with_shared(workspace.id, workspace.organization_id)
+    by_id = {str(asset.id): asset for asset in visible.filter(id__in=asset_ids)}
+    assets = [by_id[aid] for aid in asset_ids if aid in by_id]
+
+    if not assets:
+        return JsonResponse({"error": "no matching media"}, status=404)
+
+    attachments = []
+    pending_assets = []
+    for asset in assets:
+        attachment = _attach_asset_for_composer(request, workspace, asset, post=post)
+        if attachment is not None:
+            attachments.append(attachment)
+        else:
+            pending_assets.append(asset)
+
+    if post is not None:
+        # Option A, as in ``attach_media``: editing the media of an approved
+        # post sends it back for re-approval.
+        _revert_approved_to_review(post)
+        response = render(
+            request,
+            "composer/partials/media_list.html",
+            {
+                "media_attachments": attachments,
+                "post": post,
+                "workspace": workspace,
+            },
+        )
+    else:
+        response = render(
+            request,
+            "composer/partials/media_list_pending.html",
+            {
+                "pending_assets": pending_assets,
+                "workspace": workspace,
+            },
+        )
+
     response["HX-Trigger"] = "previewUpdate"
     return response
 

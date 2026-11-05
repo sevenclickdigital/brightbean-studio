@@ -33,6 +33,68 @@ def _get_workspace_or_404(request, workspace_id):
     return request.workspace
 
 
+SORT_OPTIONS = {
+    "name": "filename",
+    "-name": "-filename",
+    "date": "created_at",
+    "-date": "-created_at",
+    "size": "file_size",
+    "-size": "-file_size",
+}
+
+# Page size for the library grid. The composer's picker paginates with the
+# same number so "page 3" means the same set of assets in both places.
+ASSETS_PER_PAGE = 48
+
+
+def filtered_assets(request, workspace):
+    """The asset queryset for ``request``'s search, filter and sort params.
+
+    Shared with the composer's media picker (``apps.composer.views
+    .media_picker``) so the picker is the library — same results for the same
+    query string, rather than a second implementation that drifts. Returns the
+    queryset plus the normalized params the templates echo back into their
+    own HTMX URLs.
+    """
+    qs = MediaAsset.objects.for_workspace_with_shared(
+        workspace_id=workspace.id,
+        organization_id=workspace.organization_id,
+    ).select_related("uploaded_by", "folder")
+
+    file_type = request.GET.get("type")
+    if file_type and file_type in dict(MediaAsset.MediaType.choices):
+        qs = qs.filter(media_type=file_type)
+    else:
+        file_type = None
+
+    folder_id = request.GET.get("folder")
+    if folder_id:
+        qs = qs.filter(folder_id=folder_id)
+
+    starred = request.GET.get("starred") == "1"
+    if starred:
+        qs = qs.filter(is_starred=True)
+
+    uploader = request.GET.get("uploader")
+    if uploader:
+        qs = qs.filter(uploaded_by_id=uploader)
+
+    query = request.GET.get("q", "").strip()
+    if query:
+        qs = MediaAsset.objects.search(query, queryset=qs)
+
+    sort = request.GET.get("sort", "-created_at")
+    qs = qs.order_by(SORT_OPTIONS.get(sort, "-created_at"))
+
+    return qs, {
+        "query": query,
+        "current_folder": folder_id,
+        "current_type": file_type,
+        "current_sort": sort,
+        "is_starred": starred,
+    }
+
+
 # ──────────────────────────────────────────────────────────────
 #  Library Index
 # ──────────────────────────────────────────────────────────────
@@ -42,50 +104,14 @@ def _get_workspace_or_404(request, workspace_id):
 def library_index(request, workspace_id):
     workspace = _get_workspace_or_404(request, workspace_id)
 
-    # Base queryset: workspace assets + shared org assets
-    qs = MediaAsset.objects.for_workspace_with_shared(
-        workspace_id=workspace.id,
-        organization_id=workspace.organization_id,
-    ).select_related("uploaded_by", "folder")
-
-    # Filters
-    file_type = request.GET.get("type")
-    if file_type and file_type in dict(MediaAsset.MediaType.choices):
-        qs = qs.filter(media_type=file_type)
-
-    folder_id = request.GET.get("folder")
-    if folder_id:
-        qs = qs.filter(folder_id=folder_id)
-    elif request.GET.get("folder") is None and not request.GET.get("q"):
-        pass  # Show all
-
-    starred = request.GET.get("starred")
-    if starred == "1":
-        qs = qs.filter(is_starred=True)
-
-    uploader = request.GET.get("uploader")
-    if uploader:
-        qs = qs.filter(uploaded_by_id=uploader)
-
-    # Search
-    query = request.GET.get("q", "").strip()
-    if query:
-        qs = MediaAsset.objects.search(query, queryset=qs)
-
-    # Sort
-    sort = request.GET.get("sort", "-created_at")
-    sort_options = {
-        "name": "filename",
-        "-name": "-filename",
-        "date": "created_at",
-        "-date": "-created_at",
-        "size": "file_size",
-        "-size": "-file_size",
-    }
-    qs = qs.order_by(sort_options.get(sort, "-created_at"))
+    qs, filters = filtered_assets(request, workspace)
+    query = filters["query"]
+    folder_id = filters["current_folder"]
+    file_type = filters["current_type"]
+    sort = filters["current_sort"]
 
     # Pagination
-    paginator = Paginator(qs, 48)
+    paginator = Paginator(qs, ASSETS_PER_PAGE)
     page = paginator.get_page(request.GET.get("page", 1))
 
     # Folders for sidebar
@@ -115,7 +141,7 @@ def library_index(request, workspace_id):
         "current_folder": folder_id,
         "current_type": file_type,
         "current_sort": sort,
-        "is_starred": starred == "1",
+        "is_starred": filters["is_starred"],
         "file_types": MediaAsset.MediaType.choices,
         "accepted_file_types": get_accepted_file_types(),
         "max_bulk_upload": getattr(settings, "MEDIA_LIBRARY_MAX_BULK_UPLOAD", 50),

@@ -51,6 +51,14 @@ urlpatterns = [
     path("compose/<uuid:post_id>/media-picker/", views.media_picker, name="media_picker_post"),
     path("compose/<uuid:post_id>/attach-media/", views.attach_media, name="attach_media"),
     path("compose/attach-pending-media/", views.attach_pending_media, name="attach_pending_media"),
+    # Multi-select inserts from the media picker: one request for the whole
+    # selection, ordered by when each asset was picked.
+    path("compose/attach-media-batch/", views.attach_media_batch, name="attach_media_batch"),
+    path(
+        "compose/<uuid:post_id>/attach-media-batch/",
+        views.attach_media_batch,
+        name="attach_media_batch_post",
+    ),
     path("compose/upload-media/", views.upload_media, name="upload_media"),
     path("compose/<uuid:post_id>/upload-media/", views.upload_media, name="upload_media_post"),
     path("compose/<uuid:post_id>/remove-media/<uuid:media_id>/", views.remove_media, name="remove_media"),

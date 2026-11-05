@@ -1,16 +1,37 @@
 {% load static i18n %}
 
+{% comment %}
+Asset grid, shared by the media library and the composer's media picker.
+
+``picker_mode`` swaps the HTMX endpoints to the picker's own view and the
+target to the modal's grid container, so paginating inside the modal reloads
+the modal rather than navigating the page behind it. The list view is the
+library's alone — picking happens on thumbnails.
+{% endcomment %}
+
+{% if picker_mode %}
+  {% if post %}
+    {% url 'composer:media_picker_post' workspace_id=workspace.id post_id=post.id as grid_url %}
+  {% else %}
+    {% url 'composer:media_picker' workspace_id=workspace.id as grid_url %}
+  {% endif %}
+{% else %}
+  {% url 'media_library:index' workspace_id=workspace.id as grid_url %}
+{% endif %}
+
 {% if page.object_list %}
-<div x-show="viewMode === 'grid'" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
-     hx-get="{% url 'media_library:index' workspace_id=workspace.id %}?page=1&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"
+<div {% if not picker_mode %}x-show="viewMode === 'grid'"{% endif %}
+     class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
+     hx-get="{{ grid_url }}?page=1&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if is_starred %}&starred=1{% endif %}"
      hx-trigger="uploadsComplete from:body"
-     hx-target="#asset-grid"
+     hx-target="{% if picker_mode %}#picker-asset-grid{% else %}#asset-grid{% endif %}"
      hx-swap="innerHTML">
   {% for asset in page.object_list %}
     {% include "media_library/_asset_card.html" %}
   {% endfor %}
 </div>
 
+{% if not picker_mode %}
 <div x-show="viewMode === 'list'" x-cloak>
   <div class="rounded-xl border overflow-hidden" style="border-color: var(--border, #E7E5E4); background: var(--surface-0, #FFF);">
     <!-- List header -->
@@ -27,16 +48,17 @@
     {% endfor %}
   </div>
 </div>
+{% endif %}
 
 <!-- Pagination -->
 {% if page.has_other_pages %}
 <div class="flex items-center justify-center gap-2 mt-6 pb-4">
   {% if page.has_previous %}
-  <a href="?page={{ page.previous_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"
-     class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors"
+  <a {% if not picker_mode %}href="?page={{ page.previous_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"{% endif %}
+     class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors cursor-pointer"
      style="border-color: var(--border, #E7E5E4); color: var(--text-secondary, #57534E);"
-     hx-get="{% url 'media_library:index' workspace_id=workspace.id %}?page={{ page.previous_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"
-     hx-target="#asset-grid"
+     hx-get="{{ grid_url }}?page={{ page.previous_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if is_starred %}&starred=1{% endif %}"
+     hx-target="{% if picker_mode %}#picker-asset-grid{% else %}#asset-grid{% endif %}"
      hx-swap="innerHTML">
     {% translate "Previous" %}
   </a>
@@ -47,11 +69,11 @@
   </span>
 
   {% if page.has_next %}
-  <a href="?page={{ page.next_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"
-     class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors"
+  <a {% if not picker_mode %}href="?page={{ page.next_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"{% endif %}
+     class="px-3 py-1.5 text-xs font-semibold rounded-full border transition-colors cursor-pointer"
      style="border-color: var(--border, #E7E5E4); color: var(--text-secondary, #57534E);"
-     hx-get="{% url 'media_library:index' workspace_id=workspace.id %}?page={{ page.next_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}"
-     hx-target="#asset-grid"
+     hx-get="{{ grid_url }}?page={{ page.next_page_number }}&q={{ query|urlencode }}&sort={{ current_sort|urlencode }}{% if current_type %}&type={{ current_type }}{% endif %}{% if current_folder %}&folder={{ current_folder }}{% endif %}{% if is_starred %}&starred=1{% endif %}"
+     hx-target="{% if picker_mode %}#picker-asset-grid{% else %}#asset-grid{% endif %}"
      hx-swap="innerHTML">
     {% translate "Next" %}
   </a>

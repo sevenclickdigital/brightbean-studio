@@ -1,8 +1,26 @@
 {% load i18n %}
-{% comment %}Single asset card for grid view. Expects: asset, workspace{% endcomment %}
+{% comment %}
+Single asset card for grid view. Expects: asset, workspace.
 
-<div class="ml-asset-card group cursor-pointer overflow-hidden"
+With ``picker_mode``, the card becomes a selection target for the composer's
+media picker: clicking toggles it instead of opening the detail panel, a
+checkbox shows its position in the selection, and the star button is dropped
+(nothing here manages the library).
+{% endcomment %}
+
+<div class="ml-asset-card group cursor-pointer overflow-hidden relative"
+     {% if picker_mode %}
+     @click="toggle('{{ asset.id }}')"
+     {% comment %}
+     ``ml-asset-card-picked`` rather than a ring utility: the ring drew
+     outside the border, so a picked card showed two outlines at once. This
+     recolours the card's own border and lifts it, matching the hover state
+     the gallery already uses.
+     {% endcomment %}
+     :class="isPicked('{{ asset.id }}') && 'ml-asset-card-picked'"
+     {% else %}
      @click="openDetail('{{ asset.id }}')"
+     {% endif %}
      {% if asset.processing_status == 'pending' or asset.processing_status == 'processing' %}
      hx-get="{% url 'media_library:processing_status' workspace_id=workspace.id asset_id=asset.id %}"
      hx-trigger="every 3s"
@@ -52,6 +70,19 @@
     </span>
     {% endif %}
 
+    {% if picker_mode %}
+    {% comment %}
+    The checkbox carries the selection's position, not just a tick: the
+    insert order is the click order, so the number is what tells someone
+    which image will lead the carousel.
+    {% endcomment %}
+    <div class="absolute top-2 right-2 w-6 h-6 rounded-md border-2 flex items-center justify-center text-[11px] font-bold transition-all duration-150 pointer-events-none"
+         :class="isPicked('{{ asset.id }}')
+                 ? 'bg-orange-500 border-orange-500 text-white'
+                 : 'bg-white/90 border-stone-300 text-transparent opacity-0 group-hover:opacity-100'">
+      <span x-text="pickedPosition('{{ asset.id }}')"></span>
+    </div>
+    {% else %}
     <!-- Star button -->
     <button @click.stop
             class="absolute bottom-2 right-2 w-7 h-7 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -63,6 +94,7 @@
            stroke="{% if asset.is_starred %}var(--warning-500, #EAB308){% else %}var(--text-tertiary, #78716C){% endif %}"
            viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
     </button>
+    {% endif %}
 
     {% if asset.file_type == 'video' and asset.duration_seconds %}
     <span class="absolute bottom-2 left-2 text-xs font-semibold px-1.5 py-0.5 rounded"
