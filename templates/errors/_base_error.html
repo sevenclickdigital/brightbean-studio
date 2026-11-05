@@ -1,0 +1,70 @@
+{% comment %}
+Shared shell for the error pages (400/403/404/500).
+
+Deliberately does NOT extend base.html. That template renders the sidebar,
+the workspace switcher and the onboarding checklist, each reading context a
+request that just failed may not have — and a template error inside the 500
+page produces a second 500, which Django answers with its bare built-in
+response. Everything here is self-contained: the product's stylesheet and
+tokens, no context processors, no includes, no JavaScript.
+
+Blocks: code, title, message, extra (optional, for the 500's reference id).
+{% endcomment %}
+{% load i18n %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% endblock %} · Brightbean</title>
+  {% comment %}
+  No {% static %} and no stylesheet link anywhere on these pages. Under
+  ManifestStaticFilesStorage a tag whose file is missing from the manifest
+  raises ValueError — which, on the 500 page, turns one error into a second
+  one Django can only answer with its bare built-in response. The brand's
+  colours and type are inlined below instead, so the page owes nothing to
+  the pipeline that may be what broke.
+  {% endcomment %}
+</head>
+<body style="margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+             padding: 3rem 1rem; background: var(--surface-1, #FAFAF9);
+             font-family: var(--font-body, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif);">
+
+  <main style="width: 100%; max-width: 30rem; text-align: center;">
+
+    <!-- Status code -->
+    <p style="margin: 0; font-size: 3.75rem; line-height: 1; font-weight: 800; letter-spacing: -0.03em;
+              color: var(--primary, #F97316);">
+      {% block code %}{% endblock %}
+    </p>
+
+    <h1 style="margin: 1.25rem 0 0; font-size: 1.5rem; line-height: 1.25; font-weight: 700;
+               color: var(--text-primary, #1C1917);">
+      {% block heading %}{% endblock %}
+    </h1>
+
+    <p style="margin: 0.75rem 0 0; font-size: 0.9375rem; line-height: 1.6;
+              color: var(--text-secondary, #57534E);">
+      {% block message %}{% endblock %}
+    </p>
+
+    {% block extra %}{% endblock %}
+
+    {% comment %}
+    Home is resolved by hand rather than with {% url %}: these pages must
+    render even when the URLconf is the thing that failed, and a
+    NoReverseMatch here would replace the error page with a worse one.
+    {% endcomment %}
+    <div style="margin-top: 2rem;">
+      <a href="/"
+         style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.5rem;
+                font-size: 0.875rem; font-weight: 600; text-decoration: none; border-radius: 0.5rem;
+                color: #FFFFFF; background: var(--primary, #F97316);">
+        {% translate "Back to start" %}
+      </a>
+    </div>
+
+  </main>
+</body>
+</html>

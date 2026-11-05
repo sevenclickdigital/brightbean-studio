@@ -1,0 +1,15 @@
+{% extends "errors/_base_error.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Access denied" %}{% endblock %}
+{% block code %}403{% endblock %}
+{% block heading %}{% translate "Access denied" %}{% endblock %}
+{% block message %}
+  {% comment %}
+  Covers both halves of a 403: a permission the account lacks, and an
+  expired CSRF token (Django renders this template for CSRF failures when
+  CSRF_FAILURE_VIEW is left at its default). Reloading fixes the second and
+  does nothing for the first, so the wording offers it without promising it.
+  {% endcomment %}
+  {% translate "You don't have permission to view this page. If you were filling out a form, reload it and try again." %}
+{% endblock %}

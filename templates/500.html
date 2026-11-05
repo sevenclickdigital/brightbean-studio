@@ -1,0 +1,35 @@
+{% extends "errors/_base_error.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Something went wrong" %}{% endblock %}
+{% block code %}500{% endblock %}
+{% block heading %}{% translate "Something went wrong" %}{% endblock %}
+{% block message %}
+  {% translate "The error is on our side, not yours. It has been recorded and we're looking into it." %}
+{% endblock %}
+
+{% block extra %}
+{% comment %}
+The reference is minted and logged by apps.common.error_views.server_error,
+wired up as handler500. It lets support find this exact failure in the logs
+from what the person reads out, and reveals nothing on its own — no path, no
+stack, no account. Guarded because Django falls back to rendering this
+template with an empty context if that view itself fails.
+{% endcomment %}
+{% if request_id %}
+<div style="margin-top: 1.5rem; padding: 0.875rem 1rem; border-radius: 0.5rem;
+            background: var(--surface-2, #F5F5F4);">
+  <p style="margin: 0; font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.06em; color: var(--text-tertiary, #78716C);">
+    {% translate "Reference code" %}
+  </p>
+  <p style="margin: 0.25rem 0 0; font-size: 0.9375rem; font-weight: 600;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            color: var(--text-primary, #1C1917);">{{ request_id }}</p>
+  <p style="margin: 0.5rem 0 0; font-size: 0.8125rem; line-height: 1.5;
+            color: var(--text-secondary, #57534E);">
+    {% translate "Pass this code to support and we can find exactly what failed." %}
+  </p>
+</div>
+{% endif %}
+{% endblock %}

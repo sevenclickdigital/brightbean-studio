@@ -207,3 +207,11 @@ def media_urlpatterns():
 
 if settings.SERVE_MEDIA:
     urlpatterns += media_urlpatterns()
+
+
+# Error handlers. 400/403/404 render templates/{400,403,404}.html through
+# Django's own defaults; the 500 needs a view of its own because Django
+# renders that template with an empty context and the page shows a reference
+# code. Only consulted when DEBUG is off — with DEBUG on, the technical
+# pages take over.
+handler500 = "apps.common.error_views.server_error"

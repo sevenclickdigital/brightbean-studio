@@ -1,0 +1,9 @@
+{% extends "errors/_base_error.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Page not found" %}{% endblock %}
+{% block code %}404{% endblock %}
+{% block heading %}{% translate "Page not found" %}{% endblock %}
+{% block message %}
+  {% translate "This address doesn't exist, or what was here has been moved or deleted." %}
+{% endblock %}

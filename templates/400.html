@@ -1,0 +1,9 @@
+{% extends "errors/_base_error.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Invalid request" %}{% endblock %}
+{% block code %}400{% endblock %}
+{% block heading %}{% translate "Invalid request" %}{% endblock %}
+{% block message %}
+  {% translate "The server couldn't understand this request. Check the address and try again." %}
+{% endblock %}
