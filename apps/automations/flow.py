@@ -134,42 +134,52 @@ def rule_can_act(rule: Any) -> bool:
     )
 
 
-def default_graph() -> dict[str, Any]:
-    """The canvas a brand-new flow opens with: one trigger, one DM, connected.
+def default_graph(kind: str = "dm") -> dict[str, Any]:
+    """The canvas a brand-new flow opens with: a trigger and what ``kind`` asks for.
 
     Seeded rather than empty because an empty canvas makes the author's first
     decision "which node comes first", which has exactly one correct answer —
-    the trigger — and no way to discover it. The DM is seeded alongside because
-    it is the half this feature exists for; the public reply is left for the
-    author to add, since replying publicly to every commenter is a choice with
-    an audience-visible cost.
+    the trigger — and no way to discover it.
+
+    ``kind`` is what the new-rule chooser asked for, and only decides what is
+    already drawn — the author can add or delete either reply afterwards:
+
+    * ``"dm"`` — trigger → DM. The default, and the historical shape: the
+      public reply is left out because answering publicly to every commenter
+      is a choice with an audience-visible cost.
+    * ``"comment"`` — trigger → public reply.
+    * ``"both"`` — trigger → public reply, and trigger → DM.
 
     Positions are in canvas coordinates and are the editor's to change.
     """
-    return {
-        "nodes": [
-            {
-                "id": "trigger",
-                "type": "trigger_comment",
-                "x": 80,
-                "y": 160,
-                "data": {
-                    "keywords": [],
-                    "exclude_keywords": [],
-                    "match_mode": "contains",
-                    "top_level_only": False,
-                },
-            },
-            {
-                "id": "dm",
-                "type": "send_dm",
-                "x": 440,
-                "y": 160,
-                "data": {"text": ""},
-            },
-        ],
-        "edges": [{"from": "trigger", "to": "dm"}],
+    trigger = {
+        "id": "trigger",
+        "type": "trigger_comment",
+        "x": 80,
+        "y": 160,
+        "data": {
+            "keywords": [],
+            "exclude_keywords": [],
+            "match_mode": "contains",
+            "top_level_only": False,
+        },
     }
+    dm = {"id": "dm", "type": "send_dm", "x": 440, "y": 160, "data": {"text": ""}}
+    reply = {"id": "reply", "type": "reply_comment", "x": 440, "y": 20, "data": {"text": ""}}
+
+    if kind == "comment":
+        return {"nodes": [trigger, reply], "edges": [{"from": "trigger", "to": "reply"}]}
+
+    if kind == "both":
+        # The DM sits below the public reply, matching the order they happen
+        # in: the comment is answered where it was left, then the DM follows.
+        dm["y"] = 300
+        return {
+            "nodes": [trigger, reply, dm],
+            "edges": [{"from": "trigger", "to": "reply"}, {"from": "trigger", "to": "dm"}],
+        }
+
+    return {"nodes": [trigger, dm], "edges": [{"from": "trigger", "to": "dm"}]}
 
 
 def _nodes(graph: Any) -> list[dict[str, Any]]:

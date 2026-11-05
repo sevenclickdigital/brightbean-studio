@@ -26,7 +26,7 @@ from django.views.decorators.http import require_POST
 
 from apps.automations import matching
 from apps.automations.forms import KEYWORD_MODE_CHOICES, AutomationRuleForm
-from apps.automations.models import AutomationLog, AutomationRule
+from apps.automations.models import AutomationLog, AutomationRule, PostAutomation
 from apps.inbox.models import InboxMessage
 from apps.members.decorators import require_permission
 from apps.members.models import WorkspaceMembership
@@ -200,8 +200,17 @@ def rule_list(request, workspace_id):
 @login_required
 @require_permission("reply_from_inbox")
 def rule_create(request, workspace_id):
-    """Create a rule. Saved inactive unless the author explicitly turns it on."""
+    """Create a rule. Saved inactive unless the author explicitly turns it on.
+
+    Reached from the chooser's "every post on this channel" option, which is
+    the one shape the canvas cannot hold — a graph is bound to a
+    ``PlatformPost`` and an account-wide rule has none. A bare GET redirects
+    to the chooser so there is a single way in to a new rule.
+    """
     workspace = _get_workspace(request, workspace_id)
+
+    if request.method == "GET" and not request.GET.get("account"):
+        return redirect("automations:flow_new", workspace_id=workspace.id)
 
     if request.method == "POST":
         form = AutomationRuleForm(request.POST, workspace=workspace)
@@ -231,6 +240,20 @@ def rule_edit(request, workspace_id, rule_id):
     """
     workspace = _get_workspace(request, workspace_id)
     rule = get_object_or_404(AutomationRule, id=rule_id, workspace=workspace)
+
+    # A rule the author drew is edited where they drew it. Only rules with a
+    # canvas go there: ``PostAutomation.graph`` is presentation state the
+    # engine never reads and which "is not reconstructable from the rule" (see
+    # that model's docstring), so sending an account-wide or form-made rule to
+    # the builder would open a default canvas and save it over what the rule
+    # actually does. Those keep the form until the builder can hold them.
+    flow = PostAutomation.objects.filter(rule=rule).select_related("platform_post").first()
+    if flow is not None and flow.platform_post_id:
+        return redirect(
+            "automations:flow_builder",
+            workspace_id=workspace.id,
+            platform_post_id=flow.platform_post_id,
+        )
 
     if request.method == "POST":
         form = AutomationRuleForm(request.POST, instance=rule, workspace=workspace)

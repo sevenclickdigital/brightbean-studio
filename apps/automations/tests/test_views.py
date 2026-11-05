@@ -716,7 +716,10 @@ def test_the_form_closes_no_script_block_early(client, workspace, org_owner, use
     _member(workspace, user, WorkspaceMembership.WorkspaceRole.OWNER)
     client.force_login(user)
 
-    html = client.get(_url(workspace, "create/")).content.decode()
+    # ``?account=`` because a bare GET now redirects to the flow chooser: the
+    # form is reached only by the account-wide path, which is the one shape a
+    # canvas cannot hold.
+    html = client.get(_url(workspace, "create/"), {"account": "x"}).content.decode()
 
     # Every inline block, matched by taking the tag's own attributes only
     # (``[^>]*`` before the ``>``) and then its body non-greedily. A stray

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "New rule" %} - {{ workspace.name }} - Brightbean{% endblock %}
+
+{% block extra_head %}
+<style>
+  {% comment %}
+  The builder's own full-bleed shell, so this screen and the one it leads to
+  are the same size and the modal doesn't appear to move when it closes.
+  {% endcomment %}
+  .flow-shell { margin: -0.75rem; display: flex; flex-direction: column; height: calc(100% + 1.5rem); overflow: hidden; }
+  :has(> .flow-shell) { overflow: visible !important; }
+  @media (min-width: 640px) { .flow-shell { margin: -1rem; height: calc(100% + 2rem); } }
+  @media (min-width: 1024px) { .flow-shell { margin: -1.5rem; height: calc(100% + 3rem); } }
+
+  {% comment %}
+  The empty canvas behind the chooser. Same dotted grid the builder draws, so
+  what is waiting underneath is recognisable before anything is on it.
+  {% endcomment %}
+  .flow-new-canvas {
+    flex: 1;
+    min-height: 0;
+    background-color: var(--surface-1, #FAFAF9);
+    background-image: radial-gradient(circle, #D6D3D1 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+{% comment %}
+"New rule" opens here rather than on a form: a flow is drawn on a canvas, and
+the canvas cannot be drawn until it knows which account it listens to and
+which posts it answers for. So the canvas opens empty and the chooser asks —
+channel, then what the rule does, then which posts.
+
+Nothing is written on this screen. The last step is a link to the real
+builder; the rule itself is still created by the first save there.
+{% endcomment %}
+<div class="flow-shell" x-data="flowChooser()">
+
+  <!-- Toolbar: matches the builder's, minus everything that needs a post -->
+  <div class="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-200 shrink-0">
+    <a href="{% url 'automations:list' workspace_id=workspace.id %}"
+       class="text-stone-400 hover:text-stone-600 transition-colors shrink-0">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </a>
+    <h1 class="text-sm font-semibold text-stone-900">{% translate "New rule" %}</h1>
+  </div>
+
+  <div class="flow-new-canvas relative">
+
+    {% comment %}
+    The chooser is not dismissable: there is nothing behind it to use yet.
+    Leaving is the back arrow or Cancel, both of which return to the list.
+    {% endcomment %}
+    <div class="absolute inset-0 flex items-start justify-center overflow-y-auto p-4 sm:p-8"
+         style="background: rgba(28, 25, 23, 0.25); backdrop-filter: blur(3px);">
+
+      <div class="w-full max-w-2xl bg-white rounded-2xl border border-stone-200 overflow-hidden my-auto"
+           style="box-shadow: var(--shadow-xl, 0 20px 25px rgba(23,20,18,0.12));">
+
+        <!-- Step heading -->
+        <div class="px-6 py-4 border-b border-stone-100">
+          <p class="text-[11px] font-bold uppercase tracking-wider text-orange-600">
+            <span x-text="`{% translate 'Step' %} ${step} {% translate 'of' %} 3`"></span>
+          </p>
+          <h2 class="text-base font-semibold text-stone-900 mt-0.5"
+              x-text="stepTitle()"></h2>
+          <p class="text-[13px] text-stone-500 mt-0.5" x-text="stepHint()"></p>
+        </div>
+
+        <!-- ── Step 1: channel ───────────────────────────────────────── -->
+        <div x-show="step === 1" class="p-4 sm:p-5 space-y-2 max-h-[55vh] overflow-y-auto">
+          {% for entry in channels %}
+          {% comment %}
+          Unsupported channels are listed and disabled, not hidden: a Google
+          Business Profile missing from this list reads as a bug, while one
+          marked "coming soon" reads as a roadmap.
+          {% endcomment %}
+          <button type="button"
+                  {% if entry.can_automate %}
+                  @click="pickChannel('{{ entry.account.id }}', '{{ entry.account.account_name|escapejs }}')"
+                  class="w-full flex items-center gap-3 p-3 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/40 transition-colors text-left cursor-pointer"
+                  {% else %}
+                  disabled
+                  class="w-full flex items-center gap-3 p-3 rounded-xl border border-stone-200 text-left opacity-55 cursor-not-allowed"
+                  {% endif %}>
+            <div class="w-9 h-9 rounded-lg bg-stone-100 flex items-center justify-center shrink-0 text-[11px] font-bold text-stone-500 uppercase">
+              {{ entry.account.platform|slice:":2" }}
+            </div>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-stone-900 truncate">{{ entry.account.account_name }}</p>
+              <p class="text-[12px] text-stone-500 truncate">
+                {{ entry.account.get_platform_display }}{% if entry.reason %} · {{ entry.reason }}{% endif %}
+              </p>
+            </div>
+            {% if entry.can_automate %}
+            <svg class="w-4 h-4 text-stone-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            {% endif %}
+          </button>
+          {% empty %}
+          <div class="py-10 text-center">
+            <p class="text-sm font-medium text-stone-600">{% translate "No channels connected yet" %}</p>
+            <p class="text-[13px] text-stone-500 mt-1">{% translate "Connect a Facebook or Instagram account to automate replies." %}</p>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- ── Step 2: what the rule does ────────────────────────────── -->
+        <div x-show="step === 2" x-cloak class="p-4 sm:p-5 space-y-2">
+          {% comment %}
+          This seeds the canvas rather than locking it: the choice decides
+          which nodes are already drawn when the builder opens, and the author
+          can add or remove either afterwards.
+          {% endcomment %}
+          <template x-for="option in kinds" :key="option.value">
+            <button type="button"
+                    @click="pickKind(option.value)"
+                    class="w-full flex items-start gap-3 p-3 rounded-xl border transition-colors text-left cursor-pointer"
+                    :class="kind === option.value
+                            ? 'border-orange-400 bg-orange-50/50'
+                            : 'border-stone-200 hover:border-orange-300 hover:bg-orange-50/30'">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium text-stone-900" x-text="option.label"></p>
+                <p class="text-[12px] text-stone-500 mt-0.5" x-text="option.hint"></p>
+              </div>
+            </button>
+          </template>
+        </div>
+
+        <!-- ── Step 3: which posts ───────────────────────────────────── -->
+        <div x-show="step === 3" x-cloak class="max-h-[55vh] overflow-y-auto">
+          <div id="flow-new-posts" class="p-4 sm:p-5">
+            <div class="flex items-center justify-center py-12 text-stone-400">
+              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex items-center justify-between gap-3 px-5 py-3 border-t border-stone-100 bg-stone-50">
+          <button type="button"
+                  @click="step === 1 ? window.location.assign('{% url 'automations:list' workspace_id=workspace.id %}') : back()"
+                  class="px-4 py-2 text-[13px] font-medium text-stone-600 rounded-lg border border-stone-200 bg-white hover:border-stone-300 transition-colors cursor-pointer">
+            <span x-text="step === 1 ? '{% translate "Cancel" %}' : '{% translate "Back" %}'"></span>
+          </button>
+          <p class="text-[12px] text-stone-400 truncate" x-text="trail()"></p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script nonce="{{ request.csp_nonce }}">
+  function flowChooser() {
+    return {
+      step: 1,
+      accountId: '',
+      accountName: '',
+      kind: '{{ "both" }}',
+
+      kinds: [
+        { value: 'both',    label: '{% translate "Public reply + DM" %}',
+          hint: '{% translate "Answers under the comment and sends a direct message." %}' },
+        { value: 'dm',      label: '{% translate "Direct message only" %}',
+          hint: '{% translate "Sends a DM to whoever comments, with nothing public." %}' },
+        { value: 'comment', label: '{% translate "Public reply only" %}',
+          hint: '{% translate "Answers under the comment, visible to everyone." %}' },
+      ],
+
+      stepTitle() {
+        return [
+          '{% translate "Which channel?" %}',
+          '{% translate "What should the rule do?" %}',
+          '{% translate "Which posts?" %}',
+        ][this.step - 1];
+      },
+
+      stepHint() {
+        return [
+          '{% translate "Pick the account whose comments this rule listens to." %}',
+          '{% translate "This sets up the canvas — you can change it afterwards." %}',
+          '{% translate "A single post, or every post on this channel." %}',
+        ][this.step - 1];
+      },
+
+      trail() {
+        if (this.step === 1) return '';
+        const kind = this.kinds.find(k => k.value === this.kind);
+        return this.step === 2 ? this.accountName : `${this.accountName} · ${kind ? kind.label : ''}`;
+      },
+
+      pickChannel(id, name) {
+        this.accountId = id;
+        this.accountName = name;
+        this.step = 2;
+      },
+
+      pickKind(value) {
+        this.kind = value;
+        this.step = 3;
+        this.loadPosts();
+      },
+
+      loadPosts() {
+        const base = '{% url 'automations:flow_choose_posts' workspace_id=workspace.id account_id='00000000-0000-0000-0000-000000000000' %}';
+        const url = base.replace('00000000-0000-0000-0000-000000000000', this.accountId)
+                    + '?kind=' + encodeURIComponent(this.kind);
+        htmx.ajax('GET', url, { target: '#flow-new-posts', swap: 'innerHTML' });
+      },
+
+      back() {
+        this.step = this.step - 1;
+      },
+    };
+  }
+</script>
+{% endblock %}

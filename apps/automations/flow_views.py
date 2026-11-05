@@ -30,12 +30,14 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
 
+from apps.automations import channels
 from apps.automations import flow as flow_compiler
 from apps.automations import matching, services
 from apps.automations.models import AutomationRule, PostAutomation
 from apps.composer.models import PlatformPost
 from apps.members.decorators import require_permission
 from apps.members.models import WorkspaceMembership
+from apps.social_accounts.models import SocialAccount
 from apps.workspaces.models import Workspace
 
 logger = logging.getLogger(__name__)
@@ -209,6 +211,88 @@ def _default_rule_name(platform_post) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Choosing what a new flow answers for
+# ---------------------------------------------------------------------------
+
+#: What the chooser's second step offers, and the seeded canvas each produces.
+#: The author can still change it afterwards — this decides what the canvas
+#: *opens* with, not what it is allowed to become.
+FLOW_KINDS = ("dm", "comment", "both")
+DEFAULT_FLOW_KIND = "both"
+
+
+@login_required
+@require_permission("reply_from_inbox")
+def flow_new(request, workspace_id):
+    """The builder with nothing chosen yet: an empty canvas behind a chooser.
+
+    "New rule" lands here instead of on a form. The canvas cannot be drawn
+    until it knows what it answers for, so the page opens the chooser —
+    channel, then kind, then which posts — and only then redirects to the real
+    builder. Writes nothing: every step is a GET, and the flow is still
+    created by the first save.
+    """
+    workspace = _get_workspace(request, workspace_id)
+    return render(
+        request,
+        "automations/flow_new.html",
+        {
+            "workspace": workspace,
+            "channels": channels.choosable_accounts(workspace),
+        },
+    )
+
+
+@login_required
+@require_permission("reply_from_inbox")
+def flow_choose_posts(request, workspace_id, account_id):
+    """The chooser's third step: which posts on this account a rule answers for.
+
+    Returns the modal's panel, not a page — the chooser swaps it in place so
+    the earlier steps stay on screen and Back costs nothing.
+
+    Only published posts are listed. A rule matches on a comment webhook,
+    which carries the platform's own post id; a draft has none yet, so a flow
+    attached to one could never fire.
+    """
+    workspace = _get_workspace(request, workspace_id)
+    account = get_object_or_404(
+        SocialAccount,
+        id=account_id,
+        workspace=workspace,
+    )
+
+    can_automate, reason = channels.channel_support(account.platform)
+    if not can_automate:
+        # Re-asked here, not just in the template that drew the list: a client
+        # that posts the id of a disabled channel must not get a post list it
+        # can start a rule from.
+        return JsonResponse({"error": reason}, status=400)
+
+    posts = (
+        PlatformPost.objects.filter(
+            post__workspace=workspace,
+            social_account=account,
+            status=PlatformPost.Status.PUBLISHED,
+        )
+        .exclude(platform_post_id="")
+        .select_related("post", "social_account")
+        .order_by("-published_at", "-id")[:50]
+    )
+
+    return render(
+        request,
+        "automations/partials/_flow_new_posts.html",
+        {
+            "workspace": workspace,
+            "account": account,
+            "posts": [{"platform_post": p, "preview": _post_preview(p)} for p in posts],
+            "kind": request.GET.get("kind", DEFAULT_FLOW_KIND),
+        },
+    )
+
+
+# ---------------------------------------------------------------------------
 # Open the builder
 # ---------------------------------------------------------------------------
 
@@ -226,7 +310,14 @@ def flow_builder(request, workspace_id, platform_post_id):
     platform_post = _get_platform_post(workspace, platform_post_id)
 
     automation = _flow_for(platform_post)
-    graph = automation.graph if automation and automation.graph else flow_compiler.default_graph()
+    if automation and automation.graph:
+        graph = automation.graph
+    else:
+        # ``kind`` arrives from the new-rule chooser and only decides which
+        # nodes are already on the canvas. Ignored once a flow exists: a saved
+        # graph is the author's, and a stray query param must not redraw it.
+        kind = request.GET.get("kind", "")
+        graph = flow_compiler.default_graph(kind if kind in FLOW_KINDS else "dm")
     compiled = flow_compiler.compile_graph(graph)
 
     membership = request.workspace_membership

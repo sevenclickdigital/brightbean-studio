@@ -38,6 +38,14 @@ urlpatterns = [
     # Workspace-scoped rather than per-post: the library belongs to the
     # workspace, and the picker asks the same question whichever flow is open.
     path("media/", flow_views.flow_media, name="flow_media"),
+    # "New rule": the builder before it knows what it answers for. Has no
+    # post in the URL because choosing one is what this screen is for.
+    path("new/", flow_views.flow_new, name="flow_new"),
+    path(
+        "new/<uuid:account_id>/posts/",
+        flow_views.flow_choose_posts,
+        name="flow_choose_posts",
+    ),
     path("", views.rule_list, name="list"),
     path("create/", views.rule_create, name="create"),
     path("<uuid:rule_id>/edit/", views.rule_edit, name="edit"),
