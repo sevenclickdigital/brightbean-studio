@@ -25,7 +25,7 @@ import logging
 
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied, ValidationError
-from django.db import transaction
+from django.db import models, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views.decorators.http import require_POST
@@ -220,6 +220,21 @@ def _default_rule_name(platform_post) -> str:
 FLOW_KINDS = ("dm", "comment", "both")
 DEFAULT_FLOW_KIND = "both"
 
+#: Which posts the chooser offers to attach a flow to. Anything heading for
+#: publication qualifies, not only what is already out: a flow on an unpublished
+#: post saves unarmed and ``services.arm_for_platform_post`` switches it on when
+#: the publisher confirms the post, which is the case ``PostAutomation`` exists
+#: for. Failed and on-hold posts are left out — neither publishes without the
+#: author going back to it first.
+CHOOSABLE_POST_STATUSES = (
+    PlatformPost.Status.PUBLISHED,
+    PlatformPost.Status.SCHEDULED,
+    PlatformPost.Status.APPROVED,
+    PlatformPost.Status.PENDING_REVIEW,
+    PlatformPost.Status.PENDING_CLIENT,
+    PlatformPost.Status.DRAFT,
+)
+
 
 @login_required
 @require_permission("reply_from_inbox")
@@ -251,9 +266,17 @@ def flow_choose_posts(request, workspace_id, account_id):
     Returns the modal's panel, not a page — the chooser swaps it in place so
     the earlier steps stay on screen and Back costs nothing.
 
-    Only published posts are listed. A rule matches on a comment webhook,
-    which carries the platform's own post id; a draft has none yet, so a flow
-    attached to one could never fire.
+    Scheduled and draft posts are listed alongside published ones. A flow on a
+    post that is not live yet is the case this feature was built around: it is
+    saved unarmed, matching nothing, and
+    :func:`apps.automations.services.arm_for_platform_post` binds it to the
+    real post id and switches it on the moment the publisher confirms the post
+    (see ``PostAutomation``). Listing only published posts would have meant
+    writing the automation *after* publishing, which is the wrong order — the
+    reply is part of planning the post.
+
+    Failed and on-hold posts are left out: neither is going to publish without
+    the author returning to it first.
     """
     workspace = _get_workspace(request, workspace_id)
     account = get_object_or_404(
@@ -273,11 +296,20 @@ def flow_choose_posts(request, workspace_id, account_id):
         PlatformPost.objects.filter(
             post__workspace=workspace,
             social_account=account,
-            status=PlatformPost.Status.PUBLISHED,
+            status__in=CHOOSABLE_POST_STATUSES,
         )
-        .exclude(platform_post_id="")
         .select_related("post", "social_account")
-        .order_by("-published_at", "-id")[:50]
+        .prefetch_related("post__media_attachments__media_asset")
+        # Live posts first, then everything still on its way — the order the
+        # author thinks about them in. ``F(...).desc(nulls_last=True)`` rather
+        # than a bare ``-published_at``: Postgres sorts NULLs *first* in DESC,
+        # so plain field ordering would float every unpublished post to the
+        # top, which is the opposite of what this says.
+        .order_by(
+            models.F("published_at").desc(nulls_last=True),
+            models.F("scheduled_at").desc(nulls_last=True),
+            "-created_at",
+        )[:50]
     )
 
     return render(
@@ -286,7 +318,15 @@ def flow_choose_posts(request, workspace_id, account_id):
         {
             "workspace": workspace,
             "account": account,
-            "posts": [{"platform_post": p, "preview": _post_preview(p)} for p in posts],
+            "posts": [
+                {
+                    "platform_post": p,
+                    "preview": _post_preview(p),
+                    "is_live": p.status == PlatformPost.Status.PUBLISHED,
+                    "status_label": p.get_status_display(),
+                }
+                for p in posts
+            ],
             "kind": request.GET.get("kind", DEFAULT_FLOW_KIND),
         },
     )

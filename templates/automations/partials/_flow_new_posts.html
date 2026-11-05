@@ -34,35 +34,52 @@ not posted: nothing is created until something is saved.
 <div class="space-y-2">
   {% for entry in posts %}
   <a href="{% url 'automations:flow_builder' workspace_id=workspace.id platform_post_id=entry.platform_post.id %}?kind={{ kind }}"
-     class="flex items-center gap-3 p-3 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/40 transition-colors cursor-pointer">
+     class="flex items-center gap-3 p-2.5 rounded-xl border border-stone-200 hover:border-orange-300 hover:bg-orange-50/40 transition-colors cursor-pointer">
+    {% comment %}
+    The post's first image, at a size you can actually recognise it by — the
+    caption opening is often boilerplate across a campaign, and the picture is
+    what tells two posts apart.
+    {% endcomment %}
     {% if entry.preview.thumbnail %}
-    <div class="w-10 h-10 rounded-lg overflow-hidden bg-stone-100 shrink-0">
+    <div class="relative w-14 h-14 rounded-lg overflow-hidden bg-stone-100 shrink-0">
       <img src="{{ entry.preview.thumbnail }}" alt="" class="w-full h-full object-cover">
+      {% if entry.preview.media_count > 1 %}
+      <span class="absolute bottom-0.5 right-0.5 px-1 rounded text-[9px] font-bold text-white bg-black/60">
+        {{ entry.preview.media_count }}
+      </span>
+      {% endif %}
     </div>
     {% else %}
-    <div class="w-10 h-10 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
-      <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+    <div class="w-14 h-14 rounded-lg bg-stone-100 flex items-center justify-center shrink-0">
+      <svg class="w-5 h-5 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
     </div>
     {% endif %}
+
     <div class="min-w-0 flex-1">
-      <p class="text-[13px] text-stone-900 truncate">
+      <p class="text-[13px] text-stone-900 line-clamp-2">
         {% if entry.preview.snippet %}{{ entry.preview.snippet }}{% else %}{% translate "Post with no caption" %}{% endif %}
       </p>
-      {% if entry.preview.published_at %}
-      <p class="text-[12px] text-stone-400">{{ entry.preview.published_at|date:"d/m/Y" }}</p>
-      {% endif %}
+      <p class="text-[12px] text-stone-400 mt-0.5 flex items-center gap-1.5">
+        {% comment %}
+        A post that is not live yet can still carry a flow — it saves unarmed
+        and switches on when the publisher confirms the post. Saying which
+        state it is in is what stops that reading as a bug.
+        {% endcomment %}
+        {% if entry.is_live %}
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
+          {% if entry.preview.published_at %}{{ entry.preview.published_at|date:"d/m/Y" }}{% endif %}
+        {% else %}
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+          {{ entry.status_label }}{% if entry.platform_post.scheduled_at %} · {{ entry.platform_post.scheduled_at|date:"d/m/Y H:i" }}{% endif %}
+        {% endif %}
+      </p>
     </div>
   </a>
   {% endfor %}
 </div>
 {% else %}
-{% comment %}
-Only published posts can carry a flow — a rule matches on a comment webhook
-carrying the platform's own post id, which a draft has not got yet. So an
-account with nothing published offers the whole-account option alone.
-{% endcomment %}
 <div class="py-8 text-center">
-  <p class="text-[13px] text-stone-500">{% translate "No published posts on this channel yet." %}</p>
-  <p class="text-[12px] text-stone-400 mt-1">{% translate "A rule can only answer comments on a post that is live." %}</p>
+  <p class="text-[13px] text-stone-500">{% translate "No posts on this channel yet." %}</p>
+  <p class="text-[12px] text-stone-400 mt-1">{% translate "Create a post first, or let this rule answer every post on the channel." %}</p>
 </div>
 {% endif %}

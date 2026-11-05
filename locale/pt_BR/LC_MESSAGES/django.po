@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 18:56+0000\n"
+"POT-Creation-Date: 2026-11-05 21:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -2842,17 +2842,17 @@ msgstr "Vale para tudo que for publicado aqui, incluindo publicações futuras."
 msgid "Or a single post"
 msgstr "Ou uma publicação específica"
 
-#: templates/automations/partials/_flow_new_posts.html:49
+#: templates/automations/partials/_flow_new_posts.html:61
 msgid "Post with no caption"
 msgstr "Publicação sem legenda"
 
-#: templates/automations/partials/_flow_new_posts.html:65
-msgid "No published posts on this channel yet."
-msgstr "Nenhuma publicação ativa neste canal ainda."
+#: templates/automations/partials/_flow_new_posts.html:84
+msgid "No posts on this channel yet."
+msgstr "Nenhuma publicação neste canal ainda."
 
-#: templates/automations/partials/_flow_new_posts.html:66
-msgid "A rule can only answer comments on a post that is live."
-msgstr "Uma regra só responde comentários de uma publicação que está no ar."
+#: templates/automations/partials/_flow_new_posts.html:85
+msgid "Create a post first, or let this rule answer every post on the channel."
+msgstr "Crie uma publicação primeiro, ou deixe esta regra valer para todas as do canal."
 
 #: templates/automations/partials/_rule_row.html:20
 msgid "Turn this rule off"

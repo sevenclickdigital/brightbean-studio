@@ -136,8 +136,27 @@ class PostStepTests(ChooserTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["posts"]), 1)
 
-    def test_a_draft_is_not_offered(self):
-        """A rule matches on a webhook carrying the platform's post id."""
+    def test_a_scheduled_post_is_offered(self):
+        """The case the feature was built for: write the reply while planning.
+
+        The flow saves unarmed and ``services.arm_for_platform_post`` switches
+        it on when the publisher confirms the post.
+        """
+        account = self._account("facebook")
+        post = Post.objects.create(workspace=self.workspace, caption="queued")
+        PlatformPost.objects.create(
+            post=post,
+            social_account=account,
+            status=PlatformPost.Status.SCHEDULED,
+            scheduled_at=timezone.now(),
+        )
+
+        entries = self.client.get(self._posts_url(account)).context["posts"]
+
+        self.assertEqual(len(entries), 1)
+        self.assertFalse(entries[0]["is_live"])
+
+    def test_a_draft_is_offered(self):
         account = self._account("facebook")
         post = Post.objects.create(workspace=self.workspace, caption="draft")
         PlatformPost.objects.create(
@@ -146,21 +165,42 @@ class PostStepTests(ChooserTestCase):
             status=PlatformPost.Status.DRAFT,
         )
 
-        response = self.client.get(self._posts_url(account))
+        self.assertEqual(len(self.client.get(self._posts_url(account)).context["posts"]), 1)
 
-        self.assertEqual(response.context["posts"], [])
-
-    def test_a_published_post_with_no_platform_id_is_not_offered(self):
+    def test_a_failed_post_is_not_offered(self):
+        """It is not on its way anywhere without the author going back to it."""
         account = self._account("facebook")
-        post = Post.objects.create(workspace=self.workspace, caption="x")
+        post = Post.objects.create(workspace=self.workspace, caption="broken")
         PlatformPost.objects.create(
             post=post,
             social_account=account,
-            status=PlatformPost.Status.PUBLISHED,
-            platform_post_id="",
+            status=PlatformPost.Status.FAILED,
         )
 
         self.assertEqual(self.client.get(self._posts_url(account)).context["posts"], [])
+
+    def test_a_live_post_is_marked_as_live(self):
+        account = self._account("facebook")
+        self._published_post(account)
+
+        entries = self.client.get(self._posts_url(account)).context["posts"]
+
+        self.assertTrue(entries[0]["is_live"])
+
+    def test_published_posts_sort_ahead_of_queued_ones(self):
+        account = self._account("facebook")
+        draft = Post.objects.create(workspace=self.workspace, caption="draft")
+        PlatformPost.objects.create(
+            post=draft,
+            social_account=account,
+            status=PlatformPost.Status.DRAFT,
+        )
+        self._published_post(account, caption="live")
+
+        entries = self.client.get(self._posts_url(account)).context["posts"]
+
+        self.assertTrue(entries[0]["is_live"])
+        self.assertFalse(entries[-1]["is_live"])
 
     def test_an_unsupported_channel_is_refused_even_by_direct_id(self):
         """The disabled button is not the control — the view re-asks."""
