@@ -54,11 +54,30 @@
         </div>
 
         {# All posts table #}
-        <div class="a-card">
-            <div style="padding: 16px 20px; border-bottom: 1px solid var(--neutral-100);">
-                <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary);">{% translate "All posts" %}</h3>
+        <div>
+            {% comment %}
+            Fetched after the page rather than during its render: counting what
+            is importable costs a call to the platform, and the numbers above
+            must not wait on it. Comes back empty — adding nothing to the page
+            — when there is nothing to offer, which is the common case.
+
+            ``active_account`` is the channel being viewed — the name this
+            page's context uses, as the chart and the table do. Guarded all the
+            same: {% url %} raises on a missing id, and that would take the
+            whole page down for the sake of an optional panel.
+            {% endcomment %}
+            {% if active_account.id %}
+            <div hx-get="{% url 'analytics:history_offer' workspace_id=workspace.id account_id=active_account.id %}"
+                 hx-trigger="load"
+                 hx-swap="outerHTML"></div>
+            {% endif %}
+
+            <div class="a-card">
+                <div style="padding: 16px 20px; border-bottom: 1px solid var(--neutral-100);">
+                    <h3 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary);">{% translate "All posts" %}</h3>
+                </div>
+                {% include "analytics/_post_table.html" %}
             </div>
-            {% include "analytics/_post_table.html" %}
         </div>
     </div>
 {% endif %}

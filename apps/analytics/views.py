@@ -15,14 +15,14 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.composer.models import PlatformPost
 from apps.members.models import WorkspaceMembership
 from apps.social_accounts.models import AnalyticsPlatformConfig, SocialAccount
 from apps.workspaces.models import Workspace
 
-from . import services
+from . import history_import, services
 from .metrics import PLATFORM_COLOR, PLATFORM_PRIMARY
 
 logger = logging.getLogger(__name__)
@@ -281,3 +281,79 @@ def post_detail(request: HttpRequest, workspace_id, post_id) -> HttpResponse:
     context = services.post_detail(post)
     context.update({"workspace": workspace})
     return render(request, "analytics/_post_detail.html", context)
+
+
+# ---------------------------------------------------------------------------
+# Importing the channel's own history
+# ---------------------------------------------------------------------------
+
+
+@login_required
+@require_GET
+def history_offer(request: HttpRequest, workspace_id, account_id) -> HttpResponse:
+    """How many of this channel's own posts are not in the table yet.
+
+    Loaded lazily by the analytics page rather than counted during its render:
+    answering costs a call to the platform, and the page must not wait on it
+    to show the numbers it already has. Renders nothing when there is nothing
+    to offer, so the empty case adds no furniture to the page.
+    """
+    workspace = _get_workspace(request, workspace_id)
+    account = get_object_or_404(SocialAccount, id=account_id, workspace=workspace)
+
+    return render(
+        request,
+        "analytics/_history_offer.html",
+        {
+            "workspace": workspace,
+            "account": account,
+            "importable": history_import.importable_count(account),
+            "can_import": _can_import_history(request, workspace),
+        },
+    )
+
+
+@login_required
+@require_POST
+def history_import_view(request: HttpRequest, workspace_id, account_id) -> HttpResponse:
+    """Import this channel's existing posts, then report what came in.
+
+    POST because it writes. The import itself is idempotent — a double-click
+    brings in nothing the second time — but the permission check is what stops
+    a workspace member who cannot manage channels from spending the account's
+    API quota.
+    """
+    workspace = _get_workspace(request, workspace_id)
+    account = get_object_or_404(SocialAccount, id=account_id, workspace=workspace)
+
+    if not _can_import_history(request, workspace):
+        raise PermissionDenied("You cannot import history for this workspace.")
+
+    result = history_import.import_history(account)
+
+    return render(
+        request,
+        "analytics/_history_offer.html",
+        {
+            "workspace": workspace,
+            "account": account,
+            # Zero now, by definition: what was importable has just been
+            # imported. The panel renders its "done" state off ``result``.
+            "importable": 0,
+            "result": result,
+            "can_import": True,
+        },
+    )
+
+
+def _can_import_history(request, workspace) -> bool:
+    """Importing spends the channel's API quota, so it takes the channel permission.
+
+    Reading analytics takes only membership; this writes rows and makes calls
+    on the account's behalf, which is the thing ``manage_social_accounts``
+    governs everywhere else.
+    """
+    membership = WorkspaceMembership.objects.filter(user=request.user, workspace=workspace).first()
+    if membership is None:
+        return False
+    return bool(membership.effective_permissions.get("manage_social_accounts", False))

@@ -1,0 +1,74 @@
+{% comment %}
+The "this channel has posts we haven't got" offer, above the post table.
+
+Renders nothing at all when there is nothing to import — most of the time,
+for most channels, this is an empty response and the page is unchanged.
+
+Context: workspace, account, importable (int), can_import (bool),
+result (ImportResult, only after an import ran).
+{% endcomment %}
+{% load i18n %}
+
+<div id="analytics-history-offer">
+{% if result %}
+  {# Just imported. Says what came in and tells the table to reload. #}
+  <div style="display: flex; align-items: center; gap: 12px; padding: 12px 16px; margin-bottom: 12px;
+              border: 1px solid var(--success-200, #BBF7D0); border-radius: 12px;
+              background: var(--success-50, #F0FDF4);"
+       {% comment %}
+       The table is a sibling, not a child, so the new rows only appear if it
+       is asked to re-render. Triggered from here rather than returned in this
+       response because the two are swapped into different targets.
+       {% endcomment %}
+       hx-get="{% url 'analytics:account' workspace_id=workspace.id account_id=account.id %}?partial=table"
+       hx-trigger="load delay:300ms"
+       hx-target="#analytics-post-table"
+       hx-swap="outerHTML">
+    <svg style="width: 18px; height: 18px; color: var(--success-600, #16A34A); flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+    <p style="margin: 0; font-size: 0.8125rem; color: var(--text-secondary);">
+      {% if result.imported %}
+        {% blocktranslate count counter=result.imported trimmed %}
+          {{ counter }} post imported. Its metrics arrive on the next sync.
+        {% plural %}
+          {{ counter }} posts imported. Their metrics arrive on the next sync.
+        {% endblocktranslate %}
+      {% else %}
+        {% translate "Nothing new to import — every post on this channel is already here." %}
+      {% endif %}
+    </p>
+  </div>
+
+{% elif importable %}
+  <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px; margin-bottom: 12px;
+              border: 1px solid var(--border, #E7E5E4); border-radius: 12px; background: var(--surface-0, #FFF);">
+    <div style="flex: 1; min-width: 220px;">
+      <p style="margin: 0; font-size: 0.8125rem; font-weight: 600; color: var(--text-primary, #1C1917);">
+        {% blocktranslate count counter=importable trimmed %}
+          {{ counter }} post on this channel isn't here yet
+        {% plural %}
+          {{ counter }} posts on this channel aren't here yet
+        {% endblocktranslate %}
+      </p>
+      <p style="margin: 2px 0 0; font-size: 0.75rem; color: var(--text-tertiary, #78716C);">
+        {% comment %}
+        Says plainly that metrics follow later: the posts appear immediately
+        but their numbers come from the next analytics sync, and a row of
+        zeroes with no explanation reads as the import having failed.
+        {% endcomment %}
+        {% translate "Posts published outside Brightbean. Import them to see them here — their metrics follow on the next sync." %}
+      </p>
+    </div>
+    {% if can_import %}
+    <button type="button"
+            hx-post="{% url 'analytics:history_import' workspace_id=workspace.id account_id=account.id %}"
+            hx-target="#analytics-history-offer"
+            hx-swap="outerHTML"
+            hx-disabled-elt="this"
+            style="flex-shrink: 0; padding: 8px 16px; font-size: 0.8125rem; font-weight: 600; color: #FFF;
+                   background: var(--primary, #F97316); border: 0; border-radius: 9999px; cursor: pointer;">
+      {% translate "Import" %}
+    </button>
+    {% endif %}
+  </div>
+{% endif %}
+</div>
