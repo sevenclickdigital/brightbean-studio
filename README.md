@@ -641,7 +641,7 @@ that expires after seven days.
 Automatic age-based enforcement defaults to off until staging counts and worker
 execution have been reviewed (`YOUTUBE_COMPLIANCE_ENFORCEMENT=false`). Explicit
 deletion requests and confirmed permanent grant rejection still trigger immediate
-cleanup. See [the YouTube audit implementation and rollout notes](development_specs/youtube-audit-remediation.md)
+cleanup. See [the YouTube compliance rollout checklist](docs/youtube-compliance-rollout.md)
 before enabling enforcement. Intelligence is outside this remediation.
 
 1. Go to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project (or select an existing one)

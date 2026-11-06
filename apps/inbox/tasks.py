@@ -699,7 +699,7 @@ class InboxSyncEngine:
 
 # How often the recurring inbox-sync cycle runs; registered on a repeating
 # schedule by apps.inbox.apps.InboxConfig. Polling is the always-on baseline
-# documented in architecture.md (webhooks, where configured, supplement it).
+# documented in docs/architecture.md (webhooks, where configured, supplement it).
 INBOX_SYNC_INTERVAL_SECONDS = 5 * 60  # every 5 minutes
 
 
