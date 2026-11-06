@@ -653,8 +653,30 @@ def _context_for(message, run=None) -> dict:
     }
 
 
-def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> FlowRun | None:
-    """Begin a graph walk for one comment. Returns the run, or ``None``.
+class FlowNotStartedError(Exception):
+    """``start_run`` declined, carrying which of its two reasons applied.
+
+    It refuses for two unrelated causes, and collapsing them into a bare
+    ``None`` is what made a real diagnosis hunt for a concurrent run that did
+    not exist — the comment had simply arrived with no author, because Meta
+    omits ``from`` for people the app cannot see. ``detail`` is the sentence
+    shown to the user, so each cause reads as itself.
+    """
+
+    def __init__(self, detail: str):
+        self.detail = detail
+        super().__init__(detail)
+
+
+NO_SENDER_DETAIL = "The platform did not say who commented, so no reply was sent."
+RUN_IN_FLIGHT_DETAIL = "A flow is already running for this person."
+
+
+def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> FlowRun:
+    """Begin a graph walk for one comment. Returns the run.
+
+    Raises :class:`FlowNotStartedError` when it declines — its ``detail`` says why,
+    and is safe to show the user.
 
     Called by :mod:`apps.automations.actions` once a rule has won the match and
     its guards have been taken — so the once-per-sender-per-post and hourly
@@ -672,8 +694,11 @@ def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> 
 
     sender_id = (getattr(message, "sender_handle", "") or "").strip()
     if not sender_id:
-        logger.debug("Flow start skipped: inbox message %s has no sender.", getattr(message, "pk", None))
-        return None
+        # Meta omits a comment's ``from`` for anyone the app cannot see, which
+        # in development mode is everyone without a role on it. Nothing here is
+        # broken: there is no person to address a private reply to.
+        logger.info("Flow start skipped: inbox message %s has no sender.", getattr(message, "pk", None))
+        raise FlowNotStartedError(NO_SENDER_DETAIL)
 
     sender_key = _bounded(sender_id)
     account = message.social_account
@@ -704,7 +729,7 @@ def start_run(message, rule: AutomationRule, graph: Any, start_node_id: str) -> 
         # Lost the race to a concurrent trigger for the same person. The winner
         # is answering them; a second run would interleave with it.
         logger.info("Flow start declined: a run already exists for this sender on account %s", account.pk)
-        return None
+        raise FlowNotStartedError(RUN_IN_FLIGHT_DETAIL) from None
 
     _advance(run, graph, start_node_id, _context_for(message, run))
     return run

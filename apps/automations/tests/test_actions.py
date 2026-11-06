@@ -311,6 +311,51 @@ def test_once_per_sender_per_post_declines_a_second_comment(db, account, rule):
 
 
 # ---------------------------------------------------------------------------
+# Why a flow declined to start
+# ---------------------------------------------------------------------------
+
+
+def test_a_comment_with_no_author_says_so_rather_than_blaming_a_running_flow(db, account, rule):
+    """The two reasons start_run refuses must not read as one.
+
+    Meta omits a comment's ``from`` for anyone the app cannot see — in
+    development mode, everyone without a role on it. Reported as "a flow is
+    already running for this person", that sent a real diagnosis looking for a
+    concurrent run that did not exist.
+    """
+    from apps.automations.engine import NO_SENDER_DETAIL, FlowNotStartedError, start_run
+
+    message = make_comment(account, author_id="")
+
+    with pytest.raises(FlowNotStartedError) as excinfo:
+        start_run(message, rule, {"nodes": {}}, "n1")
+
+    assert excinfo.value.detail == NO_SENDER_DETAIL
+    assert "already running" not in excinfo.value.detail
+
+
+def test_losing_the_race_says_a_flow_is_running(db, account, rule):
+    """The other refusal keeps its own sentence.
+
+    Only reachable by losing the insert race, so the unique violation is
+    raised directly rather than staged with a second thread.
+    """
+    from django.db import IntegrityError
+
+    from apps.automations.engine import RUN_IN_FLIGHT_DETAIL, FlowNotStartedError, start_run
+
+    message = make_comment(account, platform_id="c-9")
+
+    with (
+        patch("apps.automations.engine.FlowRun.objects.create", side_effect=IntegrityError("duplicate")),
+        pytest.raises(FlowNotStartedError) as excinfo,
+    ):
+        start_run(message, rule, {"nodes": {}}, "n1")
+
+    assert excinfo.value.detail == RUN_IN_FLIGHT_DETAIL
+
+
+# ---------------------------------------------------------------------------
 # Steps 7 and 8 are independent
 # ---------------------------------------------------------------------------
 

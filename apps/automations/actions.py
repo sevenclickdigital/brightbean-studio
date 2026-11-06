@@ -421,10 +421,17 @@ def _start_graph_run(message: InboxMessage, rule: AutomationRule, details: list[
         details.append("This flow has no step after its trigger.")
         return False
 
-    from apps.automations.engine import start_run
+    from apps.automations.engine import FlowNotStartedError, start_run
 
     try:
-        run = start_run(message, rule, graph, start)
+        start_run(message, rule, graph, start)
+    except FlowNotStartedError as exc:
+        # A deliberate refusal, not a failure: its detail already says which of
+        # the two reasons applied, and must reach the log verbatim. Caught
+        # before the broad clause below, which would report "could not be
+        # started" and lose that distinction.
+        details.append(exc.detail)
+        return False
     except Exception as exc:
         logger.warning(
             "Flow run could not start: message=%s rule=%s error_type=%s",
@@ -433,9 +440,6 @@ def _start_graph_run(message: InboxMessage, rule: AutomationRule, details: list[
             type(exc).__name__,
         )
         details.append("The flow could not be started.")
-        return False
-    if run is None:
-        details.append("A flow is already running for this person.")
         return False
     return True
 
