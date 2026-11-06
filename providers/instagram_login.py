@@ -18,6 +18,7 @@ import time
 from datetime import datetime
 from urllib.parse import urlencode
 
+from . import meta_history
 from .base import SocialProvider
 from .exceptions import APIError, OAuthError, ProviderError, PublishError
 from .meta_comments import (
@@ -40,6 +41,7 @@ from .types import (
     AccountProfile,
     AuthType,
     CommentResult,
+    ExistingPost,
     InboxMessage,
     MediaType,
     OAuthTokens,
@@ -500,6 +502,16 @@ class InstagramLoginProvider(SocialProvider):
                 "raw_insights": values,
                 "insight_errors": errors,
             },
+        )
+
+    def list_existing_posts(self, access_token: str, *, limit: int = 100) -> list[ExistingPost]:
+        """The account's own media. ``me`` because this token *is* the account."""
+        return meta_history.list_instagram_history(
+            self._request,
+            api_base=API_BASE,
+            owner="me",
+            access_token=access_token,
+            limit=limit,
         )
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:

@@ -18,6 +18,7 @@ from .types import (
     AuthType,
     CommentResult,
     Demographics,
+    ExistingPost,
     InboxMessage,
     MediaType,
     OAuthTokens,
@@ -262,6 +263,25 @@ class SocialProvider(ABC):
         1 should override it.
         """
         return {post_id: self.get_post_metrics(access_token, post_id) for post_id in post_ids}
+
+    def list_existing_posts(self, access_token: str, *, limit: int = 100) -> list[ExistingPost]:
+        """Posts already on the account, newest first — history this app did not publish.
+
+        Analytics only knows about posts it published itself, so a freshly
+        connected account shows an empty table beside a profile full of
+        content. This is the read that closes that gap: the account's own
+        timeline, which import turns into ``PlatformPost`` rows the existing
+        metrics path can then measure.
+
+        Returns ``[]`` rather than raising for a platform that cannot list its
+        own history — an import that finds nothing is a normal outcome, and the
+        caller has nothing different to do about it either way.
+
+        ``limit`` bounds the API calls, not the account's history. Platforms
+        page their timelines; a provider should stop once it has ``limit``
+        posts rather than walking to the end of an account's entire life.
+        """
+        return []
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:
         """Fetch account-level metrics for a date range."""

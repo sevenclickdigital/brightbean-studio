@@ -167,6 +167,34 @@ class ReplyResult:
 
 
 @dataclass(frozen=True)
+class ExistingPost:
+    """One post already on the platform, as the account's own history shows it.
+
+    What :meth:`SocialProvider.list_existing_posts` returns, for posts this
+    product did not publish — everything that was on the account before it was
+    connected, plus anything posted from the platform's own app since. They
+    have no ``PlatformPost`` row, so analytics cannot see them at all until
+    they are imported.
+
+    Deliberately thin. This describes a post well enough to recognise it and
+    to key it by ``platform_post_id``; its metrics are fetched afterwards by
+    the same ``get_post_metrics`` path every other post goes through, rather
+    than being a second source of truth here.
+    """
+
+    platform_post_id: str
+    caption: str = ""
+    published_at: datetime | None = None
+    permalink: str = ""
+    media_url: str = ""
+    thumbnail_url: str = ""
+    #: ``"image"``, ``"video"``, ``"carousel"`` — the platform's own word for
+    #: it, normalised. Empty when the platform does not say.
+    media_kind: str = ""
+    extra: dict = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class RateLimitConfig:
     requests_per_hour: int = 200
     requests_per_day: int = 5000

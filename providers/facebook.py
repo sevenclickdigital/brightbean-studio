@@ -6,6 +6,7 @@ import logging
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode, urlparse
 
+from . import meta_history
 from .base import SocialProvider
 from .exceptions import APIError, OAuthError, ProviderError, PublishError
 from .meta_accounts import fetch_me_accounts, page_can_publish
@@ -32,6 +33,7 @@ from .types import (
     AccountProfile,
     AuthType,
     CommentResult,
+    ExistingPost,
     InboxMessage,
     MediaType,
     OAuthTokens,
@@ -817,6 +819,24 @@ class FacebookProvider(SocialProvider):
         if isinstance(value, dict):
             return value.get("count", 0) or 0
         return 0
+
+    def list_existing_posts(self, access_token: str, *, limit: int = 100) -> list[ExistingPost]:
+        """The Page's own feed.
+
+        Returns ``[]`` without a ``page_id``: the feed edge is keyed by Page,
+        and there is nothing sensible to read from a token alone.
+        """
+        page_id = str(self.credentials.get("page_id") or "")
+        if not page_id:
+            logger.warning("Skipping Facebook history read: no page_id in credentials")
+            return []
+        return meta_history.list_facebook_history(
+            self._request,
+            base_url=BASE_URL,
+            page_id=page_id,
+            access_token=access_token,
+            limit=limit,
+        )
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:
         page_id = self.credentials.get("page_id", "me")

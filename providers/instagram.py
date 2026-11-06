@@ -11,6 +11,7 @@ import time
 from datetime import datetime
 from urllib.parse import urlencode
 
+from . import meta_history
 from .base import SocialProvider
 from .exceptions import APIError, MessagingError, OAuthError, ProviderError, PublishError, WebhookChannelError
 from .meta_accounts import fetch_me_accounts, page_can_publish
@@ -39,6 +40,7 @@ from .types import (
     AccountProfile,
     AuthType,
     CommentResult,
+    ExistingPost,
     InboxMessage,
     MediaType,
     OAuthTokens,
@@ -541,6 +543,16 @@ class InstagramProvider(SocialProvider):
                 "raw_insights": values,
                 "insight_errors": errors,
             },
+        )
+
+    def list_existing_posts(self, access_token: str, *, limit: int = 100) -> list[ExistingPost]:
+        """The linked Instagram Business account's own media."""
+        return meta_history.list_instagram_history(
+            self._request,
+            api_base=BASE_URL,
+            owner=self._get_ig_user_id(access_token),
+            access_token=access_token,
+            limit=limit,
         )
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:
