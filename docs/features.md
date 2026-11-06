@@ -8,7 +8,7 @@ Conventions used below:
 - Workspace URLs are mounted under `/workspace/<workspace_id>/...` (see `config/urls.py`).
 - Background work runs in the `process_tasks` worker (django-background-tasks; `apps/common/background.py`, `apps/common/worker.py`). There is no Celery or Redis requirement.
 - Defaults referenced as `publishing.retry_max_attempts` etc. come from `apps/settings_manager/defaults.py` (`APP_DEFAULTS`), and can be overridden per org/workspace via `OrgSetting` / `WorkspaceSetting` rows. Those rows are edited in Django admin. The `/settings/` page is a static page with no editor.
-- UI languages are Português (Brasil) and English (US) (`LANGUAGES` in `config/settings/base.py`). The language picker posts to `/i18n/`. Translation notes are in `docs/TRADUCAO.md`.
+- UI languages are Português (Brasil) and English (US) (`LANGUAGES` in `config/settings/base.py`). The language picker posts to `/i18n/`. Translation rules are in `.claude/skills/translation/SKILL.md`.
 
 ## Supported platforms
 

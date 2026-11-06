@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "django-ai-boost": {
+      "type": "stdio",
+      "command": ".venv/bin/django-ai-boost",
+      "args": ["--settings", "config.settings.development"],
+      "env": {
+        "DJANGO_SETTINGS_MODULE": "config.settings.development"
+      }
+    }
+  }
+}

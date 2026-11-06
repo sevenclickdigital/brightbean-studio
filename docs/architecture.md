@@ -245,7 +245,7 @@ STORAGE_BACKEND=s3     →  storages.backends.s3boto3.S3Boto3Storage (S3_* env v
 
 ## 16. Internationalization
 
-`LANGUAGE_CODE` defaults to `pt-br`. `LANGUAGES` contains `pt-br` and `en-us`. `LocaleMiddleware` runs after the session, and the sidebar language picker posts to `/i18n/setlang/`. Translations live in `locale/pt_BR/LC_MESSAGES/`. The `.mo` files are gitignored and compiled by `compilemessages` in the `Dockerfile` (which installs `gettext`). If they are missing, the interface silently falls back to English. `docs/TRADUCAO.md` covers the translation workflow.
+`LANGUAGE_CODE` defaults to `pt-br`. `LANGUAGES` contains `pt-br` and `en-us`. `LocaleMiddleware` runs after the session, and the sidebar language picker posts to `/i18n/setlang/`. Translations live in `locale/pt_BR/LC_MESSAGES/`. The `.mo` files are gitignored and compiled by `compilemessages` in the `Dockerfile` (which installs `gettext`). If they are missing, the interface silently falls back to English. The translation workflow and vocabulary are in the `translation` skill (`.claude/skills/translation/SKILL.md`).
 
 ---
 
