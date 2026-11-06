@@ -6,6 +6,8 @@ import logging
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlencode, urlparse
 
+import httpx
+
 from . import meta_history
 from .base import SocialProvider
 from .exceptions import APIError, OAuthError, ProviderError, PublishError
@@ -15,7 +17,9 @@ from .meta_feed_extras import (
     PLACE_SEARCH_FIELDS,
     PLACE_SEARCH_LIMIT,
     apply_feed_extras,
+    has_feed_extras,
     parse_place_results,
+    strip_feed_extras,
 )
 from .meta_insights import fetch_insights_safe, parse_insights_response
 from .meta_messaging import (
@@ -311,6 +315,43 @@ class FacebookProvider(SocialProvider):
         return pages
 
     # ------------------------------------------------------------------
+    # Error classification
+    # ------------------------------------------------------------------
+
+    def _error_for_response(self, response: httpx.Response) -> ProviderError:
+        """Stop Meta's catch-all ``code 1`` from being read as an outage.
+
+        Graph answers a payload it will never accept with **HTTP 500**
+        ``{"code": 1, "message": "An unknown error has occurred."}``. The base
+        class maps every 5xx to "platform unavailable", so the engine retried a
+        permanently malformed request until the attempt budget ran out and told
+        the user the platform was down the whole time — a real post sat unsent
+        for half an hour that way, and the cause (a feeling id ``/photos`` does
+        not accept) was only visible by reading ``publisher_publish_log``.
+
+        ``code 1`` is genuinely ambiguous: Meta also uses it for transient
+        faults. Marking it non-retryable is still right for publishing, because
+        a retry that cannot succeed costs the user a published post and a
+        misleading message, while a retry we skip costs one manual re-publish.
+        It stays an ``APIError`` carrying ``status_code``, as
+        ``_error_for_response``'s contract requires, so the reconnect and
+        rate-limit routing above it is unchanged.
+        """
+        if response.status_code >= 500:
+            body = self._safe_json(response)
+            error = body.get("error") if isinstance(body, dict) else None
+            if isinstance(error, dict) and error.get("code") == 1:
+                return APIError(
+                    f"{self.platform_name} rejected the request: {error.get('message') or 'unknown error'}",
+                    status_code=response.status_code,
+                    platform=self.platform_name,
+                    raw_response=body,
+                    retryable=False,
+                )
+
+        return super()._error_for_response(response)
+
+    # ------------------------------------------------------------------
     # Publishing
     # ------------------------------------------------------------------
 
@@ -336,13 +377,7 @@ class FacebookProvider(SocialProvider):
         if content.link_url:
             payload["link"] = content.link_url
         apply_feed_extras(payload, content.extra)
-        resp = self._request(
-            "POST",
-            f"{BASE_URL}/{page_id}/feed",
-            access_token=access_token,
-            json=payload,
-        )
-        data = resp.json()
+        data = self._post_feed(access_token, page_id, payload)
         post_id = self._stored_post_id(data["id"])
         return PublishResult(
             platform_post_id=post_id,
@@ -350,14 +385,59 @@ class FacebookProvider(SocialProvider):
             extra=data,
         )
 
+    def _post_feed(self, access_token: str, page_id: str, payload: dict) -> dict:
+        """``POST /{page-id}/feed``, retried once without place and feeling.
+
+        Keeps the promise ``meta_feed_extras`` makes: a decoration the API
+        refuses costs the decoration, not the post. Only a decorated payload is
+        ever retried, and only once — an undecorated failure is the real
+        failure and must reach the engine untouched, which is also what stops
+        this from masking a genuine outage behind a second request.
+
+        Meta does not say which field it refused (the observed answer is
+        ``OAuthException code 1`` with no field named), so there is nothing to
+        inspect: dropping both decoration keys is the only available recovery.
+        """
+        try:
+            return self._request(
+                "POST",
+                f"{BASE_URL}/{page_id}/feed",
+                access_token=access_token,
+                json=payload,
+            ).json()
+        except APIError:
+            retry_payload = strip_feed_extras(dict(payload))
+            if retry_payload == payload:
+                raise
+            logger.warning(
+                "Facebook refused a decorated feed post for page %s; retrying without place/feeling",
+                page_id,
+            )
+            return self._request(
+                "POST",
+                f"{BASE_URL}/{page_id}/feed",
+                access_token=access_token,
+                json=retry_payload,
+            ).json()
+
     def _publish_photo(self, access_token: str, page_id: str, content: PublishContent) -> PublishResult:
         if len(content.media_urls) > 1:
+            return self._publish_multi_photo(access_token, page_id, content)
+
+        # A place or feeling only publishes through ``/feed``: sent to
+        # ``/photos`` alongside a ``url``, Meta answers a bare
+        # ``OAuthException code 1`` (HTTP 500) naming no field, which the
+        # engine then reads as platform flakiness and retries forever. The
+        # multi-photo path already stages the image unpublished and attaches it
+        # to a ``/feed`` post, which takes the decoration — so a decorated
+        # single photo goes the same way. It costs one extra request, so plain
+        # photos keep the cheaper direct upload.
+        if has_feed_extras(content.extra):
             return self._publish_multi_photo(access_token, page_id, content)
 
         payload: dict = {"url": content.media_urls[0]}
         if content.text:
             payload["message"] = content.text
-        apply_feed_extras(payload, content.extra)
         resp = self._request(
             "POST",
             f"{BASE_URL}/{page_id}/photos",
@@ -416,12 +496,7 @@ class FacebookProvider(SocialProvider):
                 payload["message"] = content.text
             apply_feed_extras(payload, content.extra)
 
-            data = self._request(
-                "POST",
-                f"{BASE_URL}/{page_id}/feed",
-                access_token=access_token,
-                json=payload,
-            ).json()
+            data = self._post_feed(access_token, page_id, payload)
             graph_post_id = data.get("id")
             if not graph_post_id:
                 raise PublishError(
@@ -1147,7 +1222,6 @@ class FacebookProvider(SocialProvider):
         )
         data = resp.json()
         return ReplyResult(platform_message_id=require_message_id(data, platform=self.platform_name), extra=data)
-
 
     def fetch_user_profile(self, access_token: str, user_id: str) -> dict:
         """Profile fields for one person, or an empty dict. See ``SocialProvider``.

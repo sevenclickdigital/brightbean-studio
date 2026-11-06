@@ -147,6 +147,14 @@ def _classify(exc: Exception) -> str:
             return _RECONNECT
         if _has_expired_token_code(exc):
             return _RECONNECT
+        # A 5xx the provider has already judged permanent is a rejection it
+        # happens to have sent with a server-error status, not an outage. The
+        # "we'll retry shortly" copy below would be a lie twice over: the
+        # engine fails a non-retryable error at once, so no retry is coming,
+        # and the platform is not unavailable — it refused the request. Meta's
+        # ``code 1`` on a malformed payload is the case that put this here.
+        if getattr(exc, "retryable", True) is False:
+            return _REJECTED
         if exc.status_code is not None and exc.status_code >= 500:
             return _UNAVAILABLE
         return _REJECTED

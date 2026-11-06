@@ -26,9 +26,9 @@ FEELS_ACTION_ID = "383634835006146"
 # the handful a business Page plausibly uses, because every entry here is a
 # maintenance liability if Meta ever renumbers them.
 #
-# Sourced from Meta's feelings reference. ``apply_feed_extras`` drops an id
-# the API rejects rather than failing the publish, so a stale entry costs the
-# feeling, never the post.
+# Sourced from Meta's feelings reference. An id the API rejects costs the
+# feeling, never the post: the publish retries once without the decoration
+# (``strip_feed_extras``), so a stale entry here degrades rather than fails.
 FEELINGS: tuple[tuple[str, str], ...] = (
     ("528297480516636", "happy"),
     ("525497104142297", "blessed"),
@@ -85,12 +85,22 @@ def parse_place_results(data: dict) -> list[dict]:
     return results
 
 
+# The keys ``apply_feed_extras`` can add. Used to strip the decoration back off
+# a payload when the API refuses it, so the retry carries the post without it.
+FEED_EXTRA_PAYLOAD_KEYS = ("place", "og_action_type_id", "og_object_id")
+
+
 def apply_feed_extras(payload: dict, extra: dict) -> dict:
     """Add ``place`` and the feeling fields to a Page feed payload.
 
     Mutates and returns ``payload``. Anything absent or unrecognised is
     skipped: these decorate a post, and a stale feeling id must not be the
     reason a publish fails.
+
+    Only valid on ``POST /{page-id}/feed``. ``/photos`` and ``/videos`` answer a
+    bare ``OAuthException code 1`` (HTTP 500) when these fields are present —
+    see ``has_feed_extras``, which callers use to route a decorated photo post
+    through ``/feed`` instead.
     """
     place_id = str(extra.get("place_id") or "").strip()
     if place_id:
@@ -100,4 +110,27 @@ def apply_feed_extras(payload: dict, extra: dict) -> dict:
     if object_id in FEELING_IDS:
         payload["og_action_type_id"] = FEELS_ACTION_ID
         payload["og_object_id"] = object_id
+    return payload
+
+
+def has_feed_extras(extra: dict) -> bool:
+    """Whether ``extra`` carries a decoration ``apply_feed_extras`` would add.
+
+    Mirrors the two conditions in ``apply_feed_extras`` exactly — an
+    unrecognised feeling id is not a decoration, because that function drops it.
+    """
+    place_id = str((extra or {}).get("place_id") or "").strip()
+    object_id = str((extra or {}).get("feeling_object_id") or "").strip()
+    return bool(place_id) or object_id in FEELING_IDS
+
+
+def strip_feed_extras(payload: dict) -> dict:
+    """Remove the decoration keys from ``payload``. Mutates and returns it.
+
+    The other half of the promise in ``apply_feed_extras``: when the platform
+    refuses a decorated payload, the publish retries without the decoration
+    rather than failing the post.
+    """
+    for key in FEED_EXTRA_PAYLOAD_KEYS:
+        payload.pop(key, None)
     return payload

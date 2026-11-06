@@ -74,6 +74,22 @@ def test_api_error_5xx_maps_to_platform_unavailable():
     assert friendly_health_check_error(exc) == PLATFORM_UNAVAILABLE_MESSAGE
 
 
+def test_non_retryable_5xx_reads_as_rejected_not_unavailable():
+    """A 5xx the provider judged permanent is a refusal, not an outage.
+
+    The "we'll retry shortly" copy would be wrong twice: the engine fails a
+    non-retryable error at once, so no retry is coming, and the platform is not
+    down — it refused the request. Meta's ``code 1`` is the case in point.
+    """
+    exc = APIError("rejected the request", status_code=500, retryable=False)
+    assert friendly_publish_error(exc) == PUBLISH_REJECTED_MESSAGE
+
+
+def test_retryable_5xx_still_promises_a_retry():
+    exc = APIError("boom", status_code=503)
+    assert friendly_publish_error(exc) == PUBLISH_TEMPORARY_MESSAGE
+
+
 def test_generic_api_error_maps_to_generic_message():
     exc = APIError("something", status_code=400)
     assert friendly_health_check_error(exc) == GENERIC_MESSAGE

@@ -140,6 +140,160 @@ def test_publish_single_photo_uses_photos_edge_without_staging():
     assert "attached_media" not in sent
 
 
+def test_publish_single_photo_with_feeling_stages_through_feed():
+    """A feeling only publishes via /feed, so a decorated single photo must stage.
+
+    Sent to /photos alongside a url, Meta answers HTTP 500 ``code 1`` and names
+    no field — the failure this routing exists to avoid.
+    """
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    provider._request = MagicMock(
+        side_effect=[
+            _resp({"id": "photo-1"}),
+            _resp({"id": "page-1_post-1"}),
+        ]
+    )
+
+    result = provider.publish_post(
+        "page-token",
+        PublishContent(
+            text="Feeling happy about this",
+            media_urls=["https://cdn.example.com/one.jpg"],
+            post_type=PostType.IMAGE,
+            extra={"page_id": "page-1", "feeling_object_id": "528297480516636"},
+        ),
+    )
+
+    assert result.platform_post_id == "post-1"
+    staged, published = provider._request.call_args_list
+    assert staged.args[1].endswith("/page-1/photos")
+    assert staged.kwargs["json"] == {"url": "https://cdn.example.com/one.jpg", "published": False}
+    assert published.args[1].endswith("/page-1/feed")
+    assert published.kwargs["json"]["attached_media"] == [{"media_fbid": "photo-1"}]
+    assert published.kwargs["json"]["og_action_type_id"] == "383634835006146"
+    assert published.kwargs["json"]["og_object_id"] == "528297480516636"
+
+
+def test_publish_single_photo_with_place_stages_through_feed():
+    """``place`` rides the same edge as a feeling, so it routes the same way."""
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    provider._request = MagicMock(side_effect=[_resp({"id": "photo-1"}), _resp({"id": "page-1_post-1"})])
+
+    provider.publish_post(
+        "page-token",
+        PublishContent(
+            text="At the shop",
+            media_urls=["https://cdn.example.com/one.jpg"],
+            post_type=PostType.IMAGE,
+            extra={"page_id": "page-1", "place_id": "place-99"},
+        ),
+    )
+
+    published = provider._request.call_args_list[1]
+    assert published.args[1].endswith("/page-1/feed")
+    assert published.kwargs["json"]["place"] == "place-99"
+
+
+def test_publish_single_photo_with_unknown_feeling_keeps_direct_upload():
+    """An unrecognised feeling is dropped, so it must not buy the extra request."""
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    provider._request = MagicMock(return_value=_resp({"id": "photo-1", "post_id": "page-1_post-1"}))
+
+    provider.publish_post(
+        "page-token",
+        PublishContent(
+            text="Caption",
+            media_urls=["https://cdn.example.com/one.jpg"],
+            post_type=PostType.IMAGE,
+            extra={"page_id": "page-1", "feeling_object_id": "not-a-real-feeling"},
+        ),
+    )
+
+    provider._request.assert_called_once()
+    assert provider._request.call_args.args[1].endswith("/page-1/photos")
+
+
+def test_feed_post_retries_without_decoration_when_platform_refuses_it():
+    """A refused feeling costs the feeling, not the post."""
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    provider._request = MagicMock(
+        side_effect=[
+            APIError("Facebook API error 500", status_code=500),
+            _resp({"id": "page-1_post-1"}),
+        ]
+    )
+
+    result = provider.publish_post(
+        "page-token",
+        PublishContent(
+            text="Feeling happy",
+            media_urls=[],
+            post_type=PostType.TEXT,
+            extra={"page_id": "page-1", "feeling_object_id": "528297480516636"},
+        ),
+    )
+
+    assert result.platform_post_id == "post-1"
+    first, retried = provider._request.call_args_list
+    assert first.kwargs["json"]["og_object_id"] == "528297480516636"
+    assert retried.kwargs["json"] == {"message": "Feeling happy"}
+
+
+def test_feed_post_without_decoration_does_not_retry():
+    """An undecorated failure is the real failure and must surface untouched."""
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    provider._request = MagicMock(side_effect=APIError("Facebook API error 500", status_code=500))
+
+    with pytest.raises(APIError):
+        provider.publish_post(
+            "page-token",
+            PublishContent(
+                text="Plain text",
+                media_urls=[],
+                post_type=PostType.TEXT,
+                extra={"page_id": "page-1"},
+            ),
+        )
+
+    provider._request.assert_called_once()
+
+
+def test_unknown_error_code_1_is_not_retryable():
+    """Meta's catch-all 500 must not be read as a transient outage.
+
+    Left classified as "platform unavailable", a permanently malformed payload
+    is retried until the attempt budget runs out while the user is told the
+    platform is down.
+    """
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    response = httpx.Response(
+        500,
+        json={"error": {"message": "An unknown error has occurred.", "type": "OAuthException", "code": 1}},
+        request=httpx.Request("POST", "https://graph.facebook.com/v25.0/page-1/photos"),
+    )
+
+    error = provider._error_for_response(response)
+
+    assert isinstance(error, APIError)
+    assert error.status_code == 500
+    assert error.retryable is False
+
+
+def test_genuine_server_error_stays_retryable():
+    """A 5xx without ``code 1`` is still an outage and must keep its retry."""
+    provider = FacebookProvider({"client_id": "id", "client_secret": "secret"})
+    response = httpx.Response(
+        503,
+        json={"error": {"message": "Service temporarily unavailable", "code": 2}},
+        request=httpx.Request("POST", "https://graph.facebook.com/v25.0/page-1/feed"),
+    )
+
+    error = provider._error_for_response(response)
+
+    assert isinstance(error, APIError)
+    assert error.retryable is True
+
+
 def test_is_video_url_ignores_query_string():
     """Presigned URLs carry query strings; the check must look at the path only.
 
