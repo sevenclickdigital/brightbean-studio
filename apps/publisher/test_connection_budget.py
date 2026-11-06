@@ -155,10 +155,11 @@ class BudgetArithmeticTest(TransactionTestCase):
     def test_defaults_fit_the_smallest_supported_plan(self):
         """Peak demand across every process has to fit essential-0's 20.
 
-        The web figure is read from the Procfile rather than copied, so raising
-        ``--threads`` fails here instead of in production.
+        The web figure is read from the Dokploy compose file rather than copied,
+        so raising ``--threads`` fails here instead of in production.
         """
-        web = next(line for line in (REPO_ROOT / "Procfile").read_text().splitlines() if line.startswith("web:"))
+        compose = (REPO_ROOT / "docker-compose.dokploy.yml").read_text()
+        web = next(line for line in compose.splitlines() if "gunicorn config.wsgi" in line)
         workers = int(re.search(r"--workers\s+(\d+)", web).group(1))
         threads = int(re.search(r"--threads\s+(\d+)", web).group(1))
 

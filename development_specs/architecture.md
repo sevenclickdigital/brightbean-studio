@@ -17,7 +17,7 @@ Companion to: Feature Specification v2
 | Media storage | Local filesystem (default) or S3-compatible (Cloudflare R2, AWS S3, MinIO, Backblaze B2) |
 | Media processing | FFmpeg (video), Pillow (images) |
 | Email | Resend (cloud), SMTP-configurable (self-hosted) |
-| Web server | Gunicorn behind Caddy (auto-HTTPS) |
+| Web server | Gunicorn behind Dokploy's Traefik (TLS) |
 
 ---
 
@@ -78,12 +78,8 @@ project/
 ├── static/                     # Compiled CSS, vendored JS (HTMX, Alpine.js)
 ├── Dockerfile
 ├── docker-compose.yml
-├── docker-compose.prod.yml
+├── docker-compose.dokploy.yml  # Production (Dokploy)
 ├── .env.example
-├── railway.toml
-├── render.yaml
-├── Procfile                    # Heroku
-├── app.json                    # Heroku "Deploy" button manifest
 └── README.md
 ```
 
@@ -227,64 +223,11 @@ Automated deploy: GitHub Actions → SSH → pull + restart. Backups: daily `pg_
 | Second VPS for workers | +€7.59/month |
 | Load balancer + second web VPS | +€13/month |
 
-### 6.3 Self-Hosted: Railway
+### 6.3 Self-Hosted: Dokploy
 
-Config: `railway.toml` in repo. Three services: web, worker, managed PostgreSQL.
+The only supported deploy target. `docker-compose.dokploy.yml` is a standalone Compose file: a one-shot `migrate` container, `app` (Gunicorn), `worker` and PostgreSQL. Dokploy's Traefik terminates TLS and reverse-proxies to `app:8000`; no port is published on the host. Env vars come from Dokploy's Environment tab.
 
-Ephemeral filesystem - `STORAGE_BACKEND` must be `s3`. App detects Railway via `RAILWAY_ENVIRONMENT` and warns on misconfiguration.
-
-**Cost:** ~$15-30/month.
-
-### 6.4 Self-Hosted: Render
-
-Config: `render.yaml` blueprint in repo. Three services: web ($7), worker ($7), PostgreSQL ($7).
-
-Free tier sleeps (breaks worker) - must use paid. Ephemeral disk - requires S3.
-
-**Cost:** $21/month minimum.
-
-### 6.5 Self-Hosted: Heroku
-
-Config: `Procfile` + `app.json` (enables "Deploy to Heroku" button).
-
-**Procfile:**
-```
-web: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --threads 2
-worker: python manage.py run_studio_worker
-```
-
-**app.json** pre-configures: Basic dynos, PostgreSQL Essential-0, auto-generated SECRET_KEY, post-deploy migration, env var prompts. README includes deploy button linking to `https://heroku.com/deploy?template=https://github.com/yourorg/social-platform` - running app in ~5 minutes.
-
-| Component | Plan | Cost |
-|-----------|------|------|
-| Web dyno | Basic | $7/month |
-| Worker dyno | Basic | $7/month |
-| PostgreSQL | Essential-0 (1GB, 20 conn) | $5/month |
-| **Total** | | **$19/month** |
-
-**Critical warnings:**
-- **Eco dynos break the app.** They sleep after 30 minutes - worker stops, nothing publishes. Must use Basic+.
-- **Ephemeral filesystem.** `STORAGE_BACKEND` must be `s3`. App detects Heroku via `DYNO` env var and warns.
-- **20 connection limit.** Upgrade to Essential-1 ($15/month, 40 conn) if scaling beyond 2 web dynos.
-- **White-label custom domains** require manual `heroku domains:add` per domain. No on-demand TLS.
-- **Static files** served via `whitenoise` (no separate hosting needed).
-
-### 6.6 Self-Hosted: Bare VPS (Docker Compose)
-
-Primary documented path. Any Linux VPS with Docker.
-
-```
-1. Provision VPS (min 2 vCPU, 4GB RAM)
-2. Install Docker: curl -fsSL https://get.docker.com | sh
-3. Clone repo, cp .env.example .env, fill in secrets
-4. docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-5. docker compose exec app python manage.py migrate
-6. Open browser, complete first-run setup wizard
-```
-
-Upgrade: `git pull && docker compose up -d --build && docker compose exec app python manage.py migrate`
-
-Media: local filesystem by default (Docker volume). Switch to S3 via env var.
+Media: local filesystem by default (`media_data` volume, served by Django at `/media/`). Switch to S3 via env var.
 
 ---
 
@@ -300,10 +243,10 @@ STORAGE_BACKEND=s3     →  S3Boto3Storage via django-storages
 **Serving:**
 - `s3` → django-storages hands out presigned URLs (private ACL, 1-hour expiry). `SERVE_MEDIA` is forced off.
 - `local` → `SERVE_MEDIA` (default `true`) mounts `MEDIA_URL` → `MEDIA_ROOT` in `config/urls.py`, for every settings module rather than only under `DEBUG`. The route is unauthenticated by necessity: `apps/publisher/engine.py` sends `APP_URL + asset.file.url` to Instagram, Threads, Facebook, Pinterest, Google Business and dev.to, which fetch the file server-side and offer no byte-upload path.
-- In the Docker Compose deployment, Caddy serves `/media/` straight off the `media_data` volume (`handle_path /media/*`), which adds byte-range support that `django.views.static.serve` lacks. Django's route is the fallback for deployments without that proxy.
+- On Dokploy, Django serves `/media/` itself. `django.views.static.serve` has no byte-range support (no video seeking), so move to `STORAGE_BACKEND=s3` once video volume grows.
 - Only the subtrees in `PUBLIC_MEDIA_PREFIXES` (`config/urls.py`) get a public route: `media_library/`, `avatars/`, `workspaces/icons/`. It is an allowlist, so a new `upload_to` prefix is private by default. `comment_attachments/` is deliberately excluded — `PostComment.visibility` can be `internal`, which the client portal filters out, so those are served by `approvals.views.comment_attachment` behind the workspace membership check.
-- Uploads are stored under an extension derived from the sniffed MIME (`validators.storage_filename`), not the client's filename. Both `django.views.static.serve` and Caddy pick `Content-Type` from the suffix, so a PNG/HTML polyglot named `poc.html` would otherwise come back as same-origin HTML.
-- `SERVE_MEDIA=false` is only correct when something else serves those prefixes at the same public path. In the Compose deployment set `CADDY_MEDIA_ROOT=/var/empty` when moving to s3: the `media_data` volume outlives the switch and Caddy cannot read `SERVE_MEDIA`.
+- Uploads are stored under an extension derived from the sniffed MIME (`validators.storage_filename`), not the client's filename. `django.views.static.serve` picks `Content-Type` from the suffix, so a PNG/HTML polyglot named `poc.html` would otherwise come back as same-origin HTML.
+- `SERVE_MEDIA=false` is only correct when something else serves those prefixes at the same public path.
 
 **Processing pipeline:**
 - *On upload:* save, extract metadata, generate thumbnail (Pillow/FFmpeg).
@@ -460,7 +403,7 @@ The App Secret used for Facebook/Instagram signature verification is the same cr
 
 ### Self-Hosted Considerations
 
-- **HTTPS required.** Facebook and YouTube reject webhook callbacks to HTTP endpoints. Self-hosters must have TLS configured (Caddy handles this automatically).
+- **HTTPS required.** Facebook and YouTube reject webhook callbacks to HTTP endpoints. Self-hosters must have TLS configured (Dokploy's Traefik handles this).
 - **Public URL required.** The webhook endpoint must be reachable from the internet. Self-hosters behind NAT or firewalls must configure port forwarding or use a tunnel.
 - **Different callback URLs per deployment.** Each self-hosted instance has its own domain, so each must register its own webhook callback URL with Facebook/YouTube. The setup wizard generates the correct URLs and provides copy-paste-ready instructions.
 - **Fallback to polling.** If a self-hoster cannot configure inbound webhooks (e.g., their server is not publicly accessible), the platform falls back to the polling-based inbox sync (every 5 minutes). Webhook configuration is optional - polling is always active as a baseline.
@@ -577,8 +520,5 @@ Or: `docker compose up` (Tailwind builds inside Dockerfile).
 
 | Path | Monthly |
 |------|---------|
-| Bare VPS (Hetzner/DO/Linode) | €5–7 |
-| Heroku (Basic + Essential-0) | $19 |
-| Railway | $15–30 |
-| Render | $21+ |
+| VPS with Dokploy (Hetzner/DO/Linode) | €5–7 |
 | Home server | $0 |

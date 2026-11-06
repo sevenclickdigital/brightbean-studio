@@ -72,5 +72,3 @@ docker-build: ## Rebuild Docker images
 docker-logs: ## Tail logs from all Docker services
 	docker compose logs -f
 
-docker-prod: ## Start production Docker setup (with Caddy)
-	docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d

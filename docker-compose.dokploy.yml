@@ -1,11 +1,11 @@
 # Dokploy deployment (Docker Compose application type).
 #
-# Standalone file — do NOT combine it with docker-compose.yml /
-# docker-compose.prod.yml. Point Dokploy's "Compose Path" at this file alone.
+# Standalone file — do NOT combine it with docker-compose.yml (that one is for
+# local development). Point Dokploy's "Compose Path" at this file alone.
 #
-# Differences from docker-compose.prod.yml:
-#   - No Caddy. Dokploy's own Traefik terminates TLS and reverse-proxies, so a
-#     second proxy binding :80/:443 would collide with it. Django's /media/
+# Notes:
+#   - No extra proxy. Dokploy's own Traefik terminates TLS and reverse-proxies, so
+#     a second proxy binding :80/:443 would collide with it. Django's /media/
 #     route serves uploads instead (SERVE_MEDIA=true, the default) — fine for
 #     modest traffic; switch STORAGE_BACKEND=s3 once media volume grows, since
 #     Django's static serve has no byte-range support (no video seeking).
@@ -47,8 +47,7 @@ services:
       DATABASE_URL: ${DATABASE_URL:-postgres://postgres:${POSTGRES_PASSWORD}@postgres:5432/brightbean}
       MEDIA_ROOT: /app/media
       # The Dockerfile reports the host's core count, so glibc's per-thread
-      # arena cap is effectively unbounded here. .profile is not read by this
-      # image. See README "MALLOC_ARENA_MAX".
+      # arena cap is effectively unbounded here. See README "MALLOC_ARENA_MAX".
       MALLOC_ARENA_MAX: 2
     volumes:
       - media_data:/app/media

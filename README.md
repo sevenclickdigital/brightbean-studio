@@ -27,7 +27,7 @@ BrightBean Studio is an open-source, self-hostable social media management platf
 
 It's for people managing many client accounts under one roof who'd rather own their social stack than pay $100–300/month to a SaaS vendor. Every feature is available to every user. No paid tier, no feature gate, no upsell.
 
-A free hosted version is available at [brightbean.xyz/studio](https://brightbean.xyz/studio/). You can also deploy it yourself with a one-click button on Heroku, Render, or Railway, run it on your own VPS via Docker, or run it locally. All platform integrations talk directly to the official first-party APIs using your own developer credentials, so there's no aggregator middleman, no vendor lock-in, and no third party sitting between you and your data.
+A free hosted version is available at [brightbean.xyz/studio](https://brightbean.xyz/studio/). You can also deploy it yourself on [Dokploy](https://dokploy.com/) or run it locally. All platform integrations talk directly to the official first-party APIs using your own developer credentials, so there's no aggregator middleman, no vendor lock-in, and no third party sitting between you and your data.
 
 ## Features
 
@@ -88,25 +88,22 @@ A free hosted version of Brightbean Studio is available at [brightbean.xyz/studi
 
 If you'd rather self-host, choose one of the options below.
 
-### One-Click Deploy
+### Self-Hosting
 
-| Heroku | Render | Railway |
-|:------:|:------:|:-------:|
-| [![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/brightbeanxyz/brightbean-studio) | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/brightbeanxyz/brightbean-studio) | [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/brightbean-studio?referralCode=brightbean) |
+Production runs on Dokploy — see [Production Deployment](#production-deployment).
 
-After deploying, set these environment variables in your platform's dashboard:
+After deploying, set these environment variables in Dokploy's Environment tab:
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DJANGO_SETTINGS_MODULE` | Auto-set | `config.settings.production`. Set if deployment config has not placed it. |
-| `SECRET_KEY` | Auto-generated | Django secret key. Set automatically by the deploy button. |
-| `ENCRYPTION_KEY_SALT` | Auto-generated | Encryption salt. Set automatically by the deploy button. |
-| `DATABASE_URL` | Auto-provisioned | PostgreSQL connection string. Set automatically. |
-| `ALLOWED_HOSTS` | Yes | Your app's domain, e.g. `your-app.herokuapp.com` |
-| `APP_URL` | Yes | Full public URL, e.g. `https://your-app.herokuapp.com` |
-| `STORAGE_BACKEND` | No | Set to `s3` for S3/R2 storage. Default: `local`. Heroku, Render, and Railway have ephemeral filesystems, so uploaded files are lost on redeploy without S3. |
+| `DJANGO_SETTINGS_MODULE` | Auto-set | `config.settings.production`. Already set by `docker-compose.dokploy.yml`. |
+| `SECRET_KEY` | Yes | Django secret key — a random 50+ character string. |
+| `ENCRYPTION_KEY_SALT` | Yes | Encryption salt. Never change it once tokens are stored. |
+| `DATABASE_URL` | No | PostgreSQL connection string. Defaults to the compose file's own `postgres` service. |
+| `ALLOWED_HOSTS` | Yes | Your app's domain, e.g. `studio.example.com` |
+| `APP_URL` | Yes | Full public URL, e.g. `https://studio.example.com` |
+| `STORAGE_BACKEND` | No | Set to `s3` for S3/R2 storage. Default: `local`, which keeps uploads on the `media_data` volume. |
 | `SERVE_MEDIA` | No | Only used with `STORAGE_BACKEND=local`. Default: `true`, so Django serves uploads at `/media/`. Those files are served **unauthenticated** — anyone with the path can fetch them. That is required in this mode: Instagram, Threads, Facebook, Pinterest, Google Business and dev.to fetch attachment URLs server-side when publishing, so `/media/` must be publicly reachable. Only the media library, avatars and workspace icons are exposed this way (`PUBLIC_MEDIA_PREFIXES` in `config/urls.py`); comment attachments go through a permission-checked view. Set to `false` only when a reverse proxy or CDN serves those prefixes on the same public path instead. |
-| `CADDY_MEDIA_ROOT` | No | docker-compose only. Where Caddy reads uploads from. Default: `/app/media`. Set to `/var/empty` when `STORAGE_BACKEND=s3` — the `media_data` volume survives the switch and Caddy cannot see `SERVE_MEDIA`, so it would otherwise keep serving whatever uploads were left behind. |
 | `S3_ENDPOINT_URL` | If using S3 | S3-compatible endpoint URL |
 | `S3_ACCESS_KEY_ID` | If using S3 | S3 access key |
 | `S3_SECRET_ACCESS_KEY` | If using S3 | S3 secret key |
@@ -271,54 +268,19 @@ ruff format .
 
 ## Production Deployment
 
-### Docker Compose on a VPS (recommended)
+### Dokploy
 
-```bash
-# On your server:
-git clone https://github.com/brightbeanxyz/brightbean-studio.git
-cd brightbean-studio
-cp .env.example .env
-# Edit .env:
-#   SECRET_KEY=<generate a random 50+ char string>
-#   DEBUG=false
-#   ALLOWED_HOSTS=yourdomain.com
-#   APP_URL=https://yourdomain.com
-#   DATABASE_URL=postgres://postgres:<strong-password>@postgres:5432/brightbean
+Create a *Docker Compose* application in Dokploy and point its "Compose Path" at `docker-compose.dokploy.yml` alone (do not combine it with `docker-compose.yml`). Set the variables above in the Environment tab, then add a Domain pointing to service `app`, container port `8000`. Dokploy's Traefik terminates TLS.
 
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-docker compose exec app python manage.py createsuperuser
-```
+The stack runs a one-shot `migrate` container, `app` (Gunicorn), `worker` and PostgreSQL. With the default `STORAGE_BACKEND=local`, Django serves uploads at `/media/` from the `media_data` volume; switch to `STORAGE_BACKEND=s3` once media volume grows, since Django's static serve has no byte-range support (no video seeking).
 
-This starts 5 containers: app (Gunicorn), worker, PostgreSQL, Caddy (auto-HTTPS), and a one-shot migrate container that runs database migrations automatically on startup. Edit the `Caddyfile` with your domain.
+Create the first admin with `python manage.py createsuperuser` from the `app` container's terminal in Dokploy.
 
-With the default `STORAGE_BACKEND=local`, Caddy serves uploaded media directly from the `media_data` volume at `/media/`, so large images and video never occupy a Gunicorn worker thread and byte-range requests (video seeking) work. Django's own `/media/` route stays available as the fallback for deployments without this proxy.
-
-To update:
-
-```bash
-git pull
-docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
-```
-
-### Other Platforms
-
-| Platform | Config file | Notes |
-|----------|-------------|-------|
-| **Heroku** | `Procfile` + `app.json` | Deploy-button ready. Must use Basic+ dynos (Eco dynos break the worker). |
-| **Railway** | `railway.toml` | The [one-click template](https://railway.com/deploy/brightbean-studio) provisions three services: web (Gunicorn, runs `migrate` on startup), worker (`python manage.py run_studio_worker`), and managed PostgreSQL. The web service's startup `migrate` fires the `post_migrate` hooks that register the recurring tasks, so scheduling works out of the box. |
-| **Render** | `render.yaml` | Blueprint with web, worker, PostgreSQL. Must use paid tier. |
-
-All platforms with ephemeral filesystems require `STORAGE_BACKEND=s3` - see `.env.example` for S3 configuration.
-
-**Memory sizing.** Importing the app costs roughly 100 MB before it serves a request, and a warmed Gunicorn worker settles near 200 MB - so the shipped command runs a single threaded worker (`--workers 1 --threads 4`), which fits a 512 MB dyno with room for media handling. Raise `--workers` only when you raise the memory to match; a rule of thumb is 250 MB per worker. Do **not** add `--max-requests`: gthread stops heartbeating at the start of the request that trips the counter, so the arbiter kills the worker mid-request once `--timeout` (30s) passes - which drops whichever upload happened to be that request, and uploads here can be up to 1 GB. The `worker` process needs the same headroom: it downloads videos to disk and streams them to the platform, and if it is killed mid-publish (Heroku's R15, an OOM kill, a deploy) the affected post is failed by the confirmation sweep rather than left in limbo.
+**Memory sizing.** Importing the app costs roughly 100 MB before it serves a request, and a warmed Gunicorn worker settles near 200 MB - so the shipped command runs a single threaded worker (`--workers 1 --threads 4`), which fits a 512 MB container with room for media handling. Raise `--workers` only when you raise the memory to match; a rule of thumb is 250 MB per worker. Do **not** add `--max-requests`: gthread stops heartbeating at the start of the request that trips the counter, so the arbiter kills the worker mid-request once `--timeout` (30s) passes - which drops whichever upload happened to be that request, and uploads here can be up to 1 GB. The `worker` process needs the same headroom: it downloads videos to disk and streams them to the platform, and if it is killed mid-publish (an OOM kill, a deploy) the affected post is failed by the confirmation sweep rather than left in limbo.
 
 **One worker, reserved publishing capacity.** `run_studio_worker` runs one process with two task execution threads: one for publishing and publish confirmation, and one for inbox sync, analytics, health checks, media, and maintenance. It claims jobs only when their thread is available and keeps the existing database locks, retries, and repeating schedules. Task logs include dispatch delay and execution duration. The default dispatcher poll interval is one second (`--sleep`). With the shipped publisher and web concurrency limits, peak database demand is 17 connections, below the 20-connection PostgreSQL limit.
 
-**Why Heroku uses `--duration 3600`.** Peak allocations can raise RSS permanently because CPython and glibc retain freed pages. Hourly recycling stops admitting general work first, while publishing continues until that job finishes; the publishing thread then drains and the process exits cleanly. SIGINT/SIGTERM stop admission on both threads and let in-flight work finish, subject to the platform's shutdown grace period. Unfinished jobs retain their locks for normal recovery. Don't go below ~1800s, where Heroku's crash cool-off starts to engage. Docker, Render, and Railway use the command without a duration, so they do not depend on a clean-exit restart policy. The legacy `python manage.py process_tasks` command remains available for rollback.
-
-**`MALLOC_ARENA_MAX`.** glibc gives each thread its own arena (up to 64 MB) capped at `8 x nproc`, and containers report the host's core count, so the cap is effectively unbounded. This app has real thread churn - the publisher builds a fresh pool every 15s and boto3's managed transfer adds ten threads per download - and those arenas are never returned to the OS. On Heroku this is already set to 2 by the repo's `.profile`, which applies to web, worker, the release phase and one-off `heroku run` dynos alike; it is written as a default rather than an override, so a config var still wins if you want to tune it. Deploy targets that build from the `Dockerfile` (Render, Railway, docker-compose) do not read `.profile` - set it in their own environment config if the host is memory-tight.
-
-See `architecture.md` for detailed per-platform instructions and cost breakdowns.
+**`MALLOC_ARENA_MAX`.** glibc gives each thread its own arena (up to 64 MB) capped at `8 x nproc`, and containers report the host's core count, so the cap is effectively unbounded. This app has real thread churn - the publisher builds a fresh pool every 15s and boto3's managed transfer adds ten threads per download - and those arenas are never returned to the OS. `docker-compose.dokploy.yml` sets it to 2 on both `app` and `worker`.
 
 ### Restricting Sign-up
 
@@ -402,16 +364,11 @@ brightbean-studio/
 │       └── tailwind.config.js
 ├── Dockerfile
 ├── docker-compose.yml         # Dev: app + worker + postgres
-├── docker-compose.prod.yml    # Prod override: adds Caddy, uses Gunicorn
-├── Caddyfile                  # Reverse proxy + auto-HTTPS config
-├── .env.example               # All environment variables
-├── Procfile                   # Heroku
-├── app.json                   # Heroku deploy button
-├── railway.toml               # Railway config
-└── render.yaml                # Render blueprint
+├── docker-compose.dokploy.yml # Production (Dokploy)
+└── .env.example               # All environment variables
 ```
 
-> **Settings selection:** The `DJANGO_SETTINGS_MODULE` environment variable controls which settings file Django uses. The defaults are already wired for each context: `manage.py` uses `development`, `wsgi.py`/`asgi.py` use `production`, and `pytest` uses `test` (via `pyproject.toml`). Docker Compose files and platform deploy configs (Heroku, Render) also set it explicitly. You only need to override it manually if you want a non-default module for a specific command, e.g. `DJANGO_SETTINGS_MODULE=config.settings.production python manage.py check --deploy`.
+> **Settings selection:** The `DJANGO_SETTINGS_MODULE` environment variable controls which settings file Django uses. The defaults are already wired for each context: `manage.py` uses `development`, `wsgi.py`/`asgi.py` use `production`, and `pytest` uses `test` (via `pyproject.toml`). The Docker Compose files also set it explicitly. You only need to override it manually if you want a non-default module for a specific command, e.g. `DJANGO_SETTINGS_MODULE=config.settings.production python manage.py check --deploy`.
 
 ## Platform Credentials
 
@@ -891,7 +848,7 @@ Don't want to wire up your own client? The companion [brightbean-studio-agent](h
 | Background jobs | django-background-tasks (no Redis required) |
 | Auth | django-allauth (email + Google OAuth) |
 | Media | Pillow (images), FFmpeg (video) |
-| Deployment | Docker, Gunicorn, Caddy |
+| Deployment | Docker, Gunicorn, Dokploy |
 
 ---
 
