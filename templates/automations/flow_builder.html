@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}{% translate "Flow builder" %} - {{ workspace.name }} - Brightbean{% endblock %}
+{% block title %}{% if template_mode %}{{ flow_template.name }} - {% translate "Templates" %} - {% translate "Administration" %}{% else %}{% translate "Flow builder" %} - {{ workspace.name }}{% endif %} - Brightbean{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -62,10 +62,43 @@ any zoom level.
 
     <!-- Toolbar ------------------------------------------------------------ -->
     <div class="flex items-center gap-3 px-5 py-3 bg-white border-b border-stone-200 shrink-0">
-        <a href="{% url 'composer:compose_edit' workspace_id=workspace.id post_id=platform_post.post_id %}?account={{ platform_post.social_account_id }}"
+        {% comment %}
+        Back goes where this canvas was opened from, and in template mode that
+        is the operator's shelf rather than a post that does not exist. Every
+        post-dependent control below is behind the same flag — see
+        ``template_views.template_edit`` for why the two modes share one file.
+        {% endcomment %}
+        <a href="{% if template_mode %}{% url 'automations_staff:template_list' %}{% else %}{% url 'composer:compose_edit' workspace_id=workspace.id post_id=platform_post.post_id %}?account={{ platform_post.social_account_id }}{% endif %}"
            class="text-stone-400 hover:text-stone-600 transition-colors shrink-0">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </a>
+
+        {% if template_mode %}
+        {% comment %}
+        The template's own identity, in place of the post thumbnail: on this
+        screen the question "which post?" has no answer, and the one the
+        operator does have — "which template am I editing?" — is this.
+        {% endcomment %}
+        <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-9 h-9 rounded-lg overflow-hidden bg-stone-100 flex items-center justify-center shrink-0">
+                {% if flow_template.thumbnail %}
+                <img src="{{ flow_template.thumbnail.url }}" alt="" class="w-full h-full object-cover">
+                {% else %}
+                <svg class="w-4 h-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                {% endif %}
+            </div>
+            <div class="min-w-0">
+                <h2 class="text-sm font-semibold text-stone-900 tracking-tight truncate">{{ flow_template.name }}</h2>
+                <p class="text-xs text-stone-500 truncate">{% translate "Flow template" %}</p>
+            </div>
+        </div>
+
+        <div class="ml-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shrink-0
+                    {% if flow_template.is_published %}bg-green-50 text-green-700 border border-green-200{% else %}bg-stone-100 text-stone-500 border border-stone-200{% endif %}">
+            <span class="w-1.5 h-1.5 rounded-full {% if flow_template.is_published %}bg-green-500{% else %}bg-stone-400{% endif %}"></span>
+            {% if flow_template.is_published %}{% translate "On the shelf" %}{% else %}{% translate "Draft" %}{% endif %}
+        </div>
+        {% else %}
 
         {% comment %}
         Which post this flow answers for. The header used to say only
@@ -128,8 +161,22 @@ any zoom level.
                   }"></span>
             <span x-text="statusLabel || '{% translate "Not set up" %}'"></span>
         </div>
+        {% endif %}
 
         <div class="flex-1"></div>
+
+        {% if template_mode %}
+        {% comment %}
+        The template's own fields — name, description, thumbnail, whether it is
+        on the shelf — behind a modal, for the same reason the guardrails are:
+        they are set once, and the canvas is where the attention belongs.
+        {% endcomment %}
+        <button type="button" @click="detailsOpen = true"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            <span class="hidden lg:inline">{% translate "Template details" %}</span>
+        </button>
+        {% endif %}
 
         {% comment %}
         The guardrails — hourly ceiling, one-reply-per-person, priority — in a
@@ -137,8 +184,12 @@ any zoom level.
         and a node is where the author's attention is; putting them beside the
         nodes would make the screen look like there are six decisions to make
         when there is really one.
+
+        Not in template mode: every one of them lives on the ``AutomationRule``,
+        which a template does not have. The author who applies the template sets
+        them on their own flow.
         {% endcomment %}
-        {% if can_manage %}
+        {% if can_manage and not template_mode %}
         <button type="button" @click="settingsOpen = true"
                 class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] text-stone-500 hover:text-stone-700 hover:bg-stone-100 transition-colors cursor-pointer shrink-0"
                 title="{% translate 'Automation settings' %}">
@@ -185,11 +236,32 @@ any zoom level.
         {% if can_manage %}
         <div class="w-px h-6 bg-stone-200 mx-1 shrink-0"></div>
 
+        {% comment %}
+        "Start from a template". Only on a real flow: the shelf is what this
+        screen *is* in template mode, and applying one template inside another
+        is a nesting nobody asked for.
+        {% endcomment %}
+        {% if not template_mode %}
+        <button type="button" @click="openTemplates()"
+                class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[13px] font-medium text-stone-600 border border-stone-200 bg-white hover:border-stone-300 hover:text-stone-800 transition-colors cursor-pointer shrink-0"
+                title="{% translate 'Start from a ready-made flow' %}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            <span class="hidden lg:inline">{% translate "Templates" %}</span>
+        </button>
+        {% endif %}
+
         <button type="button" @click="save(false)" :disabled="saving"
-                class="px-3 py-1.5 text-sm font-medium text-stone-600 rounded-lg border border-stone-200 bg-white hover:border-stone-300 hover:text-stone-800 transition-colors cursor-pointer disabled:opacity-50 shrink-0">
+                class="px-3 py-1.5 text-sm font-medium rounded-lg border transition-colors cursor-pointer disabled:opacity-50 shrink-0
+                       {% if template_mode %}border-transparent bg-orange-500 text-white hover:bg-orange-600{% else %}border-stone-200 bg-white text-stone-600 hover:border-stone-300 hover:text-stone-800{% endif %}">
             <span x-text="saving ? '{% translate "Saving…" %}' : '{% translate "Save" %}'"></span>
         </button>
 
+        {% comment %}
+        Activation is a flow's, not a template's: a template runs nowhere, and
+        whether customers can see it is ``is_published`` in the details modal —
+        a different question with a different word for it.
+        {% endcomment %}
+        {% if not template_mode %}
         <button type="button" @click="status === 'active' ? toggle() : save(true)" :disabled="saving"
                 class="px-3.5 py-1.5 text-sm font-medium rounded-lg transition-colors cursor-pointer disabled:opacity-50 shrink-0"
                 :class="status === 'active'
@@ -198,10 +270,15 @@ any zoom level.
             <span x-text="status === 'active' ? '{% translate "Pause" %}' : '{% translate "Turn on" %}'"></span>
         </button>
         {% endif %}
+        {% endif %}
     </div>
 
     <!-- Banners ------------------------------------------------------------ -->
-    {% if not supports_automation %}
+    {% if template_mode %}
+    <div class="px-5 py-2.5 bg-stone-100 border-b border-stone-200 text-[13px] text-stone-600 shrink-0">
+        {% translate "This is a template. It answers no post and sends nothing — it is the starting canvas a customer gets when they pick it." %}
+    </div>
+    {% elif not supports_automation %}
     <div class="px-5 py-2.5 bg-stone-100 border-b border-stone-200 text-[13px] text-stone-600 shrink-0">
         {% blocktranslate with platform=platform_post.social_account.platform %}Comment automations run on Instagram and Facebook only. This account is <strong>{{ platform }}</strong>, so this flow cannot run.{% endblocktranslate %}
     </div>
@@ -479,6 +556,23 @@ any zoom level.
                                             </div>
                                         </template>
 
+                                        {% if template_mode %}
+                                        {% comment %}
+                                        The URL field, and only here. The media
+                                        library belongs to a workspace and a
+                                        template belongs to none, so there is no
+                                        gallery to pick from — and an image
+                                        chosen from one customer's library is
+                                        one every other customer's card would
+                                        fail to load. A template that ships an
+                                        image therefore carries a public URL,
+                                        which is what the operator has and what
+                                        travels.
+                                        {% endcomment %}
+                                        <input type="url" x-model="node.data.image_url" @keydown.stop
+                                               placeholder="{% translate 'https://… the card image' %}"
+                                               class="w-full text-[12px] px-2.5 py-2 rounded-lg border border-stone-200 outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100 transition-all">
+                                        {% else %}
                                         {% comment %}
                                         No URL field. It was a second way to do
                                         the same thing, and the one that could
@@ -494,6 +588,7 @@ any zoom level.
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
                                             <span x-text="node.data.image_url ? '{% translate "Change image" %}' : '{% translate "Choose an image" %}'"></span>
                                         </button>
+                                        {% endif %}
                                     </div>
                                 </template>
 
@@ -709,7 +804,7 @@ any zoom level.
         a dialog that shrank to 40% because the canvas was zoomed out would be
         unreadable at exactly the moment someone opened it.
         {% endcomment %}
-        {% if can_manage %}
+        {% if can_manage and not template_mode %}
         <div x-show="settingsOpen" x-cloak
              @keydown.escape.window="settingsOpen = false"
              class="absolute inset-0 z-30 flex items-center justify-center bg-stone-900/20 p-4">
@@ -790,8 +885,12 @@ any zoom level.
         Media picker. Outside the transformed layers for the same reason as the
         settings modal — a dialog scaled to the canvas zoom would be unreadable
         at exactly the moment it opens.
+
+        Not in template mode: the library it reads is a workspace's, and a
+        template has none. The card node offers a URL field there instead —
+        see the comment beside it.
         {% endcomment %}
-        {% if can_manage %}
+        {% if can_manage and not template_mode %}
         <div x-show="mediaPickerOpen" x-cloak
              @keydown.escape.window="mediaPickerOpen = false"
              class="absolute inset-0 z-30 flex items-center justify-center bg-stone-900/20 p-4">
@@ -881,6 +980,184 @@ any zoom level.
         </div>
         {% endif %}
 
+        {% if not template_mode %}
+        {% comment %}
+        ── The template picker ────────────────────────────────────────────
+        A grid of cards: thumbnail, name, one line of description. Opened from
+        the toolbar, and placed here with the other dialogs so it sits outside
+        the zoomed layers for the reason given above the settings modal.
+
+        Picking one REPLACES the canvas rather than merging into it, and says
+        so before it does when there is work to lose. Merging two flows leaves
+        two triggers, which the compiler resolves by ignoring the second — a
+        drawing that looks complete and silently half-runs. Replacing is the
+        honest reading of "start from this template", and the confirm is what
+        makes it safe.
+        {% endcomment %}
+        <div x-show="templatesOpen" x-cloak
+             @keydown.escape.window="templatesOpen = false"
+             class="absolute inset-0 z-30 flex items-start justify-center bg-stone-900/20 p-4 overflow-y-auto">
+            <div @click.outside="templatesOpen = false"
+                 class="w-full max-w-3xl bg-white rounded-2xl border border-stone-200 shadow-xl my-auto overflow-hidden">
+
+                <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+                    <div>
+                        <h3 class="text-sm font-semibold text-stone-900">{% translate "Start from a template" %}</h3>
+                        <p class="text-[12px] text-stone-500 mt-0.5">{% translate "Ready-made flows you can edit afterwards." %}</p>
+                    </div>
+                    <button type="button" @click="templatesOpen = false"
+                            class="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div class="p-5 max-h-[60vh] overflow-y-auto">
+                    <div x-show="templatesLoading" class="py-12 text-center text-[13px] text-stone-400">
+                        {% translate "Loading…" %}
+                    </div>
+
+                    <div x-show="templatesError" x-cloak
+                         class="py-3 px-4 rounded-xl bg-red-50 border border-red-200 text-[13px] text-red-700"
+                         x-text="templatesError"></div>
+
+                    {% comment %}
+                    The empty state names who fills the shelf. A customer
+                    seeing "no templates yet" with no explanation reads it as
+                    broken rather than as not-yet-stocked.
+                    {% endcomment %}
+                    <div x-show="!templatesLoading && !templatesError && templates.length === 0" x-cloak
+                         class="py-12 text-center">
+                        <p class="text-sm font-medium text-stone-600">{% translate "No templates yet" %}</p>
+                        <p class="text-[13px] text-stone-500 mt-1">{% translate "Ready-made flows will appear here once they are published." %}</p>
+                    </div>
+
+                    <div x-show="!templatesLoading && templates.length > 0" x-cloak
+                         class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <template x-for="item in templates" :key="item.id">
+                            <button type="button" @click="applyTemplate(item)"
+                                    class="group text-left rounded-xl border border-stone-200 overflow-hidden hover:border-orange-300 hover:shadow-md transition-all cursor-pointer">
+                                <div class="aspect-[4/3] bg-stone-100 relative overflow-hidden">
+                                    <img x-show="item.thumbnail" :src="item.thumbnail" alt=""
+                                         class="w-full h-full object-cover">
+                                    {% comment %}
+                                    The fallback is a mark, not a rendering of
+                                    the flow: a template with no image is still
+                                    recognisable by its name, and a fake
+                                    preview would be worse than an honest
+                                    placeholder.
+                                    {% endcomment %}
+                                    <div x-show="!item.thumbnail" class="absolute inset-0 flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                                    </div>
+                                    <span class="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded-md bg-black/60 text-white text-[10px] font-medium"
+                                          x-text="item.node_count + ' {% translate "steps" %}'"></span>
+                                </div>
+                                <div class="p-3">
+                                    <p class="text-[13px] font-semibold text-stone-900 truncate group-hover:text-orange-700 transition-colors"
+                                       x-text="item.name"></p>
+                                    <p x-show="item.description" class="text-[12px] text-stone-500 truncate mt-0.5"
+                                       x-text="item.description"></p>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if template_mode %}
+        {% comment %}
+        ── The template's own details ─────────────────────────────────────
+        A real form post, not a fetch: it carries a file, it redirects, and it
+        reports through ``messages`` like every other operator screen. The
+        canvas saves separately — these are two writes because they are two
+        decisions, and because the graph has to go as JSON while the thumbnail
+        has to go as multipart.
+        {% endcomment %}
+        <div x-show="detailsOpen" x-cloak
+             @keydown.escape.window="detailsOpen = false"
+             class="absolute inset-0 z-30 flex items-start justify-center bg-stone-900/20 p-4 overflow-y-auto">
+            <form method="post" enctype="multipart/form-data"
+                  action="{% url 'automations_staff:template_details' template_id=flow_template.id %}"
+                  @click.outside="detailsOpen = false"
+                  class="w-full max-w-md bg-white rounded-2xl border border-stone-200 shadow-xl my-auto overflow-hidden">
+                {% csrf_token %}
+
+                <div class="flex items-center justify-between px-5 py-4 border-b border-stone-100">
+                    <h3 class="text-sm font-semibold text-stone-900">{% translate "Template details" %}</h3>
+                    <button type="button" @click="detailsOpen = false"
+                            class="text-stone-400 hover:text-stone-600 transition-colors cursor-pointer">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div class="p-5 space-y-4">
+                    <div>
+                        <label for="tpl-name" class="block text-[12px] font-medium text-stone-600 mb-1">{% translate "Name" %}</label>
+                        <input id="tpl-name" type="text" name="name" value="{{ flow_template.name }}" maxlength="120" required
+                               class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none">
+                    </div>
+
+                    <div>
+                        <label for="tpl-description" class="block text-[12px] font-medium text-stone-600 mb-1">{% translate "Description" %}</label>
+                        <input id="tpl-description" type="text" name="description" value="{{ flow_template.description }}" maxlength="240"
+                               placeholder="{% translate 'One line, shown under the name' %}"
+                               class="w-full px-3 py-2 text-sm rounded-lg border border-stone-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none">
+                    </div>
+
+                    <div>
+                        <span class="block text-[12px] font-medium text-stone-600 mb-1">{% translate "Thumbnail" %}</span>
+                        {% if flow_template.thumbnail %}
+                        <div class="flex items-center gap-3 mb-2">
+                            <img src="{{ flow_template.thumbnail.url }}" alt=""
+                                 class="w-20 h-15 object-cover rounded-lg border border-stone-200">
+                            <label class="flex items-center gap-1.5 text-[12px] text-stone-500 cursor-pointer">
+                                <input type="checkbox" name="remove_thumbnail" class="rounded border-stone-300 text-orange-500 focus:ring-orange-400">
+                                {% translate "Remove it" %}
+                            </label>
+                        </div>
+                        {% endif %}
+                        <input type="file" name="thumbnail" accept="image/png,image/jpeg,image/webp,image/gif"
+                               class="w-full text-[12px] text-stone-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border file:border-stone-200 file:text-[12px] file:bg-white file:text-stone-600 file:cursor-pointer">
+                        <p class="text-[11px] text-stone-400 mt-1">{% translate "PNG, JPEG, WebP or GIF, under 4 MB. A screenshot of the flow works well." %}</p>
+                    </div>
+
+                    <div>
+                        <label for="tpl-position" class="block text-[12px] font-medium text-stone-600 mb-1">{% translate "Position on the shelf" %}</label>
+                        <input id="tpl-position" type="number" name="position" value="{{ flow_template.position }}"
+                               class="w-24 px-3 py-2 text-sm rounded-lg border border-stone-200 focus:border-orange-400 focus:ring-1 focus:ring-orange-400 outline-none">
+                        <p class="text-[11px] text-stone-400 mt-1">{% translate "Lowest first." %}</p>
+                    </div>
+
+                    <label class="flex items-start gap-2.5 p-3 rounded-xl border border-stone-200 cursor-pointer hover:border-stone-300 transition-colors">
+                        <input type="checkbox" name="is_published" {% if flow_template.is_published %}checked{% endif %}
+                               class="mt-0.5 rounded border-stone-300 text-orange-500 focus:ring-orange-400">
+                        <span>
+                            <span class="block text-[13px] font-medium text-stone-800">{% translate "Show it to customers" %}</span>
+                            <span class="block text-[12px] text-stone-500">{% translate "Unpublished templates stay editable here and appear in nobody's picker." %}</span>
+                        </span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 px-5 py-4 border-t border-stone-100 bg-stone-50">
+                    {% comment %}
+                    The canvas and these fields save separately, and somebody
+                    who drew three nodes and then opened this dialog would lose
+                    them to the redirect. Saying so is cheaper than wiring the
+                    two writes together, which would mean posting the graph
+                    through a multipart form.
+                    {% endcomment %}
+                    <p class="text-[11px] text-stone-400">{% translate "Save the canvas first — this reloads the page." %}</p>
+                    <button type="submit"
+                            class="px-3.5 py-1.5 text-sm font-medium rounded-lg bg-orange-500 text-white hover:bg-orange-600 transition-colors cursor-pointer shrink-0">
+                        {% translate "Save details" %}
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
         <!-- Add-step palette --------------------------------------------- -->
         {% if can_manage %}
         <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-2 py-2 rounded-2xl bg-white border border-stone-200 shadow-lg"
@@ -943,6 +1220,10 @@ as data. json_script escapes for a JS context, which is where they land.
 {% translate "The flow could not be saved. Check your connection and try again." as lbl_save_failed_net %}
 {% translate "The flow could not be changed." as lbl_change_failed %}
 {% translate "The flow could not be changed. Check your connection and try again." as lbl_change_failed_net %}
+{% translate "The templates could not be loaded." as lbl_templates_failed %}
+{% translate "The templates could not be loaded. Check your connection and try again." as lbl_templates_failed_net %}
+{% translate "That template is empty." as lbl_templates_empty %}
+{% translate "This replaces everything on the canvas. Continue?" as lbl_templates_replace %}
 {{ lbl_when|json_script:"fb-when" }}
 {{ lbl_trigger|json_script:"fb-trigger" }}
 {{ lbl_then_reply|json_script:"fb-then-reply" }}
@@ -957,6 +1238,10 @@ as data. json_script escapes for a JS context, which is where they land.
 {{ lbl_save_failed_net|json_script:"fb-save-failed-net" }}
 {{ lbl_change_failed|json_script:"fb-change-failed" }}
 {{ lbl_change_failed_net|json_script:"fb-change-failed-net" }}
+{{ lbl_templates_failed|json_script:"fb-templates-failed" }}
+{{ lbl_templates_failed_net|json_script:"fb-templates-failed-net" }}
+{{ lbl_templates_empty|json_script:"fb-templates-empty" }}
+{{ lbl_templates_replace|json_script:"fb-templates-replace" }}
 <script nonce="{{ request.csp_nonce }}">
 // Reads a label the template translated and left in a json_script tag.
 function fbLabel(id) {
@@ -992,6 +1277,18 @@ function flowBuilder() {
         //: limits open as they are rather than as the model's defaults.
         settingsOpen: false,
         settings: { name: '', max_per_hour: 30, once_per_sender_per_post: true, priority: 0 },
+        //: The template picker, and what the server last returned for it.
+        //: Fetched on open rather than rendered into the page: the shelf is
+        //: edited by the operator, not by this workspace, so a list baked in
+        //: at page load is stale the moment a template is published.
+        templatesOpen: false,
+        templates: [],
+        templatesLoading: false,
+        templatesError: '',
+        //: Template mode only: the dialog holding the template's own fields.
+        //: Declared unconditionally so the component has one shape — an
+        //: ``x-show`` on an undefined property is a silent always-hidden.
+        detailsOpen: false,
         //: The media picker, and which node asked for it. Holding the node
         //: rather than an id keeps the choice from landing on the wrong card
         //: if the selection moves while the dialog is open.
@@ -1678,6 +1975,20 @@ function flowBuilder() {
         // Activation state is preserved — saving limits must not switch a
         // running flow off.
         // --- Media picker -----------------------------------------------
+        {% if template_mode %}
+        // Deliberately inert in template mode. The library is a *workspace's*
+        // — the endpoint resolves one from the URL and checks membership —
+        // and a template belongs to no workspace, so there is nothing for
+        // this picker to list. A template that needs an image carries its URL
+        // instead, which travels to every customer the same way; one pointing
+        // at one workspace's library would be an image the next customer
+        // cannot see. The card node hides the "choose from library" button
+        // behind the same flag and offers the URL field on its own.
+        openMediaPicker(node) {},
+        async loadMedia() {},
+        async uploadMedia(event) {},
+        chooseMedia(item) {},
+        {% else %}
         openMediaPicker(node) {
             this.mediaTarget = node;
             this.mediaPickerOpen = true;
@@ -1769,6 +2080,7 @@ function flowBuilder() {
             await this.save(this.status === 'active');
             if (!this.error) this.settingsOpen = false;
         },
+        {% endif %}
 
         async save(activate) {
             this.saving = true;
@@ -1776,6 +2088,22 @@ function flowBuilder() {
             try {
                 const body = new FormData();
                 body.append('graph', JSON.stringify({ nodes: this.nodes, edges: this.edges }));
+                body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
+
+                {% if template_mode %}
+                // A template has no rule, so none of the rule fields below are
+                // sent and none of the status handling applies. The response
+                // shape is otherwise identical, which is what lets one
+                // function serve both screens.
+                const response = await fetch('{% url "automations_staff:template_save" template_id=flow_template.id %}', {
+                    method: 'POST',
+                    body,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await response.json();
+                this.warnings = data.warnings || [];
+                if (!data.ok) { this.error = data.error || fbLabel('save-failed'); return; }
+                {% else %}
                 body.append('activate', activate ? '1' : '0');
                 // Sent on every save so the modal's values survive a later
                 // canvas edit. The server treats an absent key as unchanged,
@@ -1784,7 +2112,6 @@ function flowBuilder() {
                 body.append('priority', String(this.settings.priority ?? 0));
                 body.append('once_per_sender_per_post', this.settings.once_per_sender_per_post ? '1' : '0');
                 body.append('name', String(this.settings.name || ''));
-                body.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]')?.value || '');
 
                 const response = await fetch('{% url "automations:flow_save" workspace_id=workspace.id platform_post_id=platform_post.id %}', {
                     method: 'POST',
@@ -1796,6 +2123,7 @@ function flowBuilder() {
                 if (!data.ok) { this.error = data.error || fbLabel('save-failed'); return; }
                 this.status = data.status;
                 this.statusLabel = data.status_label;
+                {% endif %}
             } catch (err) {
                 this.error = fbLabel('save-failed-net');
             } finally {
@@ -1803,6 +2131,7 @@ function flowBuilder() {
             }
         },
 
+        {% if not template_mode %}
         async toggle() {
             this.saving = true;
             this.error = '';
@@ -1824,6 +2153,84 @@ function flowBuilder() {
                 this.saving = false;
             }
         },
+
+        // --- Templates ---------------------------------------------------
+        openTemplates() {
+            this.templatesOpen = true;
+            this.templatesError = '';
+            // Re-fetched each time, like the media picker and for the same
+            // reason: the operator may have published one since this page
+            // loaded, and the list is a few rows.
+            this.loadTemplates();
+        },
+
+        async loadTemplates() {
+            this.templatesLoading = true;
+            try {
+                const response = await fetch('{% url "automations:template_picker" workspace_id=workspace.id %}', {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                });
+                const data = await response.json();
+                this.templates = data.ok ? (data.items || []) : [];
+                if (!data.ok) this.templatesError = data.error || fbLabel('templates-failed');
+            } catch (err) {
+                this.templates = [];
+                this.templatesError = fbLabel('templates-failed-net');
+            } finally {
+                this.templatesLoading = false;
+            }
+        },
+
+        // Replace the canvas with the template's. Confirmed first when there
+        // is something to lose — see the comment above the dialog for why
+        // this replaces rather than merges.
+        //
+        // "Something to lose" is any node beyond the seeded default, which is
+        // a trigger plus one empty message. Asking about *that* canvas would
+        // put a confirm in front of the most common path by far: open a new
+        // flow, immediately pick a template.
+        applyTemplate(item) {
+            const graph = item.graph || {};
+            if (!Array.isArray(graph.nodes) || graph.nodes.length === 0) {
+                this.templatesError = fbLabel('templates-empty');
+                return;
+            }
+            if (this.hasAuthoredWork() && !window.confirm(fbLabel('templates-replace'))) return;
+
+            // Replaced wholesale rather than mutated in place: Alpine tracks
+            // the arrays, and swapping both in one go is what makes the canvas
+            // redraw once instead of per node.
+            this.nodes = graph.nodes.map(n => ({ ...n, data: n.data || {} }));
+            this.edges = graph.edges || [];
+            this.selected = null;
+            this.selectedEdge = null;
+            this.warnings = [];
+            this.templatesOpen = false;
+            // Heights are measured per node id, and every id just changed.
+            this.heights = {};
+            this.$nextTick(() => {
+                this.measure();
+                this.fitView();
+            });
+        },
+
+        // Whether the canvas holds work a template would overwrite. A node
+        // counts as authored if it carries text, keywords, an image or a
+        // button — the seeded default has none of those, and neither does a
+        // step somebody added and has not filled in yet.
+        hasAuthoredWork() {
+            return this.nodes.some(node => {
+                const data = node.data || {};
+                if ((data.text || '').trim()) return true;
+                if ((data.image_url || '').trim()) return true;
+                if ((data.value || '').trim()) return true;
+                if (Array.isArray(data.buttons) && data.buttons.length) return true;
+                if (Array.isArray(data.keywords) && data.keywords.length) return true;
+                if (Array.isArray(data.exclude_keywords) && data.exclude_keywords.length) return true;
+                return false;
+            });
+        },
+        {% endif %}
     };
 }
 </script>

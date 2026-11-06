@@ -61,6 +61,15 @@ decides what is drawn.
     <span class="sidebar-nav-label">{% translate "Subscriptions" %}</span>
 </a>
 
+{# The product's own content, rather than an account's: it sits after #}
+{# the three billing screens because it is a different kind of thing, #}
+{# and before the audit log because that reads last. #}
+<a href="{% url 'automations_staff:template_list' %}"
+   class="sidebar-nav-item mb-1 {% if admin_active == 'flow_templates' %}active{% endif %}">
+    <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+    <span class="sidebar-nav-label">{% translate "Flow templates" %}</span>
+</a>
+
 <a href="{% url 'billing_staff:impersonation_log' %}"
    class="sidebar-nav-item mb-1 {% if admin_active == 'impersonations' %}active{% endif %}">
     <svg class="flex-shrink-0" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg>

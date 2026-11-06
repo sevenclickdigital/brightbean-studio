@@ -89,6 +89,10 @@ urlpatterns = [
     # the path that a membership check could key on. Gated on is_staff in
     # the views.
     path("billing/staff/", include("apps.billing.staff_urls")),
+    # The flow template library, for the same reason and under the same gate:
+    # the shelf belongs to the product, not to a workspace, so there is no
+    # workspace in the path for a membership check to key on.
+    path("automations/staff/templates/", include("apps.automations.staff_urls")),
     # Client Portal (Stream F)
     path("portal/", include("apps.client_portal.urls")),
     path("notifications/", include("apps.notifications.urls")),

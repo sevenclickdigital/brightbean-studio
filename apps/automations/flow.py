@@ -47,6 +47,7 @@ __all__ = [
     "CompiledFlow",
     "compile_graph",
     "default_graph",
+    "instantiate_graph",
     "rule_can_act",
     "unsupported_nodes",
 ]
@@ -180,6 +181,77 @@ def default_graph(kind: str = "dm") -> dict[str, Any]:
         }
 
     return {"nodes": [trigger, dm], "edges": [{"from": "trigger", "to": "dm"}]}
+
+
+def instantiate_graph(graph: Any, *, prefix: str = "t") -> dict[str, Any]:
+    """Copy a stored graph into one safe to drop onto a canvas, with fresh ids.
+
+    Used when a template is applied. The copy is deep in the sense that matters
+    — no node's ``data`` dict is shared with the source — because the template
+    row stays in the library and must not change when the author edits the
+    canvas they started from it.
+
+    **Node ids are rewritten, and every edge is rewritten to match.** Template
+    ids are whatever the operator's canvas produced (``trigger``, ``dm-k3f9s``),
+    and those collide with the ids already on the author's canvas when a
+    template is added to an existing drawing rather than an empty one. A
+    collision does not fail loudly: it produces two nodes answering to one id,
+    and the editor then moves both when one is dragged. Renaming on the way in
+    is the only point where the two id spaces are both visible.
+
+    Edges whose endpoints are not in the mapping are dropped rather than kept
+    with a dangling id — the stored graph comes from a ``JSONField``, so a
+    half-written edge is possible, and an edge to a node that does not exist
+    draws a line to the canvas origin.
+
+    ``branch`` is carried through untouched. It labels *which* output a wire
+    leaves by ("true"/"false" on a condition, a button index on a message), and
+    it is a property of the edge rather than a reference to a node id, so
+    rewriting it would send taps down the wrong path.
+    """
+    nodes = _nodes(graph)
+
+    # Positions survive the copy: the layout is most of what a template is
+    # worth. Only the ids change.
+    renamed: dict[str, str] = {}
+    out_nodes: list[dict[str, Any]] = []
+    for index, node in enumerate(nodes):
+        old_id = node.get("id")
+        new_id = f"{prefix}{index}-{node['type']}"
+        if isinstance(old_id, str) and old_id:
+            renamed[old_id] = new_id
+        data = node.get("data")
+        out_nodes.append(
+            {
+                "id": new_id,
+                "type": node["type"],
+                "x": node.get("x", 0),
+                "y": node.get("y", 0),
+                # ``dict(...)`` and not the dict itself: a shallow copy is
+                # enough to stop the author's edits reaching the template row,
+                # because the editor replaces values on ``data`` rather than
+                # mutating what is under them.
+                "data": dict(data) if isinstance(data, dict) else {},
+            }
+        )
+
+    out_edges: list[dict[str, Any]] = []
+    raw_edges = graph.get("edges") if isinstance(graph, dict) else None
+    if isinstance(raw_edges, list):
+        for edge in raw_edges:
+            if not isinstance(edge, dict):
+                continue
+            source = renamed.get(edge.get("from"))
+            target = renamed.get(edge.get("to"))
+            if not source or not target:
+                continue
+            new_edge: dict[str, Any] = {"from": source, "to": target}
+            branch = edge.get("branch")
+            if branch not in (None, ""):
+                new_edge["branch"] = branch
+            out_edges.append(new_edge)
+
+    return {"nodes": out_nodes, "edges": out_edges}
 
 
 def _nodes(graph: Any) -> list[dict[str, Any]]:

@@ -7,7 +7,7 @@ context before any of them run.
 
 from django.urls import path
 
-from . import flow_views, views
+from . import flow_views, template_views, views
 
 app_name = "automations"
 
@@ -38,6 +38,10 @@ urlpatterns = [
     # Workspace-scoped rather than per-post: the library belongs to the
     # workspace, and the picker asks the same question whichever flow is open.
     path("media/", flow_views.flow_media, name="flow_media"),
+    # The template picker reads the product-wide library, so like the media
+    # endpoint above it is workspace-scoped only for the permission check —
+    # what it returns is the same for every workspace.
+    path("templates/", template_views.template_picker, name="template_picker"),
     # "New rule": the builder before it knows what it answers for. Has no
     # post in the URL because choosing one is what this screen is for.
     path("new/", flow_views.flow_new, name="flow_new"),

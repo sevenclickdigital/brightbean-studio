@@ -267,6 +267,82 @@ class PostAutomation(models.Model):
         return bool(self.armed_post_id)
 
 
+class FlowTemplate(models.Model):
+    """A ready-made canvas the operator publishes and any author can start from.
+
+    The product's own library, not a workspace's: these are written once by the
+    operator and offered to every customer, which is why there is no
+    ``workspace`` column and why every write is behind ``is_staff`` (see
+    ``apps.automations.template_views``). A workspace-scoped library would be a
+    second visibility rule on the same table, and the question "can this
+    workspace see this template?" would then have two answers to keep in
+    agreement.
+
+    **It stores a graph, not a rule.** A template is the *drawing* — the same
+    ``{"nodes": [...], "edges": [...]}`` a ``PostAutomation`` holds — because
+    that is the thing being reused. Compiling it into rule fields here would
+    throw away node positions and the steps the engine does not run yet, and
+    applying it would then have to invent a layout. Applying a template is
+    therefore a copy of this graph onto a canvas with fresh node ids; the rule
+    is still produced by the author's first save, by the one compiler
+    (:mod:`apps.automations.flow`) every other path goes through.
+
+    **Nothing links back.** A flow started from a template keeps no reference to
+    it, so editing a template never reaches into flows already drawn from it.
+    That is the behaviour a template needs: it is a starting point the author
+    then owns, and a live edit to somebody's running automation is not something
+    the operator should be able to cause from this screen.
+
+    ``thumbnail`` is uploaded rather than rendered from the graph. The operator
+    is choosing what the customer recognises the template by, and a mini-map of
+    nodes makes every template look like every other one.
+    """
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=120)
+    #: Shown under the name in the picker. One line — the picker is a grid of
+    #: cards, and a card that grows with its description breaks the row.
+    description = models.CharField(max_length=240, blank=True, default="")
+
+    #: Optional: a template with no image falls back to a drawn placeholder in
+    #: the picker, so a half-finished template is still usable rather than
+    #: invisible.
+    thumbnail = models.ImageField(upload_to="flow_templates/%Y/%m/", blank=True)
+
+    #: The canvas, in the shape ``PostAutomation.graph`` uses. Written by the
+    #: same editor, read by the same compiler.
+    graph = models.JSONField(default=dict, blank=True)
+
+    #: Unpublished templates are editable but not offered. The operator needs
+    #: somewhere to build one over several sittings without it appearing in
+    #: every customer's picker half-drawn.
+    is_published = models.BooleanField(default=False, db_index=True)
+    #: Manual ordering, lowest first. The library is a curated shelf — the
+    #: operator decides what a new author sees first, which alphabetical order
+    #: and creation date both get wrong.
+    position = models.IntegerField(default=0)
+
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="created_flow_templates",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "automation_flow_template"
+        # The shelf order, with ``-created_at`` as the tiebreak so two
+        # templates left at the default position still have a stable order
+        # rather than one the database picks per query.
+        ordering = ["position", "-created_at"]
+
+    def __str__(self) -> str:
+        return self.name
+
+
 class FlowRun(models.Model):
     """One person's journey through one flow — the state a button click resumes.
 
