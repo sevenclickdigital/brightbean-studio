@@ -66,20 +66,23 @@ When the code and a doc disagree, the code is right — fix the doc in the same 
 - Tests run against **PostgreSQL** (`config.settings.test`, database `brightbean_test`), never SQLite. Local Postgres: `docker compose up postgres -d`.
 - Write tests for what protects the app: tenant isolation, permissions, money/billing, publishing, provider payloads, webhooks, migrations over existing rows, and every fixed bug. Pure copy/layout changes don't need tests.
 - Mock only external boundaries (provider `_request`, Asaas, email). Use the fixtures in the root `conftest.py` (`user`, `organization`, `org_owner`).
-- Run the narrowest set that covers the change: `.venv/bin/pytest path/to/test_file.py -x -q`.
+- Run tests only for the specific area you developed, and only when it is actually needed: `.venv/bin/pytest apps/<app>/tests/test_<area>.py -x -q`. Never the full suite — CI runs it.
+- When an elaborate test isn't needed, verify with a quick script (`manage.py shell -c`, a throwaway file in `/tmp`) or in the browser through the Chrome DevTools MCP against `runserver 8003`.
 - Skill: `pytest-project`.
 
 ## Before calling a task done
+
+Run the `implementation-checklist` skill (the Stop hook asks for it when there are uncommitted code changes). The mechanical part:
 
 ```bash
 .venv/bin/ruff check . && .venv/bin/ruff format --check .
 .venv/bin/mypy apps/ config/ providers/ tests/ --ignore-missing-imports   # when Python types changed
 .venv/bin/python manage.py makemigrations --check --dry-run
-.venv/bin/pytest <affected tests> -x -q
+.venv/bin/pytest <tests of the area you changed> -x -q              # only when needed
 .venv/bin/python manage.py check
 ```
 
-Never report a task as finished with lint, migrations or the affected tests failing. If something could not be run (e.g. Postgres down), say so.
+Never report a task as finished with lint, migrations or the tests you ran failing. If something could not be run (e.g. Postgres down), say so.
 
 ## Hooks
 
@@ -90,10 +93,13 @@ Never report a task as finished with lint, migrations or the affected tests fail
 - checks that an edited `models.py` has its migration;
 - asks the reuse question when a new file is created.
 
-When the hook reports a problem, fix it before moving on. When it asks the reuse question, answer in one line with what you searched — don't restate the question.
+`.claude/hooks/checklist.py` reminds you to read the `implementation-checklist` skill when a prompt arrives, and at the end of a turn with uncommitted code changes it asks you to run the checklist once for those changes.
+
+When a hook reports a problem, fix it before moving on. When it asks the reuse question, answer in one line with what you searched — don't restate the question.
 
 ## Skills (`.claude/skills/`)
 
+- `implementation-checklist` — read before implementing, run before saying the task is done. Always.
 - `reuse-check` — before creating any file; when the hook asks.
 - `django-templates` — templates, HTMX, Alpine.
 - `translation` — any user-facing text, the `.po` catalogue, Portuguese vocabulary.

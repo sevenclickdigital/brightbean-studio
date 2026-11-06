@@ -1,6 +1,6 @@
 ---
 name: pytest-project
-description: "Use when writing, fixing or running tests in this project: what deserves a test, PostgreSQL test setup, fixtures, mocking providers and external services, HTMX/HX-Trigger assertions, migration tests over seeded data, and how to run the narrowest set."
+description: "Use when writing, fixing or running tests in this project: what deserves a test, PostgreSQL test setup, fixtures, mocking providers and external services, HTMX/HX-Trigger assertions, migration tests over seeded data, and how to run only the tests of the area changed."
 ---
 
 # Tests in BrightBean
@@ -10,7 +10,7 @@ description: "Use when writing, fixing or running tests in this project: what de
 - Settings: `config.settings.test` (from `pyproject.toml`), database **PostgreSQL** `brightbean_test`. Never SQLite.
 - `factory-boy` is in `requirements.txt` but no test uses it; build objects with `Model.objects.create(...)` like the existing tests.
 - Local Postgres: `docker compose up postgres -d` (defaults `postgres/postgres@localhost:5432`).
-- Run: `.venv/bin/pytest path/to/test_file.py -x -q`, or `-k name`. Full suite only when the change is broad: `.venv/bin/pytest -q`.
+- Run: `.venv/bin/pytest path/to/test_file.py -x -q`, or `-k name`. Only the tests of the area you changed, and only when needed; never the full suite (CI runs it). When a test would be overkill, verify with a quick script or the Chrome DevTools MCP instead (`implementation-checklist` §10).
 - Test files: `apps/<app>/tests/test_*.py`, `apps/<app>/test_*.py` or `tests.py`; provider tests in `tests/providers/`.
 
 ## What deserves a test
