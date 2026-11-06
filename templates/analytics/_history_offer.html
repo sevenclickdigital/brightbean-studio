@@ -32,6 +32,12 @@ result (ImportResult, only after an import ran).
         {% plural %}
           {{ counter }} posts imported. Their metrics arrive on the next sync.
         {% endblocktranslate %}
+      {% elif historical_rows %}
+        {% comment %}
+        Nothing new in the table, but the chart gained the days before this
+        channel was connected — worth saying, or the button looks inert.
+        {% endcomment %}
+        {% translate "Every post was already here. The chart now covers the days before this channel was connected." %}
       {% else %}
         {% translate "Nothing new to import — every post on this channel is already here." %}
       {% endif %}

@@ -26,7 +26,7 @@ from .meta_comments import (
     find_own_instagram_comment,
     resolve_comment_reply_target,
 )
-from .meta_insights import fetch_insights_safe
+from .meta_insights import fetch_insights_safe, fetch_insights_series
 from .meta_messaging import (
     build_send_payload,
     dm_extra,
@@ -512,6 +512,24 @@ class InstagramLoginProvider(SocialProvider):
             owner="me",
             access_token=access_token,
             limit=limit,
+        )
+
+    #: See ``InstagramProvider.HISTORICAL_ACCOUNT_METRICS`` — same API, same
+    #: limit: only reach is served as a daily series.
+    HISTORICAL_ACCOUNT_METRICS = ("reach",)
+
+    def get_account_metrics_series(
+        self, access_token: str, date_range: tuple[datetime, datetime]
+    ) -> dict[str, dict[str, float]]:
+        """Daily reach for the range."""
+        return fetch_insights_series(
+            self._request,
+            platform=self.platform_name,
+            endpoint=f"{API_BASE}/me/insights",
+            access_token=access_token,
+            metrics=list(self.HISTORICAL_ACCOUNT_METRICS),
+            since=int(date_range[0].timestamp()),
+            until=int(date_range[1].timestamp()),
         )
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:

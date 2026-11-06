@@ -21,7 +21,7 @@ from .meta_feed_extras import (
     parse_place_results,
     strip_feed_extras,
 )
-from .meta_insights import fetch_insights_safe, parse_insights_response
+from .meta_insights import fetch_insights_safe, fetch_insights_series, parse_insights_response
 from .meta_messaging import (
     build_send_payload,
     dm_extra,
@@ -912,6 +912,38 @@ class FacebookProvider(SocialProvider):
             access_token=access_token,
             limit=limit,
         )
+
+    #: Graph's name for a daily page metric, against the key the analytics
+    #: catalog stores it under. Page insights come back as a daily series
+    #: natively — unlike Instagram's, none of these need ``metric_type`` — so
+    #: a backfill can rebuild all of them. Mapped here rather than by the
+    #: caller because this provider is already the one place that knows both
+    #: names; ``get_account_metrics`` does the same translation for totals.
+    HISTORICAL_ACCOUNT_METRICS = {
+        "page_total_media_view_unique": "reach",
+        "page_media_view": "views",
+        "page_daily_follows_unique": "follows",
+        "page_post_engagements": "engagement",
+    }
+
+    def get_account_metrics_series(
+        self, access_token: str, date_range: tuple[datetime, datetime]
+    ) -> dict[str, dict[str, float]]:
+        """Daily page insights for the range, keyed as the catalog stores them."""
+        raw = fetch_insights_series(
+            self._request,
+            platform=self.platform_name,
+            endpoint=f"{BASE_URL}/{self.credentials.get('page_id', 'me')}/insights",
+            access_token=access_token,
+            metrics=list(self.HISTORICAL_ACCOUNT_METRICS),
+            since=int(date_range[0].timestamp()),
+            until=int(date_range[1].timestamp()),
+        )
+        return {
+            self.HISTORICAL_ACCOUNT_METRICS[name]: points
+            for name, points in raw.items()
+            if name in self.HISTORICAL_ACCOUNT_METRICS
+        }
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:
         page_id = self.credentials.get("page_id", "me")

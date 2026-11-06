@@ -20,7 +20,7 @@ from .meta_comments import (
     find_own_instagram_comment,
     resolve_comment_reply_target,
 )
-from .meta_insights import fetch_insights_safe
+from .meta_insights import fetch_insights_safe, fetch_insights_series
 from .meta_messaging import (
     InstagramMessageBatch,
     build_send_payload,
@@ -553,6 +553,26 @@ class InstagramProvider(SocialProvider):
             owner=self._get_ig_user_id(access_token),
             access_token=access_token,
             limit=limit,
+        )
+
+    #: Account metrics Meta will break out per day. The rest of
+    #: ``INSTAGRAM_ACCOUNT_INSIGHTS`` are ``total_value`` only — the API
+    #: returns a single number for the whole range however it is asked — so a
+    #: backfill can rebuild the reach chart and nothing else.
+    HISTORICAL_ACCOUNT_METRICS = ("reach",)
+
+    def get_account_metrics_series(
+        self, access_token: str, date_range: tuple[datetime, datetime]
+    ) -> dict[str, dict[str, float]]:
+        """Daily reach for the range. See ``HISTORICAL_ACCOUNT_METRICS``."""
+        return fetch_insights_series(
+            self._request,
+            platform=self.platform_name,
+            endpoint=f"{BASE_URL}/{self._get_ig_user_id(access_token)}/insights",
+            access_token=access_token,
+            metrics=list(self.HISTORICAL_ACCOUNT_METRICS),
+            since=int(date_range[0].timestamp()),
+            until=int(date_range[1].timestamp()),
         )
 
     def get_account_metrics(self, access_token: str, date_range: tuple[datetime, datetime]) -> AccountMetrics:

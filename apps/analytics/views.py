@@ -331,6 +331,15 @@ def history_import_view(request: HttpRequest, workspace_id, account_id) -> HttpR
 
     result = history_import.import_history(account)
 
+    # The posts and the chart are two halves of the same gap: the table was
+    # empty because this product published none of these posts, and the chart
+    # started at connection because nothing had measured the days before it.
+    # One button closes both, because to the person looking at the page they
+    # are the same complaint.
+    from .tasks import backfill_account_series
+
+    historical_rows = backfill_account_series(account)
+
     return render(
         request,
         "analytics/_history_offer.html",
@@ -341,6 +350,7 @@ def history_import_view(request: HttpRequest, workspace_id, account_id) -> HttpR
             # imported. The panel renders its "done" state off ``result``.
             "importable": 0,
             "result": result,
+            "historical_rows": historical_rows,
             "can_import": True,
         },
     )

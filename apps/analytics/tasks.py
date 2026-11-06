@@ -1442,6 +1442,101 @@ def _sync_one_account(account, on_date, now, *, cache, force_today=False, deadli
 
 
 # ---------------------------------------------------------------------------
+# Historical account series
+# ---------------------------------------------------------------------------
+
+
+def backfill_account_series(account, *, days: int | None = None, provider=None, access_token: str | None = None) -> int:
+    """Write one snapshot row per metric per day for the days before today.
+
+    The chart is drawn from ``AccountInsightsSnapshot``, one row per metric
+    per day, and the ordinary sync only ever writes today's. So an account
+    connected on the 2nd could only be charted from the 2nd, however much
+    history the platform was willing to hand over — which is what this reads
+    (``provider.get_account_metrics_series``).
+
+    Returns the number of rows written. Zero is the normal answer for a
+    platform with no daily series to give, and for a range the account has
+    already been measured across.
+
+    **Existing rows are left alone.** A day this product measured itself was
+    measured at the time, with whatever the platform reported then; the
+    historical read is Meta's current recollection of the same day and is the
+    weaker of the two. Only gaps are filled.
+    """
+    from .models import AccountInsightsSnapshot
+
+    cap = BACKFILL_DAYS_PER_PLATFORM.get(account.platform, DEFAULT_BACKFILL_DAYS)
+    if cap == 0:
+        return 0
+    days = min(days or cap, cap)
+
+    if provider is None or access_token is None:
+        try:
+            provider, access_token = _analytics_provider_and_token(account)
+        except Exception as exc:
+            logger.warning("analytics series: no provider for %s: %s", account, exc)
+            return 0
+
+    now = timezone.now()
+    try:
+        series = provider.get_account_metrics_series(access_token, (now - timedelta(days=days), now))
+    except TokenExpiredError:
+        logger.warning("analytics series: %s rejected our token for %s", account.platform, account)
+        _mark_needs_reconnect(account)
+        return 0
+    except Exception as exc:
+        # Broad by intent: this runs behind a user-facing import, and every
+        # provider failure means the same thing to the caller — no history to
+        # write. The specific error is logged, not raised.
+        logger.warning("analytics series: %s refused the history read: %s", account.platform, exc)
+        return 0
+
+    if not series:
+        return 0
+
+    # Today is the sync's to own: it is still accumulating, and a historical
+    # read of a part-finished day would overwrite a fresher number with a
+    # staler one.
+    today = now.date()
+    existing = set(
+        AccountInsightsSnapshot.objects.filter(
+            social_account=account,
+            metric_key__in=series.keys(),
+        ).values_list("metric_key", "date")
+    )
+
+    rows = []
+    for metric_key, points in series.items():
+        for day_iso, value in points.items():
+            try:
+                on_date = dt_date.fromisoformat(day_iso)
+            except ValueError:
+                continue
+            if on_date >= today or (metric_key, on_date) in existing:
+                continue
+            rows.append(
+                AccountInsightsSnapshot(
+                    social_account=account,
+                    metric_key=metric_key,
+                    date=on_date,
+                    value=value,
+                    raw={"source": "historical_backfill"},
+                )
+            )
+
+    if not rows:
+        return 0
+
+    # ignore_conflicts rather than a second existence check: the ordinary sync
+    # can write today's row while this is running, and losing the race must
+    # not fail the whole import.
+    AccountInsightsSnapshot.objects.bulk_create(rows, ignore_conflicts=True)
+    logger.info("analytics series: %s — %s historical rows written", account, len(rows))
+    return len(rows)
+
+
+# ---------------------------------------------------------------------------
 # Public entrypoints
 # ---------------------------------------------------------------------------
 

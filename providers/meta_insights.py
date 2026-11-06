@@ -44,6 +44,97 @@ def parse_insights_response(data: dict[str, Any]) -> dict[str, Any]:
     return values
 
 
+def fetch_insights_series(
+    request: Callable[..., Any],
+    *,
+    platform: str,
+    endpoint: str,
+    access_token: str,
+    metrics: list[str],
+    since: int,
+    until: int,
+) -> dict[str, dict[str, float]]:
+    """Daily values for each metric over ``since``..``until``, as UNIX stamps.
+
+    One request per metric, like :func:`fetch_insights_safe` and for the same
+    reason: Meta rejects the whole call when any one metric in it is invalid
+    for the account, so asking separately is what keeps one unsupported
+    metric from emptying the backfill.
+
+    A metric the platform refuses contributes nothing and is logged. The
+    caller gets whatever the platform was willing to serve, which is the only
+    useful answer for a backfill — there is no partial failure worth aborting
+    on when the alternative is no history at all.
+    """
+    series: dict[str, dict[str, float]] = {}
+    for metric in metrics:
+        try:
+            resp = request(
+                "GET",
+                endpoint,
+                access_token=access_token,
+                params={
+                    "metric": metric,
+                    "period": "day",
+                    "since": since,
+                    "until": until,
+                },
+            )
+        except APIError as exc:
+            if is_meta_permission_error(exc):
+                raise
+            logger.warning("Skipping %s historical metric %s: %s", platform, metric, exc)
+            continue
+        series.update(parse_insights_series(resp.json()))
+    return series
+
+
+def parse_insights_series(data: dict[str, Any]) -> dict[str, dict[str, float]]:
+    """``{metric: {"YYYY-MM-DD": value}}`` — the daily series, not one number.
+
+    The companion to :func:`parse_insights_response`, which answers "what is
+    this metric now" by reading ``values[0]``. A ``period=day`` request over a
+    date range returns one entry per day in ``values``, and that whole list is
+    what a backfill needs: without it an account connected today can only ever
+    chart from today, however much history the platform is willing to hand
+    over.
+
+    Added alongside rather than folded into the existing parser. That one is
+    on the hot path for every publish and every sync in all three Meta
+    providers, and widening its return type to serve this one caller would be
+    a change to code that is working.
+
+    ``end_time`` is the *end* of the day the value covers, which Meta stamps
+    at 07:00 UTC of the following day. The date is taken from it as-is: the
+    series is what the platform reported for that stamp, and shifting it here
+    would make this parser disagree with the platform's own dashboard.
+
+    Entries without a usable date are skipped — a metric that came back as a
+    lifetime total has nothing to place on a timeline.
+    """
+    series: dict[str, dict[str, float]] = {}
+    for entry in data.get("data", []):
+        name = entry.get("name", "")
+        if not name or not isinstance(entry.get("values"), list):
+            continue
+        points: dict[str, float] = {}
+        for point in entry["values"]:
+            if not isinstance(point, dict):
+                continue
+            end_time = point.get("end_time")
+            if not isinstance(end_time, str) or len(end_time) < 10:
+                continue
+            value = point.get("value")
+            # A breakdown comes back as a dict of segments; the series is
+            # about the metric as a whole, so only scalars are placed.
+            if isinstance(value, bool) or not isinstance(value, int | float):
+                continue
+            points[end_time[:10]] = float(value)
+        if points:
+            series[name] = points
+    return series
+
+
 def is_meta_permission_error(exc: APIError) -> bool:
     """Return true for Meta auth/scope errors that should trigger reconnect handling."""
     error = exc.raw_response.get("error") if isinstance(exc.raw_response, dict) else None

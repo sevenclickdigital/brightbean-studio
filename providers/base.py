@@ -287,6 +287,23 @@ class SocialProvider(ABC):
         """Fetch account-level metrics for a date range."""
         raise NotImplementedError(f"{self.platform_name} does not support account metrics")
 
+    def get_account_metrics_series(
+        self, access_token: str, date_range: tuple[datetime, datetime]
+    ) -> dict[str, dict[str, float]]:
+        """``{metric: {"YYYY-MM-DD": value}}`` across ``date_range``.
+
+        What :meth:`get_account_metrics` returns as a single total, broken out
+        per day. The chart is drawn from one stored row per metric per day, so
+        an account can only be charted from the day it was connected unless
+        the platform will hand over the days before it — which this is the
+        read for.
+
+        Returns ``{}`` for a platform that will not: a chart that starts at
+        connection is the status quo, not a failure, and the caller has
+        nothing different to do about it.
+        """
+        return {}
+
     def get_audience_demographics(self, access_token: str) -> Demographics:
         """Fetch audience demographic data."""
         raise NotImplementedError(f"{self.platform_name} does not support demographics")

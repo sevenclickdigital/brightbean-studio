@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: BrightBean Studio\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 18:41+0000\n"
+"POT-Creation-Date: 2026-11-06 19:44+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: Seven Click\n"
 "Language-Team: Português (Brasil)\n"
@@ -1832,27 +1832,40 @@ msgstr "Estimado pela BrightBean a partir das contagens por %(content_noun)s"
 msgid "%(counter)s post imported. Its metrics arrive on the next sync."
 msgid_plural ""
 "%(counter)s posts imported. Their metrics arrive on the next sync."
-msgstr[0] "%(counter)s publicação importada. As métricas chegam na próxima sincronização."
-msgstr[1] "%(counter)s publicações importadas. As métricas chegam na próxima sincronização."
+msgstr[0] ""
+"%(counter)s publicação importada. As métricas chegam na próxima "
+"sincronização."
+msgstr[1] ""
+"%(counter)s publicações importadas. As métricas chegam na próxima "
+"sincronização."
 
-#: templates/analytics/_history_offer.html:37
+#: templates/analytics/_history_offer.html:42
+msgid ""
+"Every post was already here. The chart now covers the days before this "
+"channel was connected."
+msgstr "Todas as publicações já estavam aqui. O gráfico agora cobre os dias anteriores à conexão deste canal."
+
+#: templates/analytics/_history_offer.html:44
 msgid "Nothing new to import — every post on this channel is already here."
-msgstr "Nada novo para importar — todas as publicações deste canal já estão aqui."
+msgstr ""
+"Nada novo para importar — todas as publicações deste canal já estão aqui."
 
-#: templates/analytics/_history_offer.html:47
+#: templates/analytics/_history_offer.html:54
 #, python-format
 msgid "%(counter)s post on this channel isn't here yet"
 msgid_plural "%(counter)s posts on this channel aren't here yet"
 msgstr[0] "%(counter)s publicação deste canal ainda não está aqui"
 msgstr[1] "%(counter)s publicações deste canal ainda não estão aqui"
 
-#: templates/analytics/_history_offer.html:60
+#: templates/analytics/_history_offer.html:67
 msgid ""
 "Posts published outside Brightbean. Import them to see them here — their "
 "metrics follow on the next sync."
-msgstr "Publicações feitas fora do Brightbean. Importe para vê-las aqui — as métricas chegam na próxima sincronização."
+msgstr ""
+"Publicações feitas fora do Brightbean. Importe para vê-las aqui — as "
+"métricas chegam na próxima sincronização."
 
-#: templates/analytics/_history_offer.html:71
+#: templates/analytics/_history_offer.html:78
 msgid "Import"
 msgstr "Importar"
 
